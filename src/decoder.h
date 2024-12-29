@@ -4,7 +4,6 @@
 #include "registers.h"
 #include "opcodes.h"
 
-#include <expected>
 #include <string>
 
 class Memory;

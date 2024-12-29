@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "cpu.h"
 #include "registers.h"
 

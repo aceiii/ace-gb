@@ -55,7 +55,7 @@ struct Registers {
     return vals[std::to_underlying(reg)];
   }
 
-  inline uint8_t& get(Reg8 reg) const {
+  inline uint8_t& get(Reg8 reg) {
     return vals[std::to_underlying(reg)];
   }
 
