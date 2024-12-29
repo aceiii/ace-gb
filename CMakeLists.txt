@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(aceboy VERSION 0.0.1 LANGUAGES CXX)
+project(ace-gb VERSION 0.0.1 LANGUAGES CXX)
 
-set(EXE_NAME aceboy)
+set(EXE_NAME ace-gb)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
