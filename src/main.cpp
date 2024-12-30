@@ -71,9 +71,6 @@ auto main(int argc, char *argv[]) -> int {
   regs.set(Flag::H, 1);
   regs.set(Flag::C, 0);
 
-  Registers reg_b;
-  regs = reg_b;
-
   spdlog::info("flag z: {}", regs.get(Flag::Z));
   spdlog::info("flag n: {}", regs.get(Flag::N));
   spdlog::info("flag h: {}", regs.get(Flag::H));
