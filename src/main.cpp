@@ -1,9 +1,11 @@
-#include "interface.h"
-#include "registers.h"
-
 #include <argparse/argparse.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
+
+#include "cpu.h"
+#include "interface.h"
+#include "registers.h"
+
 
 int run_cpu_tests();
 
@@ -53,7 +55,8 @@ auto main(int argc, char *argv[]) -> int {
     return run_cpu_tests();
   }
 
-  Registers regs;
+  CPU cpu(65536);
+  Registers &regs = cpu.regs;
 
   regs.set(Reg8::A, 1);
   regs.set(Reg8::F, 0b10001111);
@@ -104,6 +107,8 @@ auto main(int argc, char *argv[]) -> int {
   spdlog::info("bc: {:016b} = {}", regs.get(Reg16::BC), regs.get(Reg16::BC));
   spdlog::info("de: {:016b} = {}", regs.get(Reg16::DE), regs.get(Reg16::DE));
   spdlog::info("hl: {:016b} = {}", regs.get(Reg16::HL), regs.get(Reg16::HL));
+
+  cpu.execute();
 
   spdlog::info("Exiting.");
 

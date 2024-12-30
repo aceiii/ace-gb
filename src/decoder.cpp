@@ -656,9 +656,9 @@ Instruction decode(const uint8_t *memory, uint8_t addr) {
             Operands{{Reg8::A, true}, {Immediate8{n8}, true}}};
   case 0xFF:
     return {Opcode::RST, 1, 16, Operands{{Immediate16{0x38}, true}}};
+  default:
+    return {Opcode::Invalid, 1, 4, std::nullopt};
   }
-
-  return {Opcode::Invalid, 1, 4, std::nullopt};
 }
 
 }

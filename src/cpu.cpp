@@ -1,6 +1,8 @@
-#include "cpu.h"
-
+#include <cassert>
 #include <variant>
+#include <spdlog/spdlog.h>
+
+#include "cpu.h"
 
 template <class... Ts>
 struct overloaded : Ts... { using Ts::operator()...; };
@@ -14,8 +16,14 @@ void instr_add8(uint8_t &dst, uint8_t &src, Registers& regs) {
   regs.set(Flag::N, 0);
 }
 
+CPU::CPU(size_t mem_size):memory(Mem::create_memory(mem_size)) {}
+
 void CPU::execute() {
+  assert(memory.get() != nullptr);
+
   Instruction instr = Decoder::decode(memory.get(), regs.pc);
+
+  spdlog::debug("Decoded: {}", instr);
 
   uint8_t *dst_ptr = nullptr;
   uint8_t *src_ptr = nullptr;

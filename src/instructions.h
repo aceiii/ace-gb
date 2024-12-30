@@ -1,12 +1,15 @@
 #pragma once
 
-#include "opcodes.h"
-#include "registers.h"
-
 #include <array>
 #include <variant>
 #include <optional>
 #include <string_view>
+#include <magic_enum/magic_enum.hpp>
+#include <spdlog/fmt/fmt.h>
+
+#include "opcodes.h"
+#include "registers.h"
+
 
 enum class Cond {
   NZ = 0,
@@ -66,4 +69,16 @@ struct Instruction {
   size_t bytes;
   CycleCount cycles;
   std::optional<Operands> operands;
+};
+
+template <>
+struct fmt::formatter<Instruction> {
+public:
+  constexpr auto parse(fmt::format_parse_context &ctx) {
+    return ctx.begin();
+  }
+
+  auto format(const Instruction &instr, fmt::format_context &ctx) const {
+    return fmt::format_to(ctx.out(), "Instr({})", magic_enum::enum_name(instr.opcode));
+  }
 };

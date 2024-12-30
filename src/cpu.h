@@ -15,6 +15,10 @@ struct State {
 
 class CPU {
 public:
+  CPU() = default;
+
+  explicit CPU(size_t mem_size);
+
   void execute();
   void run();
 
