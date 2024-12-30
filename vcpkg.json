@@ -5,6 +5,7 @@
         "magic-enum",
         "raylib",
         "imgui",
-        "tomlplusplus"
+        "tomlplusplus",
+        "glfw3"
     ]
 }

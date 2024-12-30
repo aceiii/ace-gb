@@ -4,7 +4,7 @@
 #include "registers.h"
 #include "memory.h"
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <optional>
 #include <unordered_map>
 #include <utility>

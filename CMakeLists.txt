@@ -30,6 +30,7 @@ find_package(argparse CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(raylib CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
 
 add_executable(${EXE_NAME} ${SOURCE_FILES})
 
@@ -39,5 +40,6 @@ target_link_libraries(${EXE_NAME} PRIVATE magic_enum::magic_enum)
 target_link_libraries(${EXE_NAME} PRIVATE raylib)
 target_link_libraries(${EXE_NAME} PRIVATE rlimgui)
 target_link_libraries(${EXE_NAME} PRIVATE nfd)
+target_link_libraries(${EXE_NAME} PRIVATE glfw)
 
 target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})

@@ -2,7 +2,7 @@
 #include "registers.h"
 
 #include <argparse/argparse.hpp>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
 static bool set_logging_level(const std::string &level_name) {
