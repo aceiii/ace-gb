@@ -6,9 +6,11 @@
 
 using json = nlohmann::json;
 
+constexpr size_t kTestMemSize = 65536;
+
 int run_cpu_tests() {
   CPU cpu;
-  Registers &regs = cpu.regs;
+  cpu.memory = Mem::create_memory(kTestMemSize);
 
   spdlog::info("Running CPU tests");
 

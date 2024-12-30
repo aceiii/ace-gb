@@ -6,9 +6,6 @@
 
 #include <string>
 
-class Memory;
-
-class Decoder {
-public:
-  Instruction decode(Memory *memory, uint8_t addr);
+namespace Decoder {
+  Instruction decode(const uint8_t* mem, uint8_t addr);
 };

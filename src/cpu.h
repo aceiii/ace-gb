@@ -5,6 +5,7 @@
 #include "memory.h"
 
 #include <memory>
+#include <vector>
 
 struct State {
   bool ime;
@@ -18,8 +19,7 @@ public:
   void run();
 
 public:
-  Memory memory;
-  Registers regs;
-  State state;
-  Decoder decoder;
+  std::unique_ptr<uint8_t[]> memory;
+  Registers regs {};
+  State state {};
 };

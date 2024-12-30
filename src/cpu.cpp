@@ -15,7 +15,7 @@ void instr_add8(uint8_t &dst, uint8_t &src, Registers& regs) {
 }
 
 void CPU::execute() {
-  Instruction instr = decoder.decode(&memory, regs.pc);
+  Instruction instr = Decoder::decode(memory.get(), regs.pc);
 
   uint8_t *dst_ptr = nullptr;
   uint8_t *src_ptr = nullptr;
@@ -29,7 +29,7 @@ void CPU::execute() {
           if (dst.immediate) {
             dst_ptr = &regs.at(reg);
           } else {
-            dst_ptr = &memory.at(regs.get(reg));
+            dst_ptr = &memory[regs.get(reg)];
           }
         },
         [] (auto&) {}
