@@ -10,7 +10,7 @@
 namespace {
   const int kDefaulWindowWidth = 800;
   const int kDefaultWindowHeight = 600;
-  const char* kWindowTitle = "AceBoy - GameBoy Emulator";
+  const char* kWindowTitle = "Ace::GB - GameBoy Emulator";
 
   Emulator emulator;
 }

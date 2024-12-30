@@ -6,6 +6,9 @@
         "raylib",
         "imgui",
         "tomlplusplus",
-        "glfw3"
-    ]
+        "glfw3",
+        "nlohmann-json"
+    ],
+    "version": "0.0.1",
+    "name": "ace-gb"
 }

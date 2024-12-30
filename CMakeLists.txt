@@ -13,6 +13,7 @@ add_compile_definitions(TOML_EXCEPTIONS=0)
 
 set(SOURCE_FILES
     src/main.cpp
+    src/test.cpp
     src/interface.cpp
     src/cpu.cpp
     src/emulator.cpp
@@ -31,6 +32,7 @@ find_package(magic_enum CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(raylib CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 add_executable(${EXE_NAME} ${SOURCE_FILES})
 
@@ -41,5 +43,6 @@ target_link_libraries(${EXE_NAME} PRIVATE raylib)
 target_link_libraries(${EXE_NAME} PRIVATE rlimgui)
 target_link_libraries(${EXE_NAME} PRIVATE nfd)
 target_link_libraries(${EXE_NAME} PRIVATE glfw)
+target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
 target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})

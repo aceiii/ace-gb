@@ -5,6 +5,8 @@
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
+int run_cpu_tests();
+
 static bool set_logging_level(const std::string &level_name) {
   auto level = magic_enum::enum_cast<spdlog::level::level_enum>(level_name);
   if (level.has_value()) {
@@ -17,12 +19,17 @@ static bool set_logging_level(const std::string &level_name) {
 auto main(int argc, char *argv[]) -> int {
   spdlog::set_level(spdlog::level::info);
 
-  argparse::ArgumentParser program("aceboy", "0.0.1");
+  argparse::ArgumentParser program("ace-gb", "0.0.1");
 
   program.add_argument("--log-level")
       .help("Set the verbosity for logging")
       .default_value(std::string("info"))
       .nargs(1);
+
+  program.add_argument("--cpu-test")
+      .help("Run CPU tests")
+      .default_value(false)
+      .implicit_value(true);
 
   try {
     program.parse_args(argc, argv);
@@ -40,6 +47,10 @@ auto main(int argc, char *argv[]) -> int {
               << std::endl;
     std::cerr << program;
     return 1;
+  }
+
+  if (program.get<bool>("--cpu-test")) {
+    return run_cpu_tests();
   }
 
   // Interface interface;
