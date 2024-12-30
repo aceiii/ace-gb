@@ -32,24 +32,10 @@ enum class Reg16 {
   HL = 6,
 };
 
-struct Flags {
-  uint8_t &val;
-
-  inline uint8_t get(Flag flag) const {
-    return (val >> static_cast<int>(flag)) & 1;
-  }
-
-  inline void set(Flag flag, uint8_t bit) {
-    val = (val & ~(1 << static_cast<int>(flag))) | ((bit & 1) << static_cast<int>(flag));
-  }
-};
-
 struct Registers {
-  std::array<uint8_t, std::to_underlying(Reg8::Count)> vals;
-  uint16_t pc;
-  uint16_t sp;
-
-  Flags flags = { vals[std::to_underlying(Reg8::F)] };
+  std::array<uint8_t, std::to_underlying(Reg8::Count)> vals {};
+  uint16_t pc {};
+  uint16_t sp {};
 
   inline uint8_t& at(Reg8 reg) {
     return vals[std::to_underlying(reg)];
@@ -63,7 +49,7 @@ struct Registers {
     vals[std::to_underlying(reg)] = val & (reg == Reg8::F ? 0xf0 : 0xff);
   }
 
-  inline uint16_t get(Reg16 reg) const {
+  [[nodiscard]] inline uint16_t get(Reg16 reg) const {
     int idx = std::to_underlying(reg);
     return (vals[idx] << 8) | vals[idx + 1];
   }
@@ -72,6 +58,15 @@ struct Registers {
     int idx = std::to_underlying(reg);
     vals[idx] = val >> 8;
     vals[idx + 1] = val & (reg == Reg16::AF ? 0xf0 : 0xff);
+  }
+
+  [[nodiscard]] uint8_t get(Flag flag) const {
+    return (vals[std::to_underlying(Reg8::F)] >> static_cast<int>(flag)) & 1;
+  }
+
+  inline void set(Flag flag, uint8_t bit) {
+    auto& val = vals[std::to_underlying(Reg8::F)];
+    val = (val & ~(1 << static_cast<int>(flag))) | ((bit & 1) << static_cast<int>(flag));
   }
 
   inline void reset() {

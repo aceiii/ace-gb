@@ -53,11 +53,7 @@ auto main(int argc, char *argv[]) -> int {
     return run_cpu_tests();
   }
 
-  // Interface interface;
-  // interface.run();
-
   Registers regs;
-  regs.reset();
 
   regs.set(Reg8::A, 1);
   regs.set(Reg8::F, 0b10001111);
@@ -70,15 +66,18 @@ auto main(int argc, char *argv[]) -> int {
   regs.sp = 123;
   regs.pc = 45678;
 
-  regs.flags.set(Flag::Z, 1);
-  regs.flags.set(Flag::N, 0);
-  regs.flags.set(Flag::H, 1);
-  regs.flags.set(Flag::C, 0);
+  regs.set(Flag::Z, 1);
+  regs.set(Flag::N, 0);
+  regs.set(Flag::H, 1);
+  regs.set(Flag::C, 0);
 
-  spdlog::info("flag z: {}", regs.flags.get(Flag::Z));
-  spdlog::info("flag n: {}", regs.flags.get(Flag::N));
-  spdlog::info("flag h: {}", regs.flags.get(Flag::H));
-  spdlog::info("flag c: {}", regs.flags.get(Flag::C));
+  Registers reg_b;
+  regs = reg_b;
+
+  spdlog::info("flag z: {}", regs.get(Flag::Z));
+  spdlog::info("flag n: {}", regs.get(Flag::N));
+  spdlog::info("flag h: {}", regs.get(Flag::H));
+  spdlog::info("flag c: {}", regs.get(Flag::C));
 
   spdlog::info("a: {:08b} = {}", regs.get(Reg8::A), regs.get(Reg8::A));
   spdlog::info("f: {:08b} = {}", regs.get(Reg8::F), regs.get(Reg8::F));

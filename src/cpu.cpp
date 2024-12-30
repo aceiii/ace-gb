@@ -8,10 +8,10 @@ struct overloaded : Ts... { using Ts::operator()...; };
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-void instr_add8(uint8_t &dst, uint8_t &src, Flags &f) {
+void instr_add8(uint8_t &dst, uint8_t &src, Registers& regs) {
   dst = dst + src;
-  f.set(Flag::Z, dst == 0);
-  f.set(Flag::N, 0);
+  regs.set(Flag::Z, dst == 0);
+  regs.set(Flag::N, 0);
 }
 
 void CPU::execute() {
@@ -37,7 +37,7 @@ void CPU::execute() {
   }
 
   switch (instr.opcode) {
-  case Opcode::LD: instr_add8(*dst_ptr, *src_ptr, regs.flags);  break;
+  case Opcode::LD: instr_add8(*dst_ptr, *src_ptr, regs);  break;
   default:
     break;
   }
