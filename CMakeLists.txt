@@ -14,11 +14,20 @@ add_compile_definitions(TOML_EXCEPTIONS=0)
 set(SOURCE_FILES
     src/main.cpp
     src/test.cpp
+    src/interface.h
     src/interface.cpp
+    src/cpu.h
     src/cpu.cpp
+    src/emulator.h
     src/emulator.cpp
+    src/decoder.h
     src/decoder.cpp
+    src/instructions.h
+    src/memory.h
+    src/opcodes.h
     src/overloaded.h
+    src/registers.h
+    src/util.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
