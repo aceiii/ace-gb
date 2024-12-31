@@ -1,12 +1,12 @@
+#include <optional>
+#include <utility>
+#include <spdlog/spdlog.h>
+
 #include "decoder.h"
 #include "instructions.h"
 #include "opcodes.h"
 #include "registers.h"
-#include "memory.h"
 
-#include <magic_enum/magic_enum.hpp>
-#include <optional>
-#include <utility>
 
 namespace Decoder {
 
@@ -89,12 +89,14 @@ Instruction decode_prefixed(const uint8_t *memory, uint16_t addr) {
   return {Opcode::Invalid, 1, 4, std::nullopt};
 }
 
-Instruction decode(const uint8_t *memory, uint8_t addr) {
+Instruction decode(const uint8_t *memory, uint16_t addr) {
   uint8_t op = memory[addr];
   uint8_t n8 = memory[addr + 1];
   uint8_t hi = memory[addr + 2];
   uint16_t n16 = (hi << 8) | n8;
   auto e8 = static_cast<int8_t>(n8);
+
+  spdlog::debug("Decoder::debug memory[0x{:04x}] = 0x{:02x}", addr, op);
 
   switch (op) {
   case 0x00:

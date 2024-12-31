@@ -13,6 +13,12 @@ enum class Flag {
   Z = 7,
 };
 
+enum class FlagOp {
+  Unchanged = -1,
+  Off = 0,
+  On = 1,
+};
+
 enum class Reg8 {
   A = 0,
   F,
@@ -41,7 +47,7 @@ struct Registers {
     return vals[std::to_underlying(reg)];
   }
 
-  inline uint8_t& get(Reg8 reg) {
+  [[nodiscard]] inline uint8_t get(Reg8 reg) const {
     return vals[std::to_underlying(reg)];
   }
 
@@ -67,6 +73,11 @@ struct Registers {
   inline void set(Flag flag, uint8_t bit) {
     auto& val = vals[std::to_underlying(Reg8::F)];
     val = (val & ~(1 << static_cast<int>(flag))) | ((bit & 1) << static_cast<int>(flag));
+  }
+
+  inline void set_flags(uint8_t flag_bits) {
+    auto &val = vals[std::to_underlying(Reg8::F)];
+    val = (flag_bits & 0xf) << 4;
   }
 
   inline void reset() {
