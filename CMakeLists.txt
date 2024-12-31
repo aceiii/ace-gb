@@ -18,6 +18,7 @@ set(SOURCE_FILES
     src/cpu.cpp
     src/emulator.cpp
     src/decoder.cpp
+    src/overloaded.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
