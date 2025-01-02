@@ -4,7 +4,18 @@
 
 #include "cpu.h"
 
-void instr_load_reg8(Registers &regs, Reg8 r1, Reg8 r2) {
+inline bool check_cond(Registers &regs, Cond cond) {
+  switch (cond) {
+  case Cond::NZ: return !regs.get(Flag::Z);
+  case Cond::Z: return regs.get(Flag::Z);
+  case Cond::NC: return !regs.get(Flag::C);
+  case Cond::C: return regs.get(Flag::C);
+  default: [[unlikely]]
+    return false;
+  }
+}
+
+void instr_load_reg8_reg8(Registers &regs, Reg8 r1, Reg8 r2) {
   regs.at(r1) = regs.at(r2);
 }
 
@@ -84,14 +95,8 @@ void instr_load_sp_reg16(Registers &regs, Reg16 r1) {
   regs.sp = regs.get(r1);
 }
 
-void instr_push_reg16(Registers &regs, uint8_t *mem, Reg16 r1) {
-  regs.sp -= 2;
-  Mem::set16(mem, regs.sp, regs.get(r1));
-}
-
-void instr_pop_reg16(Registers &regs, uint8_t *mem, Reg16 r1) {
-  regs.set(r1, Mem::get16(mem, regs.sp));
-  regs.sp += 2;
+void instr_load_sp_imm16(Registers &regs, uint16_t imm) {
+  regs.sp = imm;
 }
 
 void instr_load_reg16_sp_offset(Registers &regs, Reg16 r1, int8_t e) {
@@ -102,6 +107,14 @@ void instr_load_reg16_sp_offset(Registers &regs, Reg16 r1, int8_t e) {
   regs.set(Flag::N, 0);
 
   // TODO: figure out the carry bits
+}
+
+void instr_push_reg16(Registers &regs, uint8_t *mem, Reg16 r1) {
+  regs.push(mem, regs.get(r1));
+}
+
+void instr_pop_reg16(Registers &regs, uint8_t *mem, Reg16 r1) {
+  regs.set(r1, regs.pop16(mem));
 }
 
 void instr_add_reg8(Registers &regs, Reg8 r) {
@@ -338,7 +351,7 @@ void instr_scf(Registers &regs) {
   regs.set(Flag::C, 1);
 }
 
-void insr_dda(Registers &regs) {
+void instr_dda(Registers &regs) {
   // TODO
 }
 
@@ -453,27 +466,27 @@ void instr_srl_reg16_ptr(Registers &regs, uint8_t *mem, Reg16 r) {
   // TODO
 }
 
-void instr_bit_reg8(Registers &reg, Reg8 r) {
+void instr_bit_reg8(Registers &regs, Reg8 r) {
   // TODO
 }
 
-void instr_bit_reg16_ptr(Registers &reg, uint8_t *mem, Reg16 r) {
+void instr_bit_reg16_ptr(Registers &regs, uint8_t *mem, Reg16 r) {
   // TODO
 }
 
-void instr_reset_reg8(Registers &reg, Reg8 r) {
+void instr_reset_reg8(Registers &regs, Reg8 r) {
   // TODO
 }
 
-void instr_reset_reg16_ptr(Registers &reg, uint8_t *mem, Reg16 r) {
+void instr_reset_reg16_ptr(Registers &regs, uint8_t *mem, Reg16 r) {
   // TODO
 }
 
-void instr_set_reg8(Registers &reg, Reg8 r) {
+void instr_set_reg8(Registers &regs, Reg8 r) {
   // TODO
 }
 
-void instr_set_reg16_ptr(Registers &reg, uint8_t *mem, Reg16 r) {
+void instr_set_reg16_ptr(Registers &regs, uint8_t *mem, Reg16 r) {
   // TODO
 }
 
@@ -485,8 +498,8 @@ void instr_jump_reg16(Registers &regs, Reg16 r) {
   regs.pc = regs.get(r);
 }
 
-void instr_jump_cond_imm16(Registers &regs, uint16_t nn) {
-  if (!regs.get(Flag::Z)) {
+void instr_jump_cond_imm16(Registers &regs, Cond cond, uint16_t nn) {
+  if (check_cond(regs, cond)) {
     regs.pc = nn;
   }
 }
@@ -495,52 +508,42 @@ void instr_jump_rel(Registers &regs, int8_t e) {
   regs.pc += e;
 }
 
-void instr_jump_rel_cond(Registers &regs, int8_t e) {
-  if (!regs.get(Flag::Z)) {
+void instr_jump_rel_cond(Registers &regs, Cond cond, int8_t e) {
+  if (check_cond(regs, cond)) {
     regs.pc += e;
   }
 }
 
 void instr_call_imm16(Registers &regs, uint8_t *mem, uint16_t nn) {
-  regs.sp -= 2;
-  Mem::set16(mem, regs.sp, regs.pc);
+  regs.push(mem, regs.pc);
   regs.pc = nn;
 }
 
-void instr_call_cond_imm16(Registers &regs, uint8_t *mem, uint16_t nn) {
-  if (!regs.get(Flag::Z)) {
-    regs.sp -= 2;
-    Mem::set16(mem, regs.sp, regs.pc);
+void instr_call_cond_imm16(Registers &regs, uint8_t *mem, Cond cond, uint16_t nn) {
+  if (check_cond(regs, cond)) {
+    regs.push(mem, regs.pc);
     regs.pc = nn;
   }
 }
 
 void instr_ret(Registers &regs, uint8_t *mem) {
-  regs.pc = Mem::get16(mem, regs.sp);
-  regs.sp += 2;
+  regs.pc = regs.pop16(mem);
 }
 
-void instr_ret_cond(Registers &regs, uint8_t *mem) {
-  if (!regs.get(Flag::Z)) {
-    regs.pc = Mem::get16(mem, regs.sp);
-    regs.sp += 2;
+void instr_ret_cond(Registers &regs, uint8_t *mem, Cond cond) {
+  if (check_cond(regs, cond)) {
+    regs.pc = regs.pop16(mem);
   }
 }
 
 void instr_reti(Registers &regs, State &state, uint8_t *mem) {
-  regs.pc = Mem::get16(mem, regs.sp);
-  regs.sp += 2;
+  regs.pc = regs.pop16(mem);
   state.ime = true;
 }
 
-void instr_restart(Registers &regs, uint8_t *mem) {
-  regs.sp -= 2;
-  Mem::set16(mem, regs.sp, regs.pc);
-  regs.pc = 0x0018;
-}
-
-void instr_nop(Registers &regs) {
-  // do nothing
+void instr_restart(Registers &regs, uint8_t *mem, uint8_t n) {
+  regs.push(mem, regs.pc);
+  regs.pc = n;
 }
 
 CPU::CPU(size_t mem_size):memory(Mem::create_memory(mem_size)) {}
@@ -548,10 +551,41 @@ CPU::CPU(size_t mem_size):memory(Mem::create_memory(mem_size)) {}
 void CPU::execute() {
   assert(memory.get() != nullptr);
 
-  Instruction instr = Decoder::decode(memory.get(), regs.pc);
+  Instruction instr = Decoder::decode(read8());
+
+  if (instr.opcode == Opcode::PREFIX) {
+    instr = Decoder::decode_prefixed(read8());
+  }
 
   spdlog::debug("Decoded: {}", instr);
+
+  switch (instr.opcode) {
+    case Opcode::NOP:return;
+    case Opcode::LD:
+      break;
+    case Opcode::LDH:
+      break;
+    case Opcode::ADD:
+      break;
+    case Opcode::ADC:
+      break;
+    default:
+      [[unlikely]]
+      break;
+  }
 }
 
 void CPU::run() {
+}
+
+uint8_t CPU::read8() {
+  auto result = memory[regs.pc];
+  regs.pc += 1;
+  return result;
+}
+
+uint16_t CPU::read16() {
+  auto result = Mem::get16(memory.get(), regs.pc);
+  regs.pc += 2;
+  return result;
 }

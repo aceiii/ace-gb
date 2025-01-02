@@ -1,22 +1,16 @@
 #pragma once
 
-#include "util.h"
-
 #include <cstdint>
 #include <array>
 #include <utility>
+
+#include "memory.h"
 
 enum class Flag {
   C = 4,
   H = 5,
   N = 6,
   Z = 7,
-};
-
-enum class FlagOp {
-  Unchanged = -1,
-  Off = 0,
-  On = 1,
 };
 
 enum class Reg8 {
@@ -82,5 +76,27 @@ struct Registers {
 
   inline void reset() {
     vals.fill(0);
+  }
+
+  inline void push(uint8_t *mem, uint8_t val) {
+    sp -= 1;
+    mem[sp] = val;
+  }
+
+  inline void push(uint8_t *mem, uint16_t val) {
+    sp -= 2;
+    Mem::set16(mem, sp, val);
+  }
+
+  inline uint8_t pop8(const uint8_t *mem) {
+    auto result = mem[sp];
+    sp += 1;
+    return result;
+  }
+
+  inline uint8_t pop16(const uint8_t *mem) {
+    auto result = Mem::get16(mem, sp);
+    sp += 2;
+    return result;
   }
 };

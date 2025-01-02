@@ -5,6 +5,7 @@
 #include "memory.h"
 
 #include <memory>
+#include <valarray>
 #include <vector>
 
 struct State {
@@ -21,6 +22,9 @@ public:
 
   void execute();
   void run();
+
+  uint8_t read8();
+  uint16_t read16();
 
 public:
   std::unique_ptr<uint8_t[]> memory;

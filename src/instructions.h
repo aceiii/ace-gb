@@ -18,57 +18,218 @@ enum class Cond {
   C,
 };
 
-struct None {};
+struct Operands_None {};
 
-struct Immediate8 {
-  uint8_t value;
+struct Operands_SP {};
+
+struct Operands_Cond {
+  Cond cond;
 };
 
-struct ImmediateS8 {
-  int8_t value;
+struct Operands_Reg8 {
+  Reg8 reg;
 };
 
-struct Immediate16 {
-  uint16_t value;
+struct Operands_Reg16 {
+  Reg16 reg;
 };
 
-struct StackPointer {};
+struct Operands_Imm8 {
+  uint8_t imm;
+};
 
-struct Operand {
-  using OpType = std::variant<Reg8, Reg16, Cond, Immediate8, Immediate16, ImmediateS8, StackPointer>;
+struct Operands_Imm8_Literal {
+  uint8_t imm;
+};
 
-  OpType op;
-  bool immediate;
+struct Operands_Imm8_Literal_Reg8 {
+  uint8_t imm;
+  Reg8 reg;
+};
+
+struct Operands_Imm8_Literal_Reg16_Ptr {
+  uint16_t imm;
+  Reg16 reg;
+};
+
+struct Operands_Offset {
   int8_t offset;
-
-  Operand(OpType o): op{o}, immediate{true}, offset{0} {}
-  Operand(OpType o, bool imm): op{o}, immediate{imm}, offset{0} {}
-  Operand(OpType o, bool imm, bool incdec): op{o}, immediate{imm}, offset{static_cast<int8_t>(incdec ? 1 : -1)} {}
-  Operand(OpType o, bool imm, int8_t off): op{o}, immediate{imm}, offset{off} {}
 };
 
-struct Operands {
-  Operand dst;
-  std::optional<Operand> src;
-
-  Operands(Operand d): dst{d}, src{std::nullopt} {}
-  Operands(Operand d, Operand s): dst{d}, src{s} {}
+struct Operands_Imm16 {
+  uint16_t imm;
 };
 
-struct CycleCount {
-  size_t a;
-  std::optional<size_t> b;
-
-  CycleCount() = default;
-  CycleCount(size_t a_): a{a_}, b{0} {}
-  CycleCount(size_t a_, size_t b_): a{a_}, b{b_} {}
+struct Operands_Reg8_Reg8 {
+  Reg8 reg1;
+  Reg8 reg2;
 };
+
+struct Operands_Reg8_Imm8 {
+  Reg8 reg;
+  uint8_t imm;
+};
+
+struct Operands_Reg16_Reg16 {
+  Reg16 reg1;
+  Reg16 reg2;
+};
+
+struct Operands_Reg16_Imm16 {
+  Reg16 reg;
+  uint16_t imm;
+};
+
+struct Operands_Cond_Imm16 {
+  Cond cond;
+  uint16_t imm;
+};
+
+struct Operands_Cond_Offset {
+  Cond cond;
+  int8_t offset;
+};
+
+struct Operands_SP_Reg16 {
+  Reg16 reg;
+};
+
+struct Operands_SP_Imm16 {
+  uint16_t imm;
+};
+
+struct Operands_SP_Offset {
+  int8_t offset;
+};
+
+struct Operands_Imm16_Ptr_Reg8 {
+  uint16_t addr;
+  Reg8 reg;
+};
+
+struct Operands_Imm16_Ptr_SP {
+  uint16_t addr;
+};
+
+struct Operands_Imm8_Ptr_Reg8 {
+  uint8_t addr;
+  Reg8 reg;
+};
+
+struct Operands_Reg8_Reg8_Ptr {
+  Reg8 reg1;
+  Reg8 reg2;
+};
+
+struct Operands_Reg8_Reg16_Ptr {
+  Reg8 reg1;
+  Reg16 reg2;
+};
+
+struct Operands_Reg8_Reg16_Ptr_Inc {
+  Reg8 reg1;
+  Reg16 reg2;
+};
+
+struct Operands_Reg8_Reg16_Ptr_Dec {
+  Reg8 reg1;
+  Reg16 reg2;
+};
+
+struct Operands_Reg8_Ptr_Reg8 {
+  Reg8 reg1;
+  Reg8 reg2;
+};
+
+struct Operands_Reg8_Imm8_Ptr {
+  Reg8 reg;
+  uint8_t addr;
+};
+
+struct Operands_Reg8_Imm16_Ptr {
+  Reg8 reg;
+  uint16_t addr;
+};
+
+struct Operands_Reg16_SP {
+  Reg16 reg;
+};
+
+struct Operands_Reg16_SP_Offset {
+  Reg16 reg;
+  int8_t offset;
+};
+
+struct Operands_Reg16_Ptr {
+  Reg16 reg;
+};
+
+struct Operands_Reg16_Ptr_Reg8 {
+  Reg16 reg1;
+  Reg8 reg2;
+};
+
+struct Operands_Reg16_Ptr_Inc_Reg8 {
+  Reg16 reg1;
+  Reg8 reg2;
+};
+
+struct Operands_Reg16_Ptr_Imm8 {
+  Reg16 reg;
+  uint8_t imm;
+};
+
+struct Operands_Reg16_Ptr_Dec_Reg8 {
+  Reg16 reg1;
+  Reg8 reg2;
+};
+
+typedef std::variant<
+    Operands_None,
+    Operands_SP,
+    Operands_Cond,
+    Operands_Reg8,
+    Operands_Reg16,
+    Operands_Imm8,
+    Operands_Imm8_Literal,
+    Operands_Imm8_Literal_Reg8,
+    Operands_Imm8_Literal_Reg16_Ptr,
+    Operands_Imm16,
+    Operands_Offset,
+    Operands_Reg8_Reg8,
+    Operands_Reg8_Imm8,
+    Operands_Reg16_Reg16,
+    Operands_Reg16_Imm16,
+    Operands_Cond_Imm16,
+    Operands_Cond_Offset,
+    Operands_SP_Reg16,
+    Operands_SP_Imm16,
+    Operands_SP_Offset,
+    Operands_Imm16_Ptr_Reg8,
+    Operands_Imm16_Ptr_SP,
+    Operands_Imm8_Ptr_Reg8,
+    Operands_Reg8_Reg8_Ptr,
+    Operands_Reg8_Reg16_Ptr,
+    Operands_Reg8_Reg16_Ptr_Inc,
+    Operands_Reg8_Reg16_Ptr_Dec,
+    Operands_Reg8_Ptr_Reg8,
+    Operands_Reg8_Imm8_Ptr,
+    Operands_Reg8_Imm16_Ptr,
+    Operands_Reg16_SP,
+    Operands_Reg16_SP_Offset,
+    Operands_Reg16_Ptr,
+    Operands_Reg16_Ptr_Reg8,
+    Operands_Reg16_Ptr_Inc_Reg8,
+    Operands_Reg16_Ptr_Imm8,
+    Operands_Reg16_Ptr_Dec_Reg8
+> Operands;
 
 struct Instruction {
   Opcode opcode;
   size_t bytes;
-  CycleCount cycles;
-  std::optional<Operands> operands;
+  size_t cycles;
+  size_t cycles_cond;
+  Operands operands;
 };
 
 template <>

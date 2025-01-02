@@ -46,5 +46,6 @@ enum class Opcode {
   DI,
   EI,
   STOP,
+  PREFIX,
   Count,
 };

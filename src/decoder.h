@@ -7,5 +7,6 @@
 #include <string>
 
 namespace Decoder {
-  Instruction decode(const uint8_t* mem, uint16_t addr);
+  Instruction decode(uint8_t byte);
+  Instruction decode_prefixed(uint8_t byte);
 };
