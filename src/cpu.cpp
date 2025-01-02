@@ -13,8 +13,7 @@ inline bool check_cond(Registers &regs, Cond cond) {
   case Cond::Z: return regs.get(Flag::Z);
   case Cond::NC: return !regs.get(Flag::C);
   case Cond::C: return regs.get(Flag::C);
-  default: [[unlikely]]
-    return false;
+  default: std::unreachable();
   }
 }
 
