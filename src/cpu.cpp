@@ -111,8 +111,8 @@ inline void instr_load_reg16_sp_offset(Registers &regs, Reg16 r1, int8_t e) {
   regs.set(r1, result);
   regs.set(Flag::Z, 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xfff) < (regs.sp & 0xfff) ? 1 : 0);
+  regs.set(Flag::C, result < regs.sp ? 1 : 0);
 }
 
 inline void instr_push_reg16(Registers &regs, uint8_t *mem, Reg16 r1) {
@@ -124,108 +124,140 @@ inline void instr_pop_reg16(Registers &regs, uint8_t *mem, Reg16 r1) {
 }
 
 inline void instr_add_reg8(Registers &regs, Reg8 r) {
-  auto result = regs.at(Reg8::A) += regs.get(r);
+  auto a = regs.get(Reg8::A);
+  auto result = a + regs.get(r);
+
+  regs.set(Reg8::A, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xf) < (a & 0xf) ? 1 : 0);
+  regs.set(Flag::C, result < a ? 1 : 0);
 }
 
 inline void instr_add_reg16_ptr(Registers &regs, const uint8_t *mem, Reg16 r) {
-  auto result = regs.at(Reg8::A) += mem[regs.get(r)];
+  auto a = regs.get(Reg8::A);
+  auto result = a + mem[regs.get(r)];
+
+  regs.set(Reg8::A, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xf) < (a & 0xf) ? 1 : 0);
+  regs.set(Flag::C, result < a ? 1 : 0);
 }
 
 inline void instr_add_reg16_sp(Registers &regs, Reg16 r) {
-  auto result = regs.sp += regs.get(r);
+  auto val = regs.get(r);
+  auto result = val + regs.sp;
+  regs.set(r, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xfff) < (val & 0xfff) ? 1 : 0);
+  regs.set(Flag::C, result < val ? 1 : 0);
 }
 
 inline void instr_add_imm8(Registers &regs, uint8_t imm) {
-  auto result = regs.at(Reg8::A) += imm;
+  auto a = regs.get(Reg8::A);
+  auto result = a + imm;
+  regs.set(Reg8::A, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xf) < (a & 0xf) ? 1 : 0);
+  regs.set(Flag::C, result < a ? 1 : 0);
 }
 
 inline void instr_add_reg8_reg8(Registers &regs, Reg8 r1, Reg8 r2) {
-  auto result = regs.at(r1) += regs.get(r2);
+  auto val = regs.get(r1);
+  auto result = val + regs.get(r2);
+  regs.set(r1, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xf) < (val & 0xf) ? 1 : 0);
+  regs.set(Flag::C, result < val ? 1 : 0);
 }
 
 inline void instr_add_reg8_imm8(Registers &regs, Reg8 r1, uint8_t imm) {
-  auto result = regs.at(r1) += imm;
+  auto val = regs.get(r1);
+  auto result = val + imm;
+  regs.set(r1, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xf) < (val & 0xf) ? 1 : 0);
+  regs.set(Flag::C, result < val ? 1 : 0);
 }
 
 
-inline void instr_add_reg8_reg16_ptr(Registers &regs, uint8_t *mem, Reg8 r1, Reg16 r2) {
-  auto result = regs.at(r1) += mem[regs.get(r2)];
+inline void instr_add_reg8_reg16_ptr(Registers &regs, const uint8_t *mem, Reg8 r1, Reg16 r2) {
+  auto val = regs.get(r1);
+  auto result = val + mem[regs.get(r2)];
+  regs.set(r1, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xf) < (val & 0xf) ? 1 : 0);
+  regs.set(Flag::C, result < val ? 1 : 0);
 }
 
 inline void instr_add_carry_reg8(Registers &regs, Reg8 r) {
-  auto result = regs.at(Reg8::A) = regs.get(Reg8::A) + regs.get(r) + regs.get(Flag::C);
+  auto val1 = regs.get(Reg8::A);
+  auto val2 = regs.get(r);
+  auto result = val1 + val2 + regs.get(Flag::C);
+  regs.set(Reg8::A, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, ((result & 0xf) < (val1 & 0xf) || ((result & 0xf) < (val2 & 0xf))) ? 1 : 0);
+  regs.set(Flag::C, ((result < val1) || (result < val2)) ? 1 : 0);
 }
 
 inline void instr_add_carry_reg8_reg8(Registers &regs, Reg8 r1, Reg8 r2) {
-  auto result = regs.at(r1) = regs.get(r1) + regs.get(r2) + regs.get(Flag::C);
+  auto val1 = regs.get(r1);
+  auto val2 = regs.get(r2);
+  auto result = val1 + val2 + regs.get(Flag::C);
+  regs.set(r1, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, ((result & 0xf) < (val1 & 0xf) || ((result & 0xf) < (val2 & 0xf))) ? 1 : 0);
+  regs.set(Flag::C, ((result < val1) || (result < val2)) ? 1 : 0);
 }
 
 inline void instr_add_carry_reg8_imm8(Registers &regs, Reg8 r, uint8_t imm) {
-  auto result = regs.at(r) = regs.get(r) + imm + regs.get(Flag::C);
+  auto val = regs.get(r);
+  auto result = val + imm + regs.get(Flag::C);
+  regs.set(r, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, ((result & 0xf) < (val & 0xf) || ((result & 0xf) < (imm & 0xf))) ? 1 : 0);
+  regs.set(Flag::C, ((result < val) || (result < imm)) ? 1 : 0);
 }
 
 inline void instr_add_carry_reg8_reg16_ptr(Registers &regs, const uint8_t *mem, Reg8 r1, Reg16 r2) {
-  auto result = regs.at(r1) = regs.get(r1) + mem[regs.get(r2)] + regs.get(Flag::C);
+  auto val1 = regs.get(r1);
+  auto val2 = mem[regs.get(r2)];
+  auto result = val1 + val2 + regs.get(Flag::C);
+  regs.set(r1, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, ((result & 0xf) < (val1 & 0xf) || ((result & 0xf) < (val2 & 0xf))) ? 1 : 0);
+  regs.set(Flag::C, ((result < val1) || (result < val2)) ? 1 : 0);
 }
 
 inline void instr_add_carry_reg16_ptr(Registers &regs, const uint8_t *mem, Reg16 r) {
-  auto result = regs.at(Reg8::A) = regs.get(Reg8::A) + mem[regs.get(r)] + regs.get(Flag::C);
+  auto val1 = regs.get(Reg8::A);
+  auto val2 = mem[regs.get(r)];
+  auto result = val1 + val2 + regs.get(Flag::C);
+  regs.set(Reg8::A, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, ((result & 0xf) < (val1 & 0xf) || ((result & 0xf) < (val2 & 0xf))) ? 1 : 0);
+  regs.set(Flag::C, ((result < val1) || (result < val2)) ? 1 : 0);
 }
 
 inline void instr_add_carry_imm8(Registers &regs, uint8_t imm) {
-  auto result = regs.at(Reg8::A) = regs.get(Reg8::A) + imm + regs.get(Flag::C);
+  auto val = regs.get(Reg8::A);
+  auto result = val + imm + regs.get(Flag::C);
+  regs.set(Reg8::A, result);
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, ((result & 0xf) < (val & 0xf) || ((result & 0xf) < (imm & 0xf))) ? 1 : 0);
+  regs.set(Flag::C, ((result < val) || (result < imm)) ? 1 : 0);
 }
 
 inline void instr_sub_reg8(Registers &regs, Reg8 r) {
@@ -325,27 +357,31 @@ inline void instr_cmp_imm8(Registers &regs, uint8_t imm) {
 }
 
 inline void instr_inc_reg8(Registers &regs, Reg8 r) {
-  auto result = regs.at(r) += 1;
+  auto val = regs.get(r);
+  auto result = val + 1;
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xf) < (val & 0xf) ? 1 : 0);
 }
 
 inline void instr_inc_reg16_ptr(Registers &regs, uint8_t *mem, Reg16 r) {
-  auto result = mem[regs.get(r)] += 1;
+  auto addr = regs.get(r);
+  auto val = mem[addr];
+  auto result = val + 1;
+  mem[addr] = result;
+
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xf) < (val & 0xf) ? 1 : 0);
 }
 
 inline void instr_inc_sp(Registers &regs) {
-  auto result = regs.sp += 1;
+  auto sp = regs.sp;
+  auto result = sp + 1;
+  regs.sp = result;
   regs.set(Flag::Z, result == 0 ? 1 : 0);
   regs.set(Flag::N, 0);
-
-  // TODO: figure out the carry bits
+  regs.set(Flag::H, (result & 0xf) < (sp & 0xf) ? 1 : 0);
 }
 
 inline void instr_dec_reg8(Registers &regs, Reg8 r) {
@@ -473,20 +509,22 @@ inline void instr_dec_reg16(Registers &regs, Reg16 r) {
 }
 
 inline void instr_add_reg16_reg16(Registers &regs, Reg16 r1, Reg16 r2) {
-  auto result = regs.get(r1) + regs.get(r2);
+  auto val = regs.get(r1);
+  auto result = val + regs.get(r2);
   regs.set(r1, result);
   regs.set(Flag::N, 0);
-
-  // TODO: set carry flags
+  regs.set(Flag::H, (result & 0xfff) < (val & 0xfff) ? 1 : 0);
+  regs.set(Flag::C, (result < val) ? 1 : 0);
 }
 
 inline void instr_add_sp_offset(Registers &regs, int8_t e) {
-  uint16_t result = regs.sp + e;
+  auto sp = regs.sp;
+  uint16_t result = sp + e;
   regs.sp = result;
   regs.set(Flag::Z, 0);
   regs.set(Flag::N, 0);
-
-  // TODO: set carry flags
+  regs.set(Flag::H, (result & 0xfff) < (sp & 0xfff) ? 1 : 0);
+  regs.set(Flag::C, (result < sp) ? 1 : 0);
 }
 
 inline void instr_rlca(Registers &regs) {
