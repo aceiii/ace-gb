@@ -548,7 +548,7 @@ Instruction decode(uint8_t op) {
   case 0xE1:
     return {Opcode::POP, 1, 12, 12, Operands_Reg16{Reg16::HL}};
   case 0xE2:
-    return {Opcode::LD, 1, 8, 8, Operands_Reg8_Ptr_Reg8{Reg8::C, Reg8::A}};
+    return {Opcode::LDH, 1, 8, 8, Operands_Reg8_Ptr_Reg8{Reg8::C, Reg8::A}};
   case 0xE5:
     return {Opcode::PUSH, 1, 16, 16, Operands_Reg16{Reg16::HL}};
   case 0xE6:
@@ -570,7 +570,7 @@ Instruction decode(uint8_t op) {
   case 0xF1:
     return {Opcode::POP, 1, 12, 12, Operands_Reg16{Reg16::AF}};
   case 0xF2:
-    return {Opcode::LD, 1, 8, 8, Operands_Reg8_Reg8_Ptr{Reg8::A, Reg8::C}};
+    return {Opcode::LDH, 1, 8, 8, Operands_Reg8_Reg8_Ptr{Reg8::A, Reg8::C}};
   case 0xF3:
     return {Opcode::DI, 1, 4, 4, Operands_None{}};
   case 0xF5:
