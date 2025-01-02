@@ -1,7 +1,7 @@
 #pragma once
 
 enum class Opcode {
-  Invalid = -1,
+  INVALID = -1,
   NOP = 0,
   LD,
   INC,
@@ -47,5 +47,4 @@ enum class Opcode {
   EI,
   STOP,
   PREFIX,
-  Count,
 };

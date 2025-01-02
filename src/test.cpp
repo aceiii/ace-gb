@@ -69,7 +69,7 @@ int run_cpu_tests() {
     bool ram_match = true;
     for (const auto &ram : final.at("ram").items()) {
       auto addr = ram.value().at(0).get<uint16_t>();
-      auto val = ram.value().at(0).get<uint8_t>();
+      auto val = ram.value().at(1).get<uint8_t>();
 
       if (cpu.memory[addr] != val) {
         ram_match = false;

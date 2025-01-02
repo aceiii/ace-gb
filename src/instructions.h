@@ -8,6 +8,7 @@
 #include <spdlog/fmt/fmt.h>
 
 #include "opcodes.h"
+#include "overloaded.h"
 #include "registers.h"
 
 
@@ -198,6 +199,8 @@ typedef std::variant<
     Operands_Offset,
     Operands_Reg8_Reg8,
     Operands_Reg8_Imm8,
+    Operands_Reg8_Imm8_Ptr,
+    Operands_Reg8_Imm16_Ptr,
     Operands_Reg16_Reg16,
     Operands_Reg16_Imm16,
     Operands_Cond_Imm16,
@@ -213,8 +216,6 @@ typedef std::variant<
     Operands_Reg8_Reg16_Ptr_Inc,
     Operands_Reg8_Reg16_Ptr_Dec,
     Operands_Reg8_Ptr_Reg8,
-    Operands_Reg8_Imm8_Ptr,
-    Operands_Reg8_Imm16_Ptr,
     Operands_Reg16_SP,
     Operands_Reg16_SP_Offset,
     Operands_Reg16_Ptr,

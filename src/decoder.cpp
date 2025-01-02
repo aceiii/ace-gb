@@ -50,7 +50,7 @@ Instruction decode_prefixed(uint8_t op) {
     case 3:
       return {Opcode::SET, bytes, cycles, cycles, operands};
     default:
-      std::unreachable();
+      return {Opcode::INVALID, 1, 4, 4, Operands_None{}};
     }
   }
 
@@ -77,28 +77,26 @@ Instruction decode_prefixed(uint8_t op) {
     }
   })();
 
-switch ((op & 0xF8) >> 3) {
-case 0:
-  return {Opcode::RLC, bytes, cycles, cycles, operands};
-case 1:
-  return {Opcode::RRC, bytes, cycles, cycles, operands};
-case 2:
-  return {Opcode::RL, bytes, cycles, cycles, operands};
-case 3:
-  return {Opcode::RR, bytes, cycles, cycles, operands};
-case 4:
-  return {Opcode::SLA, bytes, cycles, cycles, operands};
-case 5:
-  return {Opcode::SRA, bytes, cycles, cycles, operands};
-case 6:
-  return {Opcode::SWAP, bytes, cycles, cycles, operands};
-case 7:
-  return {Opcode::SRL, bytes, cycles, cycles, operands};
-default:
-  std::unreachable();
-}
-
-  return {Opcode::Invalid, 1, 4, 4, Operands_None{}};
+  switch ((op & 0xF8) >> 3) {
+  case 0:
+    return {Opcode::RLC, bytes, cycles, cycles, operands};
+  case 1:
+    return {Opcode::RRC, bytes, cycles, cycles, operands};
+  case 2:
+    return {Opcode::RL, bytes, cycles, cycles, operands};
+  case 3:
+    return {Opcode::RR, bytes, cycles, cycles, operands};
+  case 4:
+    return {Opcode::SLA, bytes, cycles, cycles, operands};
+  case 5:
+    return {Opcode::SRA, bytes, cycles, cycles, operands};
+  case 6:
+    return {Opcode::SWAP, bytes, cycles, cycles, operands};
+  case 7:
+    return {Opcode::SRL, bytes, cycles, cycles, operands};
+  default:
+    return {Opcode::INVALID, 1, 4, 4, Operands_None{}};
+  }
 }
 
 Instruction decode(uint8_t op) {
@@ -586,7 +584,7 @@ Instruction decode(uint8_t op) {
   case 0xF9:
     return {Opcode::LD, 1, 8, 8, Operands_SP_Reg16{Reg16::HL}};
   case 0xFA:
-    return {Opcode::LD, 3, 16, 16, Operands_Reg8_Imm16_Ptr{Reg8::A}};
+    return {Opcode::LD, 3, 16, 16, Operands_Reg8_Imm16_Ptr{Reg8::A, 0}};
   case 0xFB:
     return {Opcode::EI, 1, 4, 4, Operands_None{}};
   case 0xFE:
@@ -594,7 +592,7 @@ Instruction decode(uint8_t op) {
   case 0xFF:
     return {Opcode::RST, 1, 16, 16, Operands_Imm8_Literal{0x38}};
   default:
-    return {Opcode::Invalid, 1, 4, 4, Operands_None{}};
+    return {Opcode::INVALID, 1, 4, 4, Operands_None{}};
   }
 }
 
