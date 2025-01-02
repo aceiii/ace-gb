@@ -13,7 +13,7 @@ int run_cpu_tests() {
 
   int total_test_suites = 0;
   int total_success_suites = 0;
-  std::vector<int> failed_suites;
+  std::vector<std::tuple<int, int>> failed_suites;
 
   for (int n = 0; n < 256; n++) {
     std::filesystem::path path(
@@ -108,7 +108,7 @@ int run_cpu_tests() {
     spdlog::info("{} / {} Tests were successful.", success, data.size());
 
     if (success != data.size()) {
-      failed_suites.push_back(n);
+      failed_suites.emplace_back(n, fail);
     } else {
       total_success_suites += 1;
     }
@@ -118,8 +118,8 @@ int run_cpu_tests() {
   spdlog::info("{} / {} test suites were successful.", total_success_suites, total_test_suites);
   if (!failed_suites.empty()) {
     spdlog::error("Failed test suites:");
-    for (const auto &n : failed_suites) {
-      spdlog::error(" - 0x{:02x}", n);
+    for (const auto [n, f] : failed_suites) {
+      spdlog::error(" - 0x{:02x} - {} failed", n, f);
     }
   }
 
