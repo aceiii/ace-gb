@@ -11,7 +11,7 @@ constexpr size_t kTestMemSize = 65536;
 int run_cpu_tests() {
   spdlog::info("Running CPU tests");
 
-  std::ifstream input("../external/sm83/v1/5b.json");
+  std::ifstream input("../external/sm83/v1/04.json");
   if (input.fail()) {
     spdlog::error("Failed to open test file: {}", strerror(errno));
     return 1;
