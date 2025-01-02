@@ -61,12 +61,12 @@ struct Registers {
   }
 
   [[nodiscard]] uint8_t get(Flag flag) const {
-    return (vals[std::to_underlying(Reg8::F)] >> static_cast<int>(flag)) & 1;
+    return (vals[std::to_underlying(Reg8::F)] >> std::to_underlying(flag)) & 1;
   }
 
   inline void set(Flag flag, uint8_t bit) {
     auto& val = vals[std::to_underlying(Reg8::F)];
-    val = (val & ~(1 << static_cast<int>(flag))) | ((bit & 1) << static_cast<int>(flag));
+    val = (val & ~(1 << std::to_underlying(flag))) | ((bit & 1) << std::to_underlying(flag));
   }
 
   inline void set_flags(uint8_t flag_bits) {
