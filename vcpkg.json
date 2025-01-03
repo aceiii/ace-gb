@@ -7,7 +7,8 @@
         "imgui",
         "tomlplusplus",
         "glfw3",
-        "nlohmann-json"
+        "nlohmann-json",
+        "tl-expected"
     ],
     "version": "0.0.1",
     "name": "ace-gb"

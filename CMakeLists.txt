@@ -44,6 +44,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(raylib CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(tl-expected CONFIG REQUIRED)
 
 add_executable(${EXE_NAME} ${SOURCE_FILES})
 
@@ -55,6 +56,7 @@ target_link_libraries(${EXE_NAME} PRIVATE rlimgui)
 target_link_libraries(${EXE_NAME} PRIVATE nfd)
 target_link_libraries(${EXE_NAME} PRIVATE glfw)
 target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(${EXE_NAME} PRIVATE tl::expected)
 
 target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})
 
@@ -81,4 +83,5 @@ if(BUILD_TESTS)
     target_link_libraries(${TEST_NAME} PRIVATE argparse::argparse)
     target_link_libraries(${TEST_NAME} PRIVATE magic_enum::magic_enum)
     target_link_libraries(${TEST_NAME} PRIVATE nlohmann_json::nlohmann_json)
+    target_link_libraries(${TEST_NAME} PRIVATE tl::expected)
 endif(BUILD_TESTS)

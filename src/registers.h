@@ -1,7 +1,8 @@
 #pragma once
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
+#include <ranges>
 #include <utility>
 
 #include "memory.h"
@@ -100,3 +101,7 @@ struct Registers {
     return result;
   }
 };
+
+inline bool operator==(const Registers &r1, const Registers &r2) {
+  return std::ranges::equal(r1.vals, r2.vals) && r1.sp == r2.sp && r1.pc == r2.pc;
+}
