@@ -3,17 +3,18 @@ cmake_minimum_required(VERSION 3.15)
 project(ace-gb VERSION 0.0.1 LANGUAGES CXX)
 
 set(EXE_NAME ace-gb)
+set(TEST_NAME test)
+
+option(BUILD_TESTS "Build tests" ON)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_definitions(TOML_EXCEPTIONS=0)
 
 set(SOURCE_FILES
     src/main.cpp
-    src/test.cpp
     src/interface.h
     src/interface.cpp
     src/cpu.h
@@ -56,3 +57,28 @@ target_link_libraries(${EXE_NAME} PRIVATE glfw)
 target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
 target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})
+
+if(BUILD_TESTS)
+    set(TEST_FILES
+        src/test.cpp
+        src/cpu.h
+        src/cpu.cpp
+        src/emulator.h
+        src/emulator.cpp
+        src/decoder.h
+        src/decoder.cpp
+        src/instructions.h
+        src/memory.h
+        src/opcodes.h
+        src/overloaded.h
+        src/registers.h
+        src/util.h
+    )
+
+    add_executable(${TEST_NAME} ${TEST_FILES})
+
+    target_link_libraries(${TEST_NAME} PRIVATE spdlog::spdlog)
+    target_link_libraries(${TEST_NAME} PRIVATE argparse::argparse)
+    target_link_libraries(${TEST_NAME} PRIVATE magic_enum::magic_enum)
+    target_link_libraries(${TEST_NAME} PRIVATE nlohmann_json::nlohmann_json)
+endif(BUILD_TESTS)

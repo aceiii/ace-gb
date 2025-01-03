@@ -6,9 +6,6 @@
 #include "interface.h"
 #include "registers.h"
 
-
-int run_cpu_tests();
-
 static bool set_logging_level(const std::string &level_name) {
   auto level = magic_enum::enum_cast<spdlog::level::level_enum>(level_name);
   if (level.has_value()) {
@@ -28,11 +25,6 @@ auto main(int argc, char *argv[]) -> int {
       .default_value(std::string("info"))
       .nargs(1);
 
-  program.add_argument("--cpu-test")
-      .help("Run CPU tests")
-      .default_value(false)
-      .implicit_value(true);
-
   try {
     program.parse_args(argc, argv);
   } catch (const std::exception &err) {
@@ -49,10 +41,6 @@ auto main(int argc, char *argv[]) -> int {
               << std::endl;
     std::cerr << program;
     return 1;
-  }
-
-  if (program.get<bool>("--cpu-test")) {
-    return run_cpu_tests();
   }
 
   CPU cpu(65536);
