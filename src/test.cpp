@@ -16,13 +16,15 @@ constexpr size_t kTestMemSize = 65536;
 
 struct TestConfig {
   fs::path path;
+  bool list_fails;
+  bool fail_details;
 };
 
-template <typename T>
+template <typename TSuccess, typename TFailed>
 struct TestResult {
   size_t total = 0;
-  std::vector<T> succeeded {};
-  std::vector<T> failed {};
+  std::vector<TSuccess> succeeded {};
+  std::vector<TFailed> failed {};
 };
 
 void load_registers(json &data, Registers &regs) {
@@ -52,7 +54,6 @@ bool check_memory(json &data, const uint8_t *mem) {
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint8_t>();
-
     if (mem[addr] != val) {
       return false;
     }
@@ -60,7 +61,32 @@ bool check_memory(json &data, const uint8_t *mem) {
   return true;
 }
 
-tl::expected<TestResult<int>, std::string> run_test(const TestConfig &config) {
+std::vector<std::tuple<Reg8, uint8_t, uint8_t>> mismatched_registers(const Registers &regs, const Registers &target) {
+  std::vector<std::tuple<Reg8, uint8_t, uint8_t>> failed;
+  for (int i = 0; i < std::to_underlying(Reg8::Count); i += 1) {
+    Reg8 r {i};
+    uint8_t a = regs.get(r);
+    uint8_t b = target.get(r);
+    if (a != b) {
+      failed.emplace_back(r, a, b);
+    }
+  }
+  return failed;
+}
+
+std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> mismatched_memory(json &data, uint8_t *mem) {
+  std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> failed;
+  for (const auto &ram : data.items()) {
+    auto addr = ram.value().at(0).get<uint16_t>();
+    auto val = ram.value().at(1).get<uint8_t>();
+    if (mem[addr] != val) {
+      failed.emplace_back(addr, mem[addr], val);
+    }
+  }
+  return failed;
+}
+
+tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &config) {
   std::ifstream input(config.path);
   if (input.fail()) {
     return tl::unexpected { fmt::format("Failed to open '{}': {}", config.path.string(), strerror(errno)) };
@@ -73,9 +99,9 @@ tl::expected<TestResult<int>, std::string> run_test(const TestConfig &config) {
     return tl::unexpected { e.what() };
   }
 
-  spdlog::info("# of test cases: {}", data.size());
+  spdlog::debug("Running test '{}', {} cases.", config.path.string(), data.size());
 
-  TestResult<int> result {};
+  TestResult<int, int> result {};
   result.total = data.size();
 
   CPU cpu(kTestMemSize);
@@ -98,13 +124,32 @@ tl::expected<TestResult<int>, std::string> run_test(const TestConfig &config) {
     cpu.memory = load_memory(initial.at("ram"));
     cpu.execute();
 
-    auto is_success = regs == final_regs && check_memory(final.at("ram"), cpu.memory.get());
+    auto reg_match = regs == final_regs;
+    auto ram_match = check_memory(final.at("ram"), cpu.memory.get());
+    auto is_success = reg_match && ram_match;
     if (is_success) {
-      result.succeeded.push_back(i);
+      result.succeeded.emplace_back(i);
       spdlog::debug("Test #{} succeeded.", i);
     } else {
-      result.failed.push_back(i);
+      result.failed.emplace_back(i);
       spdlog::debug("Test #{} failed.", i);
+    }
+
+    if (!is_success && config.fail_details) {
+      spdlog::error("Test #{} of {} failed:", i, result.total);
+      if (!reg_match) {
+        spdlog::error("Registers:");
+        for (const auto &[reg, a, b] : mismatched_registers(regs, final_regs)) {
+          spdlog::error("  {}: {} != {}", magic_enum::enum_name(reg) , a, b);
+        }
+      }
+
+      if (!ram_match) {
+        spdlog::error("Memory:");
+        for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), cpu.memory.get())) {
+          spdlog::error("  {}: {} != {}", addr , a, b);
+        }
+      }
     }
   }
 
@@ -119,13 +164,13 @@ int run_all_tests(const TestConfig &config) {
 
   for (const auto &entry : fs::directory_iterator(config.path)) {
     if (entry.is_regular_file() && entry.path().extension() == ".json") {
-      test_files.push_back(entry.path());
+      test_files.emplace_back(entry.path());
     }
   }
 
   spdlog::info("Found {} test files.", test_files.size());
 
-  TestResult<fs::path> total_results {};
+  TestResult<fs::path, std::tuple<fs::path, size_t, size_t>> total_results {};
   total_results.total = test_files.size();
 
   for (const auto &path : test_files) {
@@ -133,13 +178,13 @@ int run_all_tests(const TestConfig &config) {
     test_config.path = path;
     auto res = run_test(test_config);
     if (!res.has_value()) {
-      total_results.failed.emplace_back(path);
+      total_results.failed.emplace_back(path, 0, 0);
       continue;
     }
 
     auto result = res.value();
     if (!result.failed.empty()) {
-      total_results.failed.emplace_back(path);
+      total_results.failed.emplace_back(path, result.failed.size(), result.total);
     } else {
       total_results.succeeded.emplace_back(path);
     }
@@ -147,12 +192,31 @@ int run_all_tests(const TestConfig &config) {
 
   spdlog::info("Test Summary:");
   spdlog::info("{} / {} tests were successful.", total_results.succeeded.size(), total_results.total);
+
+  if (config.list_fails && !total_results.failed.empty()) {
+    spdlog::error("Failed:");
+    for (const auto& [path, failed, total] : total_results.failed) {
+      spdlog::error("  {}: {}/{}", path.string(), failed, total);
+    }
+  }
+
   return total_results.failed.empty() ? 0 : 1;
 }
 
 int run_single_test(const TestConfig &config) {
   if (auto res = run_test(config); res.has_value()) {
-    return 0;
+    auto result = res.value();
+    if (config.list_fails && !result.failed.empty()) {
+      spdlog::error("Failed:");
+      for (const auto &item : result.failed) {
+        spdlog::error("  #{}", item);
+      }
+    } else if (result.succeeded.size() == result.total) {
+      spdlog::info("All Tests successful");
+    } else {
+      spdlog::error("{} / {} tests succeeded.", result.succeeded.size(), result.total);
+    }
+    return result.failed.empty() ? 0 : 1;
   } else {
     spdlog::error("Failed: {}", res.error());
     return 1;
@@ -188,6 +252,16 @@ auto main(int argc, char *argv[]) -> int {
     .default_value(std::string("info"))
     .nargs(1);
 
+  program.add_argument("--list-fails")
+    .help("List failed tests")
+    .default_value(false)
+    .implicit_value(true);
+
+  program.add_argument("--fail-details")
+    .help("Display mismatched registers or ram that caused the test to fail")
+    .default_value(false)
+    .implicit_value(true);
+
   program.add_argument("path")
     .help("Path to json test file or directory containing json test files.");
 
@@ -211,6 +285,8 @@ auto main(int argc, char *argv[]) -> int {
 
   TestConfig config;
   config.path = program.get("path");
+  config.list_fails = program.get<bool>("--list-fails");
+  config.fail_details = program.get<bool>("--fail-details");
 
   return run_cpu_tests(config);
 }
