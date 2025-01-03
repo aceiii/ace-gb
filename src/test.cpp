@@ -18,6 +18,7 @@ struct TestConfig {
   fs::path path;
   bool list_fails;
   bool fail_details;
+  std::vector<size_t> only_cases;
 };
 
 template <typename TSuccess, typename TFailed>
@@ -102,18 +103,27 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
   spdlog::debug("Running test '{}', {} cases.", config.path.string(), data.size());
 
   TestResult<int, int> result {};
-  result.total = data.size();
+
+  std::vector<size_t> tests_to_run;
+  if (!config.only_cases.empty()) {
+    tests_to_run = config.only_cases;
+  } else {
+    tests_to_run.resize(data.size());
+    std::iota(begin(tests_to_run), end(tests_to_run), 0);
+  }
+
+  result.total = tests_to_run.size();
 
   CPU cpu(kTestMemSize);
 
-  for (int i = 0; i < data.size(); i++) {
+  for (const auto i : tests_to_run) {
     auto test = data.at(i);
     auto initial = test.at("initial");
     auto final = test.at("final");
     auto cycles = test.at("cycles");
     auto name = test.at("name").get<std::string>();
 
-    spdlog::debug("Running case #{} of {}: {}", i, data.size(), name);
+    spdlog::debug("Running case #{} of {}: {}", i, result.total, name);
 
     Registers &regs = cpu.regs;
     load_registers(initial, regs);
@@ -132,22 +142,19 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
       spdlog::debug("Test #{} succeeded.", i);
     } else {
       result.failed.emplace_back(i);
-      spdlog::debug("Test #{} failed.", i);
+      spdlog::error("Test #{} failed.", i);
     }
 
     if (!is_success && config.fail_details) {
-      spdlog::error("Test #{} of {} failed:", i, result.total);
       if (!reg_match) {
-        spdlog::error("Registers:");
         for (const auto &[reg, a, b] : mismatched_registers(regs, final_regs)) {
           spdlog::error("  {}: {} != {}", magic_enum::enum_name(reg) , a, b);
         }
       }
 
       if (!ram_match) {
-        spdlog::error("Memory:");
         for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), cpu.memory.get())) {
-          spdlog::error("  {}: {} != {}", addr , a, b);
+          spdlog::error("  0x{}: {} != {}", addr , a, b);
         }
       }
     }
@@ -262,6 +269,11 @@ auto main(int argc, char *argv[]) -> int {
     .default_value(false)
     .implicit_value(true);
 
+  program.add_argument("--only-cases")
+    .help("Only run these cases matching specified index")
+//    .nargs(0)
+    .scan<'d', size_t>();
+
   program.add_argument("path")
     .help("Path to json test file or directory containing json test files.");
 
@@ -287,6 +299,7 @@ auto main(int argc, char *argv[]) -> int {
   config.path = program.get("path");
   config.list_fails = program.get<bool>("--list-fails");
   config.fail_details = program.get<bool>("--fail-details");
+  config.only_cases = program.get<std::vector<size_t>>("--only-cases");
 
   return run_cpu_tests(config);
 }
