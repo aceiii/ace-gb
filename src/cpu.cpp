@@ -7,6 +7,17 @@
 #include "overloaded.h"
 #include "instructions.h"
 
+inline uint16_t interrupt_handler(Interrupt interrupt) {
+  switch (interrupt) {
+    case Interrupt::VBlank: return 0x40;
+    case Interrupt::Stat: return 0x48;
+    case Interrupt::Timer: return 050;
+    case Interrupt::Serial: return 0x58;
+    case Interrupt::Joypad: return 0x60;
+    default: std::unreachable();
+  }
+}
+
 inline bool check_cond(Registers &regs, Cond cond) {
   switch (cond) {
   case Cond::NZ: return !regs.get(Flag::Z);
@@ -968,29 +979,31 @@ void execute_rst(CPU &cpu, Instruction &instr) {
   instr_restart(cpu.regs, cpu.memory.get(), operands.imm);
 }
 
-void execute_call(CPU &cpu, Instruction &instr) {
+bool execute_call(CPU &cpu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm16>(&instr.operands)) {
-    instr_call_imm16(cpu.regs,  cpu.memory.get(), ops->imm);
+    return instr_call_imm16(cpu.regs,  cpu.memory.get(), ops->imm);
   } else if (const auto *ops = std::get_if<Operands_Cond_Imm16>(&instr.operands)) {
-    instr_call_cond_imm16(cpu.regs, cpu.memory.get(), ops->cond, ops->imm);
+    return instr_call_cond_imm16(cpu.regs, cpu.memory.get(), ops->cond, ops->imm);
   }
+  std::unreachable();
 }
 
-void execute_jp(CPU &cpu, Instruction &instr) {
-  std::visit(overloaded{
-    [&](Operands_Reg16 &operands) { instr_jump_reg16(cpu.regs, operands.reg); },
-    [&](Operands_Imm16 &operands) { instr_jump_imm16(cpu.regs, operands.imm); },
-    [&](Operands_Cond_Imm16 &operands) { instr_jump_cond_imm16(cpu.regs, operands.cond, operands.imm); },
-    [&](auto &) { std::unreachable(); },
+bool execute_jp(CPU &cpu, Instruction &instr) {
+  return std::visit(overloaded{
+    [&](Operands_Reg16 &operands) { return instr_jump_reg16(cpu.regs, operands.reg); },
+    [&](Operands_Imm16 &operands) { return instr_jump_imm16(cpu.regs, operands.imm); },
+    [&](Operands_Cond_Imm16 &operands) { return instr_jump_cond_imm16(cpu.regs, operands.cond, operands.imm); },
+    [&](auto &) { std::unreachable(); return false; },
   }, instr.operands);
 }
 
-void execute_ret(CPU &cpu, Instruction &instr) {
+bool execute_ret(CPU &cpu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_None>(&instr.operands)) {
-    instr_ret(cpu.regs,  cpu.memory.get());
+    return instr_ret(cpu.regs,  cpu.memory.get());
   } else if (const auto *ops = std::get_if<Operands_Cond>(&instr.operands)) {
-    instr_ret_cond(cpu.regs, cpu.memory.get(), ops->cond);
+    return instr_ret_cond(cpu.regs, cpu.memory.get(), ops->cond);
   }
+  std::unreachable();
 }
 
 void execute_reti(CPU &cpu, Instruction &instr) {
@@ -1086,9 +1099,11 @@ void execute_set(CPU &cpu, Instruction &instr) {
 }
 
 void execute_di(CPU &cpu, Instruction &instr) {
+  cpu.state.ime = false;
 }
 
 void execute_ei(CPU &cpu, Instruction &instr) {
+  cpu.state.ime = true;
 }
 
 void execute_stop(CPU &cpu, Instruction &instr) {
@@ -1097,15 +1112,13 @@ void execute_stop(CPU &cpu, Instruction &instr) {
 CPU::CPU(size_t mem_size):memory(Mem::create_memory(mem_size)) {}
 
 void CPU::execute() {
-  assert(memory.get() != nullptr);
+  execute_interrupts();
 
   Instruction instr = Decoder::decode(read8());
 
   if (instr.opcode == Opcode::PREFIX) {
     instr = Decoder::decode_prefixed(read8());
   }
-
-  spdlog::debug("Decoded: {}", instr);
 
   std::visit(overloaded{
      [&](Operands_Imm8 &operands) { operands.imm = read8(); },
@@ -1126,6 +1139,8 @@ void CPU::execute() {
      [&](Operands_Reg16_Ptr_Imm8 &operands) { operands.imm = read8(); },
      [&](auto &operands) { /* pass */ }
   }, instr.operands);
+
+  auto cycles = instr.cycles;
 
   switch (instr.opcode) {
   case Opcode::INVALID:
@@ -1155,9 +1170,21 @@ void CPU::execute() {
   case Opcode::POP: execute_pop(*this, instr); break;
   case Opcode::PUSH: execute_push(*this, instr); break;
   case Opcode::RST: execute_rst(*this, instr); break;
-  case Opcode::CALL: execute_call(*this, instr); break;
-  case Opcode::JP: execute_jp(*this, instr); break;
-  case Opcode::RET: execute_ret(*this, instr); break;
+  case Opcode::CALL:
+    if (!execute_call(*this, instr)) {
+      cycles = instr.cycles_cond;
+    }
+    break;
+  case Opcode::JP:
+    if (!execute_jp(*this, instr)) {
+      cycles = instr.cycles_cond;
+    }
+    break;
+  case Opcode::RET:
+    if (!execute_ret(*this, instr)) {
+      cycles = instr.cycles_cond;
+    }
+    break;
   case Opcode::RETI: execute_reti(*this, instr); break;
   case Opcode::RLC: execute_rlc(*this, instr); break;
   case Opcode::RRC: execute_rrc(*this, instr); break;
@@ -1175,9 +1202,35 @@ void CPU::execute() {
   case Opcode::STOP: execute_stop(*this, instr); break;
   case Opcode::PREFIX: break;
   }
+
+  execute_timers(cycles);
 }
 
-void CPU::run() {
+void CPU::execute_interrupts() {
+  if (!state.ime) {
+    return;
+  }
+
+  auto interrupt_enable = memory.get()[std::to_underlying(IO::IE)];
+  auto interrupt_flag = memory.get()[std::to_underlying(IO::IF)];
+
+  if (!(interrupt_enable & interrupt_flag)) {
+    return;
+  }
+
+  for (int i = 0; i < std::to_underlying(Interrupt::Count); i++) {
+    Interrupt interrupt {i};
+
+    if (interrupt_enable & interrupt_flag & std::to_underlying(Interrupt::VBlank)) {
+      regs.push(memory.get(), regs.pc);
+      regs.pc = interrupt_handler(interrupt);
+      memory.get()[std::to_underlying(IO::IE)] = interrupt_enable & ~(1 << i);
+      return;
+    }
+  }
+}
+
+void CPU::execute_timers(size_t cycles) {
 }
 
 uint8_t CPU::read8() {
