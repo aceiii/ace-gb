@@ -412,11 +412,32 @@ inline void instr_scf(Registers &regs) {
   regs.set(Flag::C, 1);
 }
 
-inline void instr_dda(Registers &regs) {
-  // TODO: decimal adjust register A
-//  regs.set(Flag::Z, result == 0 ? 1 : 0);
-//  regs.set(Flag::H, 0);
-//  regs.set(Flag::C, carry);
+inline void instr_daa(Registers &regs) {
+  auto a = regs.get(Reg8::A);
+  auto n = regs.get(Flag::N);
+  auto h = regs.get(Flag::H);
+  auto c = regs.get(Flag::C);
+
+  if (n) {
+    if (c) {
+      a -= 0x60;
+    }
+    if (h) {
+      a -= 0x6;
+    }
+  } else {
+    if (c || a > 0x99) {
+      a += 0x60;
+      regs.set(Flag::C, 1);
+    }
+    if (h || (a & 0x0f) > 0x09) {
+      a += 0x6;
+    }
+  }
+
+  regs.set(Reg8::A, a);
+  regs.set(Flag::Z, a == 0 ? 1 : 0);
+  regs.set(Flag::H, 0);
 }
 
 inline void instr_cpl(Registers &regs) {
@@ -894,8 +915,8 @@ void execute_rra(CPU &cpu, Instruction &instr) {
   instr_rra(cpu.regs);
 }
 
-void execute_dda(CPU &cpu, Instruction &instr) {
-  instr_dda(cpu.regs);
+void execute_daa(CPU &cpu, Instruction &instr) {
+  instr_daa(cpu.regs);
 }
 
 void execute_cpl(CPU &cpu, Instruction &instr) {
@@ -1124,7 +1145,7 @@ void CPU::execute() {
   case Opcode::RRCA: execute_rrca(*this, instr); break;
   case Opcode::RLA: execute_rla(*this, instr); break;
   case Opcode::RRA: execute_rra(*this, instr); break;
-  case Opcode::DAA: execute_dda(*this, instr); break;
+  case Opcode::DAA: execute_daa(*this, instr); break;
   case Opcode::CPL: execute_cpl(*this, instr); break;
   case Opcode::SCF: execute_scf(*this, instr); break;
   case Opcode::CCF: execute_ccf(*this, instr); break;
