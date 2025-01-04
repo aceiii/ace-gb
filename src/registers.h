@@ -95,7 +95,7 @@ struct Registers {
     return result;
   }
 
-  inline uint8_t pop16(const uint8_t *mem) {
+  inline uint16_t pop16(const uint8_t *mem) {
     auto result = Mem::get16(mem, sp);
     sp += 2;
     return result;

@@ -1,6 +1,5 @@
 #include <optional>
 #include <utility>
-#include <spdlog/spdlog.h>
 
 #include "decoder.h"
 #include "instructions.h"
@@ -134,7 +133,7 @@ Instruction decode(uint8_t op) {
   case 0x0F:
     return {Opcode::RRCA, 1, 4, 4, Operands_None{}};
   case 0x10:
-    return {Opcode::STOP, 2, 4, 4, Operands_Imm8{}};
+    return {Opcode::STOP, 2, 4, 4, Operands_None{}};
   case 0x11:
     return {Opcode::LD, 3, 12, 12, Operands_Reg16_Imm16{Reg16::DE}};
   case 0x12:
@@ -528,7 +527,7 @@ Instruction decode(uint8_t op) {
   case 0xD5:
     return {Opcode::PUSH, 1, 16, 16, Operands_Reg16{Reg16::DE}};
   case 0xD6:
-    return {Opcode::ADC, 2, 8, 8, Operands_Imm8{}};
+    return {Opcode::SUB, 2, 8, 8, Operands_Imm8{}};
   case 0xD7:
     return {Opcode::RST, 1, 16, 16, Operands_Imm8_Literal{0x10}};
   case 0xD8:
@@ -558,7 +557,7 @@ Instruction decode(uint8_t op) {
   case 0xE8:
     return {Opcode::ADD, 2, 16, 16, Operands_SP_Offset{}};
   case 0xE9:
-    return {Opcode::JP, 1, 4, 4, Operands_Reg16_Ptr{Reg16::HL}};
+    return {Opcode::JP, 1, 4, 4, Operands_Reg16{Reg16::HL}};
   case 0xEA:
     return {Opcode::LD, 3, 16, 16, Operands_Imm16_Ptr_Reg8{0, Reg8::A}};
   case 0xEE:

@@ -15,10 +15,10 @@ using json = nlohmann::json;
 constexpr size_t kTestMemSize = 65536;
 
 struct TestConfig {
-  fs::path path;
-  bool list_fails;
-  bool fail_details;
-  std::vector<size_t> only_cases;
+  fs::path path {};
+  std::vector<size_t> only_cases {};
+  bool list_fails = false;
+  bool fail_details = false;
 };
 
 template <typename TSuccess, typename TFailed>
@@ -62,16 +62,25 @@ bool check_memory(json &data, const uint8_t *mem) {
   return true;
 }
 
-std::vector<std::tuple<Reg8, uint8_t, uint8_t>> mismatched_registers(const Registers &regs, const Registers &target) {
-  std::vector<std::tuple<Reg8, uint8_t, uint8_t>> failed;
+std::vector<std::tuple<std::string, uint8_t, uint8_t>> mismatched_registers(const Registers &regs, const Registers &target) {
+  std::vector<std::tuple<std::string, uint8_t, uint8_t>> failed;
   for (int i = 0; i < std::to_underlying(Reg8::Count); i += 1) {
     Reg8 r {i};
     uint8_t a = regs.get(r);
     uint8_t b = target.get(r);
     if (a != b) {
-      failed.emplace_back(r, a, b);
+      failed.emplace_back(magic_enum::enum_name(r), a, b);
     }
   }
+
+  if (regs.sp != target.sp) {
+    failed.emplace_back("SP", regs.sp, target.sp);
+  }
+
+  if (regs.pc != target.pc) {
+    failed.emplace_back("PC", regs.pc, target.pc);
+  }
+
   return failed;
 }
 
@@ -148,13 +157,13 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
     if (!is_success && config.fail_details) {
       if (!reg_match) {
         for (const auto &[reg, a, b] : mismatched_registers(regs, final_regs)) {
-          spdlog::error("  {}: {} != {}", magic_enum::enum_name(reg) , a, b);
+          spdlog::error("  reg[{}]: {} != {}", reg , a, b);
         }
       }
 
       if (!ram_match) {
         for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), cpu.memory.get())) {
-          spdlog::error("  0x{}: {} != {}", addr , a, b);
+          spdlog::error("  mem[{}]: {} != {}", addr , a, b);
         }
       }
     }
@@ -203,7 +212,7 @@ int run_all_tests(const TestConfig &config) {
   if (config.list_fails && !total_results.failed.empty()) {
     spdlog::error("Failed:");
     for (const auto& [path, failed, total] : total_results.failed) {
-      spdlog::error("  {}: {}/{}", path.string(), failed, total);
+      spdlog::error("  {}: {}/{}", path.string(), total-failed, total);
     }
   }
 
@@ -271,7 +280,6 @@ auto main(int argc, char *argv[]) -> int {
 
   program.add_argument("--only-cases")
     .help("Only run these cases matching specified index")
-//    .nargs(0)
     .scan<'d', size_t>();
 
   program.add_argument("path")
