@@ -1220,11 +1220,12 @@ void CPU::execute_interrupts() {
 
   for (int i = 0; i < std::to_underlying(Interrupt::Count); i++) {
     Interrupt interrupt {i};
+    uint8_t mask = 1 << i;
 
-    if (interrupt_enable & interrupt_flag & std::to_underlying(Interrupt::VBlank)) {
+    if (interrupt_enable & interrupt_flag & mask) {
       regs.push(memory.get(), regs.pc);
       regs.pc = interrupt_handler(interrupt);
-      memory.get()[std::to_underlying(IO::IE)] = interrupt_enable & ~(1 << i);
+      memory.get()[std::to_underlying(IO::IE)] = interrupt_enable & ~mask;
       return;
     }
   }
