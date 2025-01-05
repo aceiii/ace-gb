@@ -29,6 +29,10 @@ set(SOURCE_FILES
     src/overloaded.h
     src/registers.h
     src/util.h
+    src/immu.h
+    src/immu.cpp
+    src/mmu.h
+    src/mmu.cpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
@@ -75,6 +79,10 @@ if(BUILD_TESTS)
         src/overloaded.h
         src/registers.h
         src/util.h
+        src/immu.h
+        src/immu.cpp
+        src/mock_mmu.h
+        src/mock_mmu.cpp
     )
 
     add_executable(${TEST_NAME} ${TEST_FILES})

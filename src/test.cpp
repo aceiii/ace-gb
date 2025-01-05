@@ -8,6 +8,7 @@
 
 #include "cpu.h"
 #include "registers.h"
+#include "mock_mmu.h"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -41,21 +42,19 @@ void load_registers(json &data, Registers &regs) {
   regs.sp = data.at("sp").get<uint16_t>();
 }
 
-std::unique_ptr<uint8_t[]> load_memory(json &data) {
-  auto memory = Mem::create_memory(kTestMemSize);
+void load_memory(json &data, IMMU *mmu) {
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint16_t>();
-    memory[addr] = val;
+    mmu->write(addr, val);
   }
-  return memory;
 }
 
-bool check_memory(json &data, const uint8_t *mem) {
+bool check_memory(json &data, const IMMU *mmu) {
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint8_t>();
-    if (mem[addr] != val) {
+    if (mmu->read8(addr) != val) {
       return false;
     }
   }
@@ -84,13 +83,14 @@ std::vector<std::tuple<std::string, uint8_t, uint8_t>> mismatched_registers(cons
   return failed;
 }
 
-std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> mismatched_memory(json &data, uint8_t *mem) {
+std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> mismatched_memory(json &data, IMMU *mmu) {
   std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> failed;
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint8_t>();
-    if (mem[addr] != val) {
-      failed.emplace_back(addr, mem[addr], val);
+    auto mem_val = mmu->read8(addr);
+    if (mem_val != val) {
+      failed.emplace_back(addr, mem_val, val);
     }
   }
   return failed;
@@ -123,7 +123,8 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
 
   result.total = tests_to_run.size();
 
-  CPU cpu(kTestMemSize);
+  CPU cpu;
+  cpu.mmu = std::make_unique<MockMMU>();
 
   for (const auto i : tests_to_run) {
     auto test = data.at(i);
@@ -139,12 +140,12 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
 
     Registers final_regs;
     load_registers(final, final_regs);
+    load_memory(initial.at("ram"), cpu.mmu.get());
 
-    cpu.memory = load_memory(initial.at("ram"));
     cpu.execute();
 
     auto reg_match = regs == final_regs;
-    auto ram_match = check_memory(final.at("ram"), cpu.memory.get());
+    auto ram_match = check_memory(final.at("ram"), cpu.mmu.get());
     auto is_success = reg_match && ram_match;
     if (is_success) {
       result.succeeded.emplace_back(i);
@@ -162,7 +163,7 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
       }
 
       if (!ram_match) {
-        for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), cpu.memory.get())) {
+        for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), cpu.mmu.get())) {
           spdlog::error("  mem[{}]: {} != {}", addr , a, b);
         }
       }

@@ -3,6 +3,7 @@
 #include "decoder.h"
 #include "registers.h"
 #include "memory.h"
+#include "immu.h"
 
 #include <memory>
 #include <valarray>
@@ -90,10 +91,6 @@ struct State {
 
 class CPU {
 public:
-  CPU() = default;
-
-  explicit CPU(size_t mem_size);
-
   void execute();
   void execute_interrupts();
   void execute_timers(size_t cycles);
@@ -102,7 +99,7 @@ public:
   uint16_t read16();
 
 public:
-  std::unique_ptr<uint8_t[]> memory;
+  std::unique_ptr<IMMU> mmu;
   Registers regs {};
   State state {};
 

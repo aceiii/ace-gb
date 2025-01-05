@@ -78,28 +78,6 @@ struct Registers {
   inline void reset() {
     vals.fill(0);
   }
-
-  inline void push(uint8_t *mem, uint8_t val) {
-    sp -= 1;
-    mem[sp] = val;
-  }
-
-  inline void push(uint8_t *mem, uint16_t val) {
-    sp -= 2;
-    Mem::set16(mem, sp, val);
-  }
-
-  inline uint8_t pop8(const uint8_t *mem) {
-    auto result = mem[sp];
-    sp += 1;
-    return result;
-  }
-
-  inline uint16_t pop16(const uint8_t *mem) {
-    auto result = Mem::get16(mem, sp);
-    sp += 2;
-    return result;
-  }
 };
 
 inline bool operator==(const Registers &r1, const Registers &r2) {
