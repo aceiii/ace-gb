@@ -8,6 +8,9 @@
 #include "instructions.h"
 
 inline uint16_t interrupt_handler(Interrupt interrupt) {
+
+  spdlog::debug("interrupt handler: {}", magic_enum::enum_name(interrupt));
+
   switch (interrupt) {
     case Interrupt::VBlank: return 0x40;
     case Interrupt::Stat: return 0x48;
@@ -1107,6 +1110,8 @@ void execute_ei(CPU &cpu, Instruction &instr) {
 }
 
 void execute_stop(CPU &cpu, Instruction &instr) {
+  cpu.state.stop = true;
+  cpu.memory.get()[std::to_underlying(IO::DIV)] = 0;
 }
 
 CPU::CPU(size_t mem_size):memory(Mem::create_memory(mem_size)) {}
@@ -1119,6 +1124,8 @@ void CPU::execute() {
   if (instr.opcode == Opcode::PREFIX) {
     instr = Decoder::decode_prefixed(read8());
   }
+
+  spdlog::info("Decoded: {}", instr);
 
   std::visit(overloaded{
      [&](Operands_Imm8 &operands) { operands.imm = read8(); },
@@ -1211,10 +1218,10 @@ void CPU::execute_interrupts() {
     return;
   }
 
-  auto interrupt_enable = memory.get()[std::to_underlying(IO::IE)];
-  auto interrupt_flag = memory.get()[std::to_underlying(IO::IF)];
+  auto &enable =  memory.get()[std::to_underlying(IO::IE)];
+  auto flag = memory.get()[std::to_underlying(IO::IF)];
 
-  if (!(interrupt_enable & interrupt_flag)) {
+  if (!(enable & flag)) {
     return;
   }
 
@@ -1222,16 +1229,47 @@ void CPU::execute_interrupts() {
     Interrupt interrupt {i};
     uint8_t mask = 1 << i;
 
-    if (interrupt_enable & interrupt_flag & mask) {
+    if (enable & flag & mask) {
       regs.push(memory.get(), regs.pc);
       regs.pc = interrupt_handler(interrupt);
-      memory.get()[std::to_underlying(IO::IE)] = interrupt_enable & ~mask;
+      enable &= ~mask;
       return;
     }
   }
 }
 
 void CPU::execute_timers(size_t cycles) {
+  uint8_t *mem = memory.get();
+
+  div_counter += cycles;
+  if (div_counter >= 256) {
+    div_counter -= 256;
+    mem[std::to_underlying(IO::DIV)] += 1;
+  }
+
+  if ((mem[std::to_underlying(IO::TAC)] >> 2) & 0x1) {
+    tima_counter += cycles;
+
+    uint16_t freq;
+    switch (mem[std::to_underlying(IO::TAC)] & 0x3) {
+      case 0b00: freq = kClockSpeed / 4096; break;
+      case 0b01: freq = kClockSpeed / 262144; break;
+      case 0b10: freq = kClockSpeed / 65535; break;
+      case 0b11: freq = kClockSpeed / 16384; break;
+      default: std::unreachable();
+    }
+
+    if (tima_counter >= freq) {
+      uint8_t &tima = mem[std::to_underlying(IO::TIMA)];
+      if (tima == 255) {
+        tima = mem[std::to_underlying(IO::TMA)];
+        mem[std::to_underlying(IO::IE)] &= ~(1 << std::to_underlying(Interrupt::Timer));
+      } else {
+        tima += 1;
+      }
+      tima_counter -= freq;
+    }
+  }
 }
 
 uint8_t CPU::read8() {

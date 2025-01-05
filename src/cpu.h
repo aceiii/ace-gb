@@ -8,6 +8,8 @@
 #include <valarray>
 #include <vector>
 
+constexpr size_t kClockSpeed = 4194304;
+
 enum class IO {
   P1 = 0xff00, JOYP = 0xff00,
   SB = 0xff01,
@@ -80,9 +82,10 @@ enum class Interrupt {
 };
 
 struct State {
-  bool ime;
-  bool halt;
-  bool hard_lock;
+  bool ime = false;
+  bool halt = false;
+  bool stop = false;
+  bool hard_lock = false;
 };
 
 class CPU {
@@ -102,4 +105,8 @@ public:
   std::unique_ptr<uint8_t[]> memory;
   Registers regs {};
   State state {};
+
+private:
+  uint16_t div_counter;
+  uint16_t tima_counter;
 };
