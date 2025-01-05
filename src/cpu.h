@@ -91,12 +91,10 @@ struct State {
 
 class CPU {
 public:
-  void execute();
-  void execute_interrupts();
-  void execute_timers(size_t cycles);
-
-  uint8_t read8();
-  uint16_t read16();
+  void init();
+  uint8_t execute();
+  uint8_t read_next8();
+  uint16_t read_next16();
 
 public:
   std::unique_ptr<IMMU> mmu;
@@ -104,6 +102,11 @@ public:
   State state {};
 
 private:
-  uint16_t div_counter;
-  uint16_t tima_counter;
+  void execute_interrupts();
+  void execute_timers(uint8_t cycles);
+  void update_tima(uint8_t tac);
+
+  uint16_t div_counter = 0;
+  uint16_t tima_counter = 0;
+  uint8_t current_tac = 0;
 };

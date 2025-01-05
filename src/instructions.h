@@ -227,9 +227,9 @@ typedef std::variant<
 
 struct Instruction {
   Opcode opcode;
-  size_t bytes;
-  size_t cycles;
-  size_t cycles_cond;
+  uint8_t bytes;
+  uint8_t cycles;
+  uint8_t cycles_cond;
   Operands operands;
 };
 

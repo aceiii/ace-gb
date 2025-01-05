@@ -26,3 +26,6 @@ void MockMMU::reset() {
 void MockMMU::inc(uint16_t addr) {
   memory[addr] += 1;
 }
+
+void MockMMU::on_write8(uint16_t addr, mmu_callback callback) {
+}

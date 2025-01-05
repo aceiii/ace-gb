@@ -5,6 +5,10 @@ MMU::~MMU() = default;
 
 void MMU::write(uint16_t addr, uint8_t byte) {
   memory[addr] = byte;
+
+  if (callbacks.contains(addr)) {
+    callbacks[addr](addr, byte);
+  }
 }
 
 void MMU::write(uint16_t addr, uint16_t word) {
@@ -25,4 +29,8 @@ void MMU::reset() {
 
 void MMU::inc(uint16_t addr) {
   memory[addr] += 1;
+}
+
+void MMU::on_write8(uint16_t addr, mmu_callback callback) {
+  callbacks[addr] = callback;
 }

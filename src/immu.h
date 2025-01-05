@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
+
+typedef std::function<void(uint16_t, uint8_t)> mmu_callback;
 
 class IMMU {
 public:
@@ -13,6 +16,8 @@ public:
   [[nodiscard]] virtual uint16_t read16(uint16_t addr) const = 0;
 
   virtual void inc(uint16_t addr) = 0;
+
+  virtual void on_write8(uint16_t addr, mmu_callback callback) = 0;
 
   virtual void reset() = 0;
 };

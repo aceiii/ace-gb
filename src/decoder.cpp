@@ -12,8 +12,8 @@ namespace Decoder {
 Instruction decode_prefixed(uint8_t op) {
   int r8 = op & 0x7;
 
-  size_t bytes = 2;
-  size_t cycles = r8 == 6 ? 16 : 8;
+  uint8_t bytes = 2;
+  uint8_t cycles = r8 == 6 ? 16 : 8;
 
   if (op & 0xC0) {
     uint8_t b3 = (op & 0x38) >> 3;

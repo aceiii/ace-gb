@@ -16,6 +16,8 @@ public:
 
   void inc(uint16_t addr) override;
 
+  void on_write8(uint16_t addr, mmu_callback callback) override;
+
   void reset() override;
 
 private:

@@ -16,8 +16,11 @@ public:
 
   void inc(uint16_t addr) override;
 
+  void on_write8(uint16_t addr, mmu_callback callback) override;
+
   void reset() override;
 
 private:
   std::array<uint8_t, 1 << 16> memory;
+  std::unordered_map<uint16_t, mmu_callback> callbacks;
 };

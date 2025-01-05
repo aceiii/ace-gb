@@ -1005,7 +1005,7 @@ bool execute_jp(CPU &cpu, Instruction &instr) {
 }
 
 bool execute_ret(CPU &cpu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_None>(&instr.operands)) {
+  if (std::get_if<Operands_None>(&instr.operands)) {
     return instr_ret(cpu.regs,  cpu.mmu.get());
   } else if (const auto *ops = std::get_if<Operands_Cond>(&instr.operands)) {
     return instr_ret_cond(cpu.regs, cpu.mmu.get(), ops->cond);
@@ -1118,34 +1118,34 @@ void execute_stop(CPU &cpu, Instruction &instr) {
   cpu.mmu->write(std::to_underlying(IO::DIV), (uint8_t)0);
 }
 
-void CPU::execute() {
+uint8_t CPU::execute() {
   execute_interrupts();
 
-  Instruction instr = Decoder::decode(read8());
+  Instruction instr = Decoder::decode(read_next8());
 
   if (instr.opcode == Opcode::PREFIX) {
-    instr = Decoder::decode_prefixed(read8());
+    instr = Decoder::decode_prefixed(read_next8());
   }
 
   spdlog::debug("Decoded: {}", instr);
 
   std::visit(overloaded{
-     [&](Operands_Imm8 &operands) { operands.imm = read8(); },
-     [&](Operands_Imm16 &operands) { operands.imm = read16(); },
-     [&](Operands_Offset &operands) { operands.offset = static_cast<int8_t>(read8()); },
-     [&](Operands_Reg8_Imm8 &operands) { operands.imm = read8(); },
-     [&](Operands_Reg16_Imm16 &operands) { operands.imm =read16(); },
-     [&](Operands_Cond_Imm16 &operands) { operands.imm = read16(); },
-     [&](Operands_Cond_Offset &operands) { operands.offset = static_cast<int8_t>(read8()); },
-     [&](Operands_SP_Imm16 &operands) { operands.imm = read16(); },
-     [&](Operands_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read8()); },
-     [&](Operands_Imm16_Ptr_Reg8 &operands) { operands.addr = read16(); },
-     [&](Operands_Imm16_Ptr_SP &operands) { operands.addr = read16(); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { operands.addr = read8(); },
-     [&](Operands_Reg8_Imm8_Ptr &operands) { operands.addr = read8(); },
-     [&](Operands_Reg8_Imm16_Ptr &operands) { operands.addr = read16(); },
-     [&](Operands_Reg16_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read8()); },
-     [&](Operands_Reg16_Ptr_Imm8 &operands) { operands.imm = read8(); },
+     [&](Operands_Imm8 &operands) { operands.imm = read_next8(); },
+     [&](Operands_Imm16 &operands) { operands.imm = read_next16(); },
+     [&](Operands_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
+     [&](Operands_Reg8_Imm8 &operands) { operands.imm = read_next8(); },
+     [&](Operands_Reg16_Imm16 &operands) { operands.imm =read_next16(); },
+     [&](Operands_Cond_Imm16 &operands) { operands.imm = read_next16(); },
+     [&](Operands_Cond_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
+     [&](Operands_SP_Imm16 &operands) { operands.imm = read_next16(); },
+     [&](Operands_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
+     [&](Operands_Imm16_Ptr_Reg8 &operands) { operands.addr = read_next16(); },
+     [&](Operands_Imm16_Ptr_SP &operands) { operands.addr = read_next16(); },
+     [&](Operands_Imm8_Ptr_Reg8 &operands) { operands.addr = read_next8(); },
+     [&](Operands_Reg8_Imm8_Ptr &operands) { operands.addr = read_next8(); },
+     [&](Operands_Reg8_Imm16_Ptr &operands) { operands.addr = read_next16(); },
+     [&](Operands_Reg16_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
+     [&](Operands_Reg16_Ptr_Imm8 &operands) { operands.imm = read_next8(); },
      [&](auto &operands) { /* pass */ }
   }, instr.operands);
 
@@ -1213,6 +1213,8 @@ void CPU::execute() {
   }
 
   execute_timers(cycles);
+
+  return cycles;
 }
 
 void CPU::execute_interrupts() {
@@ -1241,7 +1243,7 @@ void CPU::execute_interrupts() {
   }
 }
 
-void CPU::execute_timers(size_t cycles) {
+void CPU::execute_timers(uint8_t cycles) {
   div_counter += cycles;
   if (div_counter >= 256) {
     div_counter -= 256;
@@ -1249,42 +1251,49 @@ void CPU::execute_timers(size_t cycles) {
   }
 
   auto tac = mmu->read8(std::to_underlying(IO::TAC));
-
   if ((tac >> 2) & 0x1) {
     tima_counter += cycles;
-
-    uint16_t freq;
-    switch (tac & 0x3) {
-      case 0b00: freq = kClockSpeed / 4096; break;
-      case 0b01: freq = kClockSpeed / 262144; break;
-      case 0b10: freq = kClockSpeed / 65535; break;
-      case 0b11: freq = kClockSpeed / 16384; break;
-      default: std::unreachable();
-    }
-
-    if (tima_counter >= freq) {
-      uint8_t tima = mmu->read8(std::to_underlying(IO::TIMA));
-      if (tima == 255) {
-        mmu->write(std::to_underlying(IO::TIMA), mmu->read8(std::to_underlying(IO::TMA)));
-        uint8_t disabled_bits = mmu->read8(std::to_underlying(IO::IE)) & ~(1 << std::to_underlying(Interrupt::Timer));
-        mmu->write(std::to_underlying(IO::IE), disabled_bits);
-      } else {
-        tima += 1;
-        mmu->write(std::to_underlying(IO::TIMA), tima);
-      }
-      tima_counter -= freq;
-    }
+    update_tima(tac);
   }
+
+  current_tac = tac;
 }
 
-uint8_t CPU::read8() {
+void CPU::update_tima(uint8_t tac) {
+  static uint16_t timer_freqs[] = {
+    kClockSpeed / 4096,
+    kClockSpeed / 262144,
+    kClockSpeed / 65535,
+    kClockSpeed / 16384,
+  };
+
+  auto freq = timer_freqs[tac & 0x3];
+  if (tima_counter >= freq) {
+    uint8_t tima = mmu->read8(std::to_underlying(IO::TIMA));
+    if (tima == 255) {
+      mmu->write(std::to_underlying(IO::TIMA), mmu->read8(std::to_underlying(IO::TMA)));
+      uint8_t disabled_bits = mmu->read8(std::to_underlying(IO::IE)) & ~(1 << std::to_underlying(Interrupt::Timer));
+      mmu->write(std::to_underlying(IO::IE), disabled_bits);
+    } else {
+      tima += 1;
+      mmu->write(std::to_underlying(IO::TIMA), tima);
+    }
+    tima_counter -= freq;
+  }
+};
+
+uint8_t CPU::read_next8() {
   auto result = mmu->read8(regs.pc);
   regs.pc += 1;
   return result;
 }
 
-uint16_t CPU::read16() {
+uint16_t CPU::read_next16() {
   auto result = mmu->read16(regs.pc);
   regs.pc += 2;
   return result;
+}
+
+void CPU::init() {
+  mmu->on_write8(std::to_underlying(IO::TAC), [&](uint16_t addr, uint8_t tac) { update_tima(tac); });
 }
