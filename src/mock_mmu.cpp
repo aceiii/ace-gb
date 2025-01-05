@@ -15,7 +15,7 @@ uint8_t MockMMU::read8(uint16_t addr) const {
   return memory[addr];
 }
 
-uint8_t MockMMU::read16(uint16_t addr) const {
+uint16_t MockMMU::read16(uint16_t addr) const {
   return Mem::get16(memory.data(), addr);
 }
 

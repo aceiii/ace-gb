@@ -15,7 +15,7 @@ uint8_t MMU::read8(uint16_t addr) const {
   return memory[addr];
 }
 
-uint8_t MMU::read16(uint16_t addr) const {
+uint16_t MMU::read16(uint16_t addr) const {
   return Mem::get16(memory.data(), addr);
 }
 
