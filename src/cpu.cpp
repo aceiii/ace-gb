@@ -8,9 +8,6 @@
 #include "instructions.h"
 
 inline uint16_t interrupt_handler(Interrupt interrupt) {
-
-  spdlog::debug("interrupt handler: {}", magic_enum::enum_name(interrupt));
-
   switch (interrupt) {
     case Interrupt::VBlank: return 0x40;
     case Interrupt::Stat: return 0x48;
@@ -1296,4 +1293,9 @@ uint16_t CPU::read_next16() {
 
 void CPU::init() {
   mmu->on_write8(std::to_underlying(IO::TAC), [&](uint16_t addr, uint8_t tac) { update_tima(tac); });
+}
+
+void CPU::reset() {
+  div_counter = 0;
+  tima_counter = 0;
 }

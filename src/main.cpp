@@ -1,5 +1,6 @@
 #include <chrono>
 #include <fstream>
+#include <memory>
 #include <thread>
 #include <argparse/argparse.hpp>
 #include <magic_enum/magic_enum.hpp>
@@ -8,6 +9,7 @@
 #include "cpu.h"
 #include "interface.h"
 #include "registers.h"
+#include "mmu.h"
 
 using namespace std::chrono_literals;
 
@@ -49,6 +51,8 @@ auto main(int argc, char *argv[]) -> int {
   }
 
   CPU cpu;
+  cpu.mmu = std::make_unique<MMU>();
+  cpu.init();
 
   std::ifstream input("../roms/dmg_boot.bin", std::ios::binary);
   if (input.fail()) {
@@ -72,8 +76,8 @@ auto main(int argc, char *argv[]) -> int {
   auto prev = std::chrono::high_resolution_clock::now();
   while (!cpu.state.halt) {
     cpu.execute();
-    spdlog::info("pc: {}", cpu.regs.pc);
-    std::this_thread::sleep_for(100ns);
+    spdlog::info("pc: 0x{:2x}", cpu.regs.pc);
+//    std::this_thread::sleep_for(100ns);
   }
 
   spdlog::info("Exiting.");

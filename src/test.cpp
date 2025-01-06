@@ -43,6 +43,7 @@ void load_registers(json &data, Registers &regs) {
 }
 
 void load_memory(json &data, IMMU *mmu) {
+  mmu->reset();
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint16_t>();
@@ -134,6 +135,8 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
     auto name = test.at("name").get<std::string>();
 
     spdlog::debug("Running case #{} of {}: {}", i, result.total, name);
+
+    cpu.reset();
 
     Registers &regs = cpu.regs;
     load_registers(initial, regs);

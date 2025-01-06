@@ -92,6 +92,7 @@ struct State {
 class CPU {
 public:
   void init();
+  void reset();
   uint8_t execute();
   uint8_t read_next8();
   uint16_t read_next16();

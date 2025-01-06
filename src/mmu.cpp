@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "mmu.h"
 #include "memory.h"
 

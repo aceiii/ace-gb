@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "mock_mmu.h"
 #include "memory.h"
 
