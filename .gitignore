@@ -20,3 +20,8 @@ ace-gb
 imgui.ini
 imgui_log.txt
 settings.toml
+
+# roms
+dmg_boot.bin
+boot.bin
+roms/
