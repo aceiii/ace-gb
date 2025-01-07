@@ -1292,7 +1292,14 @@ uint16_t CPU::read_next16() {
 }
 
 void CPU::init() {
-  mmu->on_write8(std::to_underlying(IO::TAC), [&](uint16_t addr, uint8_t tac) { update_tima(tac); });
+  mmu->on_write8(std::to_underlying(IO::DIV), [](uint16_t addr, uint8_t val) {
+    return 0;
+  });
+
+  mmu->on_write8(std::to_underlying(IO::TAC), [&](uint16_t addr, uint8_t tac) {
+    update_tima(tac);
+    return tac;
+  });
 }
 
 void CPU::reset() {

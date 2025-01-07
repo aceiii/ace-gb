@@ -54,7 +54,7 @@ auto main(int argc, char *argv[]) -> int {
   cpu.mmu = std::make_unique<MMU>();
   cpu.init();
 
-  std::ifstream input("../roms/dmg_boot.bin", std::ios::binary);
+  std::ifstream input("./boot.bin", std::ios::binary);
   if (input.fail()) {
     spdlog::error("Failed to load boot rom: {}", strerror(errno));
     return 1;
@@ -68,16 +68,28 @@ auto main(int argc, char *argv[]) -> int {
   rom_bytes.reserve(boot_rom_size);
   rom_bytes.insert(rom_bytes.begin(), std::istream_iterator<uint8_t>(input), std::istream_iterator<uint8_t>());
 
+  cpu.mmu->load_boot_rom(rom_bytes.data());
+
   for (int i = 0; i < rom_bytes.size(); i++) {
     uint8_t byte = rom_bytes[i];
     cpu.mmu->write(i, byte);
   }
 
-  auto prev = std::chrono::high_resolution_clock::now();
+  spdlog::info("Starting CPU.");
+
+  const auto fps = 60;
+  const auto cycles_per_frame = kClockSpeed / fps;
+
+  int cycles = 0;
+
   while (!cpu.state.halt) {
-    cpu.execute();
-    spdlog::info("pc: 0x{:2x}", cpu.regs.pc);
-//    std::this_thread::sleep_for(100ns);
+    do {
+      cycles += cpu.execute();
+    } while (cycles < cycles_per_frame);
+
+    cycles -= cycles_per_frame;
+
+    spdlog::info("{}", cpu.regs);
   }
 
   spdlog::info("Exiting.");

@@ -31,3 +31,11 @@ void MockMMU::inc(uint16_t addr) {
 
 void MockMMU::on_write8(uint16_t addr, mmu_callback callback) {
 }
+
+void MockMMU::load_boot_rom(const uint8_t *rom) {
+
+}
+
+void MockMMU::load_cartridge(std::vector<uint8_t> cart) {
+
+}

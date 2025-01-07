@@ -3,11 +3,14 @@
 #include <cstdint>
 #include <functional>
 
-typedef std::function<void(uint16_t, uint8_t)> mmu_callback;
+typedef std::function<uint8_t(uint16_t, uint8_t)> mmu_callback;
 
 class IMMU {
 public:
   virtual ~IMMU() = 0;
+
+  virtual void load_boot_rom(const uint8_t *rom) = 0;
+  virtual void load_cartridge(std::vector<uint8_t> cart) = 0;
 
   virtual void write(uint16_t addr, uint8_t byte) = 0;
   virtual void write(uint16_t addr, uint16_t word) = 0;

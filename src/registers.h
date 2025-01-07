@@ -93,7 +93,7 @@ public:
   }
 
   auto format(const Registers &regs, fmt::format_context &ctx) const {
-    return fmt::format_to(ctx.out(), "Registers(a={}, f={}, b={}, c={}, d={}, e={}, h={}, l={}, sp={}, pc={}",
+    return fmt::format_to(ctx.out(), "a={}, f={}, b={}, c={}, d={}, e={}, h={}, l={}, sp={}, pc={}",
                           regs.get(Reg8::A), regs.get(Reg8::F), regs.get(Reg8::B), regs.get(Reg8::C), regs.get(Reg8::D),
                           regs.get(Reg8::E), regs.get(Reg8::H), regs.get(Reg8::L), regs.sp, regs.pc);
   }

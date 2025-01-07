@@ -12,7 +12,7 @@
 constexpr size_t kClockSpeed = 4194304;
 
 enum class IO {
-  P1 = 0xff00, JOYP = 0xff00,
+  P1 = 0xff00,
   SB = 0xff01,
   SC = 0xff02,
   DIV = 0xff04,
@@ -56,6 +56,7 @@ enum class IO {
   WX = 0xff4b,
   KEY1 = 0xff4d,
   VBK = 0xff4f,
+  BOOT = 0xff50,
   HDMA1 = 0xff51,
   HDMA2 = 0xff52,
   HDMA3 = 0xff53,
