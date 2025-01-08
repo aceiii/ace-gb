@@ -7,11 +7,13 @@
 
 class Emulator {
 public:
-  void initialize();
+  Emulator();
+
+  bool initialize();
   void update();
   void cleanup();
 
-  void load_rom_bytes(const std::vector<uint8_t> &bytes);
+  void load_cartridge(const std::vector<uint8_t> &bytes);
 
   void reset();
   void step();
@@ -20,6 +22,9 @@ public:
 
   bool is_playing() const;
 
+  const Registers& registers() const;
+
 private:
   CPU cpu;
+  bool running = false;
 };

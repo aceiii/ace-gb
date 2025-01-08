@@ -57,6 +57,6 @@ void MMU::load_boot_rom(const uint8_t *rom) {
   std::copy(rom, rom + boot_rom.size(), begin(boot_rom));
 }
 
-void MMU::load_cartridge(std::vector<uint8_t> cart) {
+void MMU::load_cartridge(const std::vector<uint8_t> &cart) {
   this->cart = cart;
 }

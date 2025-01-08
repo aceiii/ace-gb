@@ -10,7 +10,7 @@ public:
   virtual ~IMMU() = 0;
 
   virtual void load_boot_rom(const uint8_t *rom) = 0;
-  virtual void load_cartridge(std::vector<uint8_t> cart) = 0;
+  virtual void load_cartridge(const std::vector<uint8_t> &cart) = 0;
 
   virtual void write(uint16_t addr, uint8_t byte) = 0;
   virtual void write(uint16_t addr, uint16_t word) = 0;

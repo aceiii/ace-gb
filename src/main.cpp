@@ -50,49 +50,8 @@ auto main(int argc, char *argv[]) -> int {
     return 1;
   }
 
-  CPU cpu;
-  cpu.mmu = std::make_unique<MMU>();
-  cpu.init();
-
-  std::ifstream input("./boot.bin", std::ios::binary);
-  if (input.fail()) {
-    spdlog::error("Failed to load boot rom: {}", strerror(errno));
-    return 1;
-  }
-
-  input.seekg(0, std::ios::end);
-  auto boot_rom_size = input.tellg();
-  input.seekg(0, std::ios::beg);
-
-  std::vector<uint8_t> rom_bytes;
-  rom_bytes.reserve(boot_rom_size);
-  rom_bytes.insert(rom_bytes.begin(), std::istream_iterator<uint8_t>(input), std::istream_iterator<uint8_t>());
-
-  cpu.mmu->load_boot_rom(rom_bytes.data());
-
-  for (int i = 0; i < rom_bytes.size(); i++) {
-    uint8_t byte = rom_bytes[i];
-    cpu.mmu->write(i, byte);
-  }
-
-  spdlog::info("Starting CPU.");
-
-  const auto fps = 60;
-  const auto cycles_per_frame = kClockSpeed / fps;
-
-  int cycles = 0;
-
-  while (!cpu.state.halt) {
-    do {
-      cycles += cpu.execute();
-    } while (cycles < cycles_per_frame);
-
-    cycles -= cycles_per_frame;
-
-    spdlog::info("{}", cpu.regs);
-  }
-
-  spdlog::info("Exiting.");
+  Interface interface;
+  interface.run();
 
   return 0;
 }

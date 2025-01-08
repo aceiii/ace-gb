@@ -35,6 +35,8 @@ Interface::Interface() {
   SetExitKey(KEY_NULL);
   rlImGuiSetup(true);
 
+  emulator.initialize();
+
   while (!IsWindowReady()) {
     // pass
   }
@@ -42,12 +44,21 @@ Interface::Interface() {
 
 Interface::~Interface() {
   spdlog::info("Cleaning up interface");
+
+  emulator.reset();
+
+  CloseAudioDevice();
+  CloseWindow();
 }
 
 void Interface::run() {
   spdlog::info("Running...");
 
+  emulator.play();
+
   while (!WindowShouldClose()) {
+    emulator.update();
+
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
@@ -55,8 +66,9 @@ void Interface::run() {
 
     rlImGuiEnd();
 
-
     DrawFPS(10, GetScreenHeight() - 24);
+
+    DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 20, 12, BLACK);
 
     EndDrawing();
   }

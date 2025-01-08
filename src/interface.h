@@ -1,8 +1,10 @@
 #pragma once
 
+#include "cpu.h"
+
 class Interface {
 public:
-  Interface();
+  explicit Interface();
   ~Interface();
 
   void run();
