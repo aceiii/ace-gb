@@ -54,21 +54,35 @@ Interface::~Interface() {
 void Interface::run() {
   spdlog::info("Running...");
 
-  emulator.play();
-
   while (!WindowShouldClose()) {
     emulator.update();
 
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
-    rlImGuiBegin();
-
-    rlImGuiEnd();
-
     DrawFPS(10, GetScreenHeight() - 24);
 
-    DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 20, 12, BLACK);
+    DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 32, 15, BLACK);
+    DrawText(fmt::format("cycles={}", emulator.cycles()).c_str(), 20, 48, 15, BLACK);
+
+    rlImGuiBegin();
+
+    ImGui::BeginMainMenuBar();
+    if (ImGui::BeginMenu("File")) {
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Emulator")) {
+      if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator.is_playing())) {
+        emulator.play();
+      }
+      if (ImGui::MenuItem("Stop", nullptr, nullptr, emulator.is_playing())) {
+        emulator.stop();
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+
+    rlImGuiEnd();
 
     EndDrawing();
   }

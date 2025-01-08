@@ -23,8 +23,11 @@ public:
   bool is_playing() const;
 
   const Registers& registers() const;
+  size_t cycles() const;
 
 private:
   CPU cpu;
+
+  size_t num_cycles = 0;
   bool running = false;
 };

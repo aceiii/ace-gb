@@ -49,6 +49,8 @@ void Emulator::update() {
   do {
     cycles += cpu.execute();
   } while (cycles < cycles_per_frame);
+
+  num_cycles += cycles;
 }
 
 void Emulator::cleanup() {
@@ -85,4 +87,8 @@ bool Emulator::is_playing() const {
 
 const Registers& Emulator::registers() const {
   return cpu.regs;
+}
+
+size_t Emulator::cycles() const {
+  return num_cycles;
 }
