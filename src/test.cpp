@@ -125,7 +125,7 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
   result.total = tests_to_run.size();
 
   CPU cpu;
-  cpu.mmu = std::make_unique<MockMMU>();
+  auto mmu = std::make_unique<MockMMU>();
 
   for (const auto i : tests_to_run) {
     auto test = data.at(i);
@@ -143,12 +143,12 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
 
     Registers final_regs;
     load_registers(final, final_regs);
-    load_memory(initial.at("ram"), cpu.mmu.get());
+    load_memory(initial.at("ram"), mmu.get());
 
-    cpu.execute();
+    cpu.execute(mmu.get());
 
     auto reg_match = regs == final_regs;
-    auto ram_match = check_memory(final.at("ram"), cpu.mmu.get());
+    auto ram_match = check_memory(final.at("ram"), mmu.get());
     auto is_success = reg_match && ram_match;
     if (is_success) {
       result.succeeded.emplace_back(i);
@@ -166,7 +166,7 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
       }
 
       if (!ram_match) {
-        for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), cpu.mmu.get())) {
+        for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), mmu.get())) {
           spdlog::error("  mem[{}]: {} != {}", addr , a, b);
         }
       }

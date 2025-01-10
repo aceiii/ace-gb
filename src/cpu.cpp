@@ -786,7 +786,7 @@ inline void instr_restart(Registers &regs, IMMU *mmu, uint8_t n) {
   regs.pc = n;
 }
 
-inline void execute_ld(CPU &cpu, Instruction &instr) {
+inline void execute_ld(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_SP_Reg16 &operands) { instr_load_sp_reg16(cpu.regs, operands.reg); },
      [&](Operands_SP_Imm16 &operands) { instr_load_sp_imm16(cpu.regs, operands.imm); },
@@ -794,159 +794,159 @@ inline void execute_ld(CPU &cpu, Instruction &instr) {
      [&](Operands_Reg8_Imm8 &operands) { instr_load_reg8_imm8(cpu.regs, operands.reg, operands.imm); },
      [&](Operands_Reg16_Reg16 &operands) { instr_load_reg16_reg16(cpu.regs, operands.reg1, operands.reg2); },
      [&](Operands_Reg16_Imm16 &operands) { instr_load_reg16_imm16(cpu.regs, operands.reg, operands.imm); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu.regs, cpu.mmu.get(), operands.addr, operands.reg); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_load_reg8_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Reg16_Ptr_Inc &operands) { instr_load_reg8_reg16_ptr_inc(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Reg16_Ptr_Dec &operands) { instr_load_reg8_reg16_ptr_dec(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm16_Ptr &operands) { instr_load_reg8_imm16_ptr(cpu.regs, cpu.mmu.get(), operands.reg, operands.addr); },
+     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu.regs, mmu, operands.addr, operands.reg); },
+     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_load_reg8_reg16_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Reg16_Ptr_Inc &operands) { instr_load_reg8_reg16_ptr_inc(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Reg16_Ptr_Dec &operands) { instr_load_reg8_reg16_ptr_dec(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm16_Ptr &operands) { instr_load_reg8_imm16_ptr(cpu.regs, mmu, operands.reg, operands.addr); },
      [&](Operands_Reg16_SP_Offset &operands) { instr_load_reg16_sp_offset(cpu.regs, operands.reg, operands.offset); },
-     [&](Operands_Reg16_Ptr_Reg8 &operands) { instr_load_reg16_ptr_reg8(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Ptr_Inc_Reg8 &operands) { instr_load_reg16_ptr_inc_reg8(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Ptr_Imm8 &operands) { instr_load_reg16_ptr_imm8(cpu.regs, cpu.mmu.get(), operands.reg, operands.imm); },
-     [&](Operands_Reg16_Ptr_Dec_Reg8 &operands) { instr_load_reg16_ptr_dec_reg8(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
-     [&](Operands_Imm16_Ptr_Reg8 &operands) { instr_load_imm16_ptr_reg8(cpu.regs, cpu.mmu.get(), operands.addr, operands.reg); },
-     [&](Operands_Imm16_Ptr_SP &operands) { instr_load_imm16_ptr_sp(cpu.regs, cpu.mmu.get(), operands.addr); },
+     [&](Operands_Reg16_Ptr_Reg8 &operands) { instr_load_reg16_ptr_reg8(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Ptr_Inc_Reg8 &operands) { instr_load_reg16_ptr_inc_reg8(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Ptr_Imm8 &operands) { instr_load_reg16_ptr_imm8(cpu.regs, mmu, operands.reg, operands.imm); },
+     [&](Operands_Reg16_Ptr_Dec_Reg8 &operands) { instr_load_reg16_ptr_dec_reg8(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Imm16_Ptr_Reg8 &operands) { instr_load_imm16_ptr_reg8(cpu.regs, mmu, operands.addr, operands.reg); },
+     [&](Operands_Imm16_Ptr_SP &operands) { instr_load_imm16_ptr_sp(cpu.regs, mmu, operands.addr); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-inline void execute_inc(CPU &cpu, Instruction &instr) {
+inline void execute_inc(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_inc_reg8(cpu.regs, operands.reg); },
      [&](Operands_Reg16 &operands) { instr_inc_reg16(cpu.regs, operands.reg); },
-     [&](Operands_Reg16_Ptr &operands) { instr_inc_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_inc_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](Operands_SP &operands) { instr_inc_sp(cpu.regs); },
      [&](auto&) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_dec(CPU &cpu, Instruction &instr) {
+void execute_dec(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_dec_reg8(cpu.regs, operands.reg); },
      [&](Operands_Reg16 &operands) { instr_dec_reg16(cpu.regs, operands.reg); },
-     [&](Operands_Reg16_Ptr &operands) { instr_dec_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_dec_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](Operands_SP &operands) { instr_dec_sp(cpu.regs); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_add(CPU &cpu, Instruction &instr) {
+void execute_add(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_add_reg8(cpu.regs, operands.reg); },
      [&](Operands_Imm8 &operands) { instr_add_imm8(cpu.regs, operands.imm); },
      [&](Operands_Reg8_Reg8 &operands) { instr_add_reg8_reg8(cpu.regs, operands.reg1, operands.reg2); },
      [&](Operands_Reg8_Imm8& operands) { instr_add_reg8_imm8(cpu.regs, operands.reg, operands.imm); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_reg8_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_reg8_reg16_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
      [&](Operands_Reg16_Reg16 &operands) { instr_add_reg16_reg16(cpu.regs, operands.reg1, operands.reg2); },
      [&](Operands_SP_Offset &operands) { instr_add_sp_offset(cpu.regs, operands.offset); },
-     [&](Operands_Reg16_Ptr &operands) { instr_add_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_add_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](Operands_Reg16_SP &operands) { instr_add_reg16_sp(cpu.regs, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_adc(CPU &cpu, Instruction &instr) {
+void execute_adc(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_add_carry_reg8(cpu.regs, operands.reg); },
      [&](Operands_Imm8 &operands) { instr_add_carry_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_add_carry_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_add_carry_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](Operands_Reg8_Reg8 &operands) { instr_add_carry_reg8_reg8(cpu.regs, operands.reg1, operands.reg2); },
      [&](Operands_Reg8_Imm8 &operands) { instr_add_carry_reg8_imm8(cpu.regs, operands.reg, operands.imm); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_carry_reg8_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_carry_reg8_reg16_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_sub(CPU &cpu, Instruction &instr) {
+void execute_sub(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_sub_reg8(cpu.regs, operands.reg); },
      [&](Operands_Imm8 &operands) { instr_sub_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_sub_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_sub_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_sbc(CPU &cpu, Instruction &instr) {
+void execute_sbc(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_sub_carry_reg8(cpu.regs, operands.reg); },
      [&](Operands_Imm8 &operands) { instr_sub_carry_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_sub_carry_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_sub_carry_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](Operands_Reg8_Reg8 &operands) { instr_sub_carry_reg8_reg8(cpu.regs, operands.reg1, operands.reg2); },
      [&](Operands_Reg8_Imm8 &operands) { instr_sub_carry_reg8_imm8(cpu.regs, operands.reg, operands.imm); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_sub_carry_reg8_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_sub_carry_reg8_reg16_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_and(CPU &cpu, Instruction &instr) {
+void execute_and(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_and_reg8(cpu.regs, operands.reg); },
      [&](Operands_Imm8 &operands) { instr_and_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_and_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_and_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_xor(CPU &cpu, Instruction &instr) {
+void execute_xor(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_xor_reg8(cpu.regs, operands.reg); },
      [&](Operands_Imm8 &operands) { instr_xor_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_xor_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_xor_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_or(CPU &cpu, Instruction &instr) {
+void execute_or(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_or_reg8(cpu.regs, operands.reg); },
      [&](Operands_Imm8 &operands) { instr_or_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_or_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_or_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_cp(CPU &cpu, Instruction &instr) {
+void execute_cp(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Reg8 &operands) { instr_cmp_reg8(cpu.regs, operands.reg); },
      [&](Operands_Imm8 &operands) { instr_cmp_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_cmp_reg16_ptr(cpu.regs, cpu.mmu.get(), operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_cmp_reg16_ptr(cpu.regs, mmu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_rlca(CPU &cpu, Instruction &instr) {
+void execute_rlca(CPU &cpu, IMMU *mmu, Instruction &instr) {
   instr_rlca(cpu.regs);
 }
 
-void execute_rrca(CPU &cpu, Instruction &instr) {
+void execute_rrca(CPU &cpu, IMMU *mmu, Instruction &instr) {
   instr_rrca(cpu.regs);
 }
 
-void execute_rla(CPU &cpu, Instruction &instr) {
+void execute_rla(CPU &cpu, IMMU *mmu, Instruction &instr) {
   instr_rla(cpu.regs);
 }
 
-void execute_rra(CPU &cpu, Instruction &instr) {
+void execute_rra(CPU &cpu, IMMU *mmu, Instruction &instr) {
   instr_rra(cpu.regs);
 }
 
-void execute_daa(CPU &cpu, Instruction &instr) {
+void execute_daa(CPU &cpu, IMMU *mmu, Instruction &instr) {
   instr_daa(cpu.regs);
 }
 
-void execute_cpl(CPU &cpu, Instruction &instr) {
+void execute_cpl(CPU &cpu, IMMU *mmu, Instruction &instr) {
   instr_cpl(cpu.regs);
 }
 
-void execute_scf(CPU &cpu, Instruction &instr) {
+void execute_scf(CPU &cpu, IMMU *mmu,  Instruction &instr) {
   instr_scf(cpu.regs);
 }
 
-void execute_ccf(CPU &cpu, Instruction &instr) {
+void execute_ccf(CPU &cpu, IMMU *mmu, Instruction &instr) {
   instr_ccf(cpu.regs);
 }
 
-void execute_jr(CPU &cpu, Instruction &instr) {
+void execute_jr(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
      [&](Operands_Offset &operands) { instr_jump_rel(cpu.regs, operands.offset); },
      [&](Operands_Cond_Offset &operands) { instr_jump_rel_cond(cpu.regs, operands.cond, operands.offset); },
@@ -954,45 +954,45 @@ void execute_jr(CPU &cpu, Instruction &instr) {
   }, instr.operands);
 }
 
-void execute_halt(CPU &cpu, Instruction &instr) {
+void execute_halt(CPU &cpu, IMMU *mmu, Instruction &instr) {
   // TODO: halt
 }
 
-void execute_ldh(CPU &cpu, Instruction &instr) {
+void execute_ldh(CPU &cpu, IMMU *mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8_Imm8_Ptr &operands) { instr_load_hi_reg8_imm8_ptr(cpu.regs, cpu.mmu.get(), operands.reg, operands.addr); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu.regs, cpu.mmu.get(), operands.addr, operands.reg); },
-     [&](Operands_Reg8_Reg8_Ptr &operands) { instr_load_hi_reg8_reg8_ptr(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Ptr_Reg8 &operands) { instr_load_hi_reg8_ptr_reg8(cpu.regs, cpu.mmu.get(), operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8_Ptr &operands) { instr_load_hi_reg8_imm8_ptr(cpu.regs, mmu, operands.reg, operands.addr); },
+     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu.regs, mmu, operands.addr, operands.reg); },
+     [&](Operands_Reg8_Reg8_Ptr &operands) { instr_load_hi_reg8_reg8_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Ptr_Reg8 &operands) { instr_load_hi_reg8_ptr_reg8(cpu.regs, mmu, operands.reg1, operands.reg2); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_pop(CPU &cpu, Instruction &instr) {
+void execute_pop(CPU &cpu, IMMU *mmu, Instruction &instr) {
   auto operands = std::get<Operands_Reg16>(instr.operands);
-  instr_pop_reg16(cpu.regs, cpu.mmu.get(), operands.reg);
+  instr_pop_reg16(cpu.regs, mmu, operands.reg);
 }
 
-void execute_push(CPU &cpu, Instruction &instr) {
+void execute_push(CPU &cpu, IMMU *mmu, Instruction &instr) {
   auto operands = std::get<Operands_Reg16>(instr.operands);
-  instr_push_reg16(cpu.regs, cpu.mmu.get(), operands.reg);
+  instr_push_reg16(cpu.regs, mmu, operands.reg);
 }
 
-void execute_rst(CPU &cpu, Instruction &instr) {
+void execute_rst(CPU &cpu, IMMU *mmu, Instruction &instr) {
   auto operands = std::get<Operands_Imm8_Literal>(instr.operands);
-  instr_restart(cpu.regs, cpu.mmu.get(), operands.imm);
+  instr_restart(cpu.regs, mmu, operands.imm);
 }
 
-bool execute_call(CPU &cpu, Instruction &instr) {
+bool execute_call(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm16>(&instr.operands)) {
-    return instr_call_imm16(cpu.regs,  cpu.mmu.get(), ops->imm);
+    return instr_call_imm16(cpu.regs,  mmu, ops->imm);
   } else if (const auto *ops = std::get_if<Operands_Cond_Imm16>(&instr.operands)) {
-    return instr_call_cond_imm16(cpu.regs, cpu.mmu.get(), ops->cond, ops->imm);
+    return instr_call_cond_imm16(cpu.regs, mmu, ops->cond, ops->imm);
   }
   std::unreachable();
 }
 
-bool execute_jp(CPU &cpu, Instruction &instr) {
+bool execute_jp(CPU &cpu, IMMU *mmu, Instruction &instr) {
   return std::visit(overloaded{
     [&](Operands_Reg16 &operands) { return instr_jump_reg16(cpu.regs, operands.reg); },
     [&](Operands_Imm16 &operands) { return instr_jump_imm16(cpu.regs, operands.imm); },
@@ -1001,148 +1001,151 @@ bool execute_jp(CPU &cpu, Instruction &instr) {
   }, instr.operands);
 }
 
-bool execute_ret(CPU &cpu, Instruction &instr) {
+bool execute_ret(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (std::get_if<Operands_None>(&instr.operands)) {
-    return instr_ret(cpu.regs,  cpu.mmu.get());
+    return instr_ret(cpu.regs,  mmu);
   } else if (const auto *ops = std::get_if<Operands_Cond>(&instr.operands)) {
-    return instr_ret_cond(cpu.regs, cpu.mmu.get(), ops->cond);
+    return instr_ret_cond(cpu.regs, mmu, ops->cond);
   }
   std::unreachable();
 }
 
-void execute_reti(CPU &cpu, Instruction &instr) {
-  instr_reti(cpu.regs, cpu.state, cpu.mmu.get());
+void execute_reti(CPU &cpu, IMMU *mmu, Instruction &instr) {
+  instr_reti(cpu.regs, cpu.state, mmu);
 }
 
-void execute_rlc(CPU &cpu, Instruction &instr) {
+void execute_rlc(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_rlc_reg8(cpu.regs,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_rlc_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->reg);
+    instr_rlc_reg16_ptr(cpu.regs, mmu, ops->reg);
   }
 }
 
-void execute_rrc(CPU &cpu, Instruction &instr) {
+void execute_rrc(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_rrc_reg8(cpu.regs,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_rrc_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->reg);
+    instr_rrc_reg16_ptr(cpu.regs, mmu, ops->reg);
   }
 }
 
-void execute_rl(CPU &cpu, Instruction &instr) {
+void execute_rl(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_rl_reg8(cpu.regs,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_rl_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->reg);
+    instr_rl_reg16_ptr(cpu.regs, mmu, ops->reg);
   }
 }
 
-void execute_rr(CPU &cpu, Instruction &instr) {
+void execute_rr(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_rr_reg8(cpu.regs,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_rr_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->reg);
+    instr_rr_reg16_ptr(cpu.regs, mmu, ops->reg);
   }
 }
 
-void execute_sla(CPU &cpu, Instruction &instr) {
+void execute_sla(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_sla_reg8(cpu.regs,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_sla_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->reg);
+    instr_sla_reg16_ptr(cpu.regs, mmu, ops->reg);
   }
 }
 
-void execute_sra(CPU &cpu, Instruction &instr) {
+void execute_sra(CPU &cpu, IMMU *mmu,  Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_sra_reg8(cpu.regs,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_sra_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->reg);
+    instr_sra_reg16_ptr(cpu.regs, mmu, ops->reg);
   }
 }
 
-void execute_srl(CPU &cpu, Instruction &instr) {
+void execute_srl(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_srl_reg8(cpu.regs,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_srl_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->reg);
+    instr_srl_reg16_ptr(cpu.regs, mmu, ops->reg);
   }
 }
 
-void execute_swap(CPU &cpu, Instruction &instr) {
+void execute_swap(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_swap_reg8(cpu.regs,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_swap_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->reg);
+    instr_swap_reg16_ptr(cpu.regs, mmu, ops->reg);
   }
 }
 
-void execute_bit(CPU &cpu, Instruction &instr) {
+void execute_bit(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
     instr_bit_imm8_reg8(cpu.regs, ops->imm, ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
-    instr_bit_imm8_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->imm, ops->reg);
+    instr_bit_imm8_reg16_ptr(cpu.regs, mmu, ops->imm, ops->reg);
   }
 }
 
-void execute_res(CPU &cpu, Instruction &instr) {
+void execute_res(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
     instr_reset_imm8_reg8(cpu.regs, ops->imm, ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
-    instr_reset_imm8_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->imm, ops->reg);
+    instr_reset_imm8_reg16_ptr(cpu.regs, mmu, ops->imm, ops->reg);
   }
 }
 
-void execute_set(CPU &cpu, Instruction &instr) {
+void execute_set(CPU &cpu, IMMU *mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
     instr_set_imm8_reg8(cpu.regs, ops->imm, ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
-    instr_set_imm8_reg16_ptr(cpu.regs, cpu.mmu.get(), ops->imm, ops->reg);
+    instr_set_imm8_reg16_ptr(cpu.regs, mmu, ops->imm, ops->reg);
   }
 }
 
-void execute_di(CPU &cpu, Instruction &instr) {
+void execute_di(CPU &cpu, IMMU *mmu, Instruction &instr) {
   cpu.state.ime = false;
 }
 
-void execute_ei(CPU &cpu, Instruction &instr) {
+void execute_ei(CPU &cpu, IMMU *mmu, Instruction &instr) {
   cpu.state.ime = true;
 }
 
-void execute_stop(CPU &cpu, Instruction &instr) {
+void execute_stop(CPU &cpu, IMMU *mmu, Instruction &instr) {
   cpu.state.stop = true;
-  cpu.mmu->write(std::to_underlying(IO::DIV), (uint8_t)0);
+  mmu->write(std::to_underlying(IO::DIV), (uint8_t)0);
 }
 
-uint8_t CPU::execute() {
-  execute_interrupts();
+uint8_t CPU::execute(IMMU *mmu) {
+  auto interrupt_cycles = execute_interrupts(mmu);
+  if (interrupt_cycles) {
+    return interrupt_cycles;
+  }
 
-  Instruction instr = Decoder::decode(read_next8());
+  Instruction instr = Decoder::decode(read_next8(mmu));
 
   if (instr.opcode == Opcode::PREFIX) {
-    instr = Decoder::decode_prefixed(read_next8());
+    instr = Decoder::decode_prefixed(read_next8(mmu));
   }
 
   spdlog::debug("Decoded: {}", instr);
 
   std::visit(overloaded{
-     [&](Operands_Imm8 &operands) { operands.imm = read_next8(); },
-     [&](Operands_Imm16 &operands) { operands.imm = read_next16(); },
-     [&](Operands_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
-     [&](Operands_Reg8_Imm8 &operands) { operands.imm = read_next8(); },
-     [&](Operands_Reg16_Imm16 &operands) { operands.imm =read_next16(); },
-     [&](Operands_Cond_Imm16 &operands) { operands.imm = read_next16(); },
-     [&](Operands_Cond_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
-     [&](Operands_SP_Imm16 &operands) { operands.imm = read_next16(); },
-     [&](Operands_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
-     [&](Operands_Imm16_Ptr_Reg8 &operands) { operands.addr = read_next16(); },
-     [&](Operands_Imm16_Ptr_SP &operands) { operands.addr = read_next16(); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { operands.addr = read_next8(); },
-     [&](Operands_Reg8_Imm8_Ptr &operands) { operands.addr = read_next8(); },
-     [&](Operands_Reg8_Imm16_Ptr &operands) { operands.addr = read_next16(); },
-     [&](Operands_Reg16_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
-     [&](Operands_Reg16_Ptr_Imm8 &operands) { operands.imm = read_next8(); },
+     [&](Operands_Imm8 &operands) { operands.imm = read_next8(mmu); },
+     [&](Operands_Imm16 &operands) { operands.imm = read_next16(mmu); },
+     [&](Operands_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8(mmu)); },
+     [&](Operands_Reg8_Imm8 &operands) { operands.imm = read_next8(mmu); },
+     [&](Operands_Reg16_Imm16 &operands) { operands.imm =read_next16(mmu); },
+     [&](Operands_Cond_Imm16 &operands) { operands.imm = read_next16(mmu); },
+     [&](Operands_Cond_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8(mmu)); },
+     [&](Operands_SP_Imm16 &operands) { operands.imm = read_next16(mmu); },
+     [&](Operands_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8(mmu)); },
+     [&](Operands_Imm16_Ptr_Reg8 &operands) { operands.addr = read_next16(mmu); },
+     [&](Operands_Imm16_Ptr_SP &operands) { operands.addr = read_next16(mmu); },
+     [&](Operands_Imm8_Ptr_Reg8 &operands) { operands.addr = read_next8(mmu); },
+     [&](Operands_Reg8_Imm8_Ptr &operands) { operands.addr = read_next8(mmu); },
+     [&](Operands_Reg8_Imm16_Ptr &operands) { operands.addr = read_next16(mmu); },
+     [&](Operands_Reg16_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8(mmu)); },
+     [&](Operands_Reg16_Ptr_Imm8 &operands) { operands.imm = read_next8(mmu); },
      [&](auto &operands) { /* pass */ }
   }, instr.operands);
 
@@ -1151,79 +1154,77 @@ uint8_t CPU::execute() {
   switch (instr.opcode) {
   case Opcode::INVALID:
   case Opcode::NOP: break;
-  case Opcode::LD: execute_ld(*this, instr); break;
-  case Opcode::INC: execute_inc(*this, instr); break;
-  case Opcode::DEC: execute_dec(*this, instr); break;
-  case Opcode::ADD: execute_add(*this, instr); break;
-  case Opcode::ADC: execute_adc(*this, instr); break;
-  case Opcode::SUB: execute_sub(*this, instr); break;
-  case Opcode::SBC: execute_sbc(*this, instr); break;
-  case Opcode::AND: execute_and(*this, instr); break;
-  case Opcode::XOR: execute_xor(*this, instr); break;
-  case Opcode::OR: execute_or(*this, instr); break;
-  case Opcode::CP: execute_cp(*this, instr); break;
-  case Opcode::RLCA: execute_rlca(*this, instr); break;
-  case Opcode::RRCA: execute_rrca(*this, instr); break;
-  case Opcode::RLA: execute_rla(*this, instr); break;
-  case Opcode::RRA: execute_rra(*this, instr); break;
-  case Opcode::DAA: execute_daa(*this, instr); break;
-  case Opcode::CPL: execute_cpl(*this, instr); break;
-  case Opcode::SCF: execute_scf(*this, instr); break;
-  case Opcode::CCF: execute_ccf(*this, instr); break;
-  case Opcode::JR: execute_jr(*this, instr); break;
-  case Opcode::HALT: execute_halt(*this, instr); break;
-  case Opcode::LDH: execute_ldh(*this, instr); break;
-  case Opcode::POP: execute_pop(*this, instr); break;
-  case Opcode::PUSH: execute_push(*this, instr); break;
-  case Opcode::RST: execute_rst(*this, instr); break;
+  case Opcode::LD: execute_ld(*this, mmu, instr); break;
+  case Opcode::INC: execute_inc(*this, mmu, instr); break;
+  case Opcode::DEC: execute_dec(*this, mmu, instr); break;
+  case Opcode::ADD: execute_add(*this, mmu, instr); break;
+  case Opcode::ADC: execute_adc(*this, mmu, instr); break;
+  case Opcode::SUB: execute_sub(*this, mmu, instr); break;
+  case Opcode::SBC: execute_sbc(*this, mmu, instr); break;
+  case Opcode::AND: execute_and(*this, mmu, instr); break;
+  case Opcode::XOR: execute_xor(*this, mmu, instr); break;
+  case Opcode::OR: execute_or(*this, mmu, instr); break;
+  case Opcode::CP: execute_cp(*this, mmu, instr); break;
+  case Opcode::RLCA: execute_rlca(*this, mmu, instr); break;
+  case Opcode::RRCA: execute_rrca(*this, mmu, instr); break;
+  case Opcode::RLA: execute_rla(*this, mmu, instr); break;
+  case Opcode::RRA: execute_rra(*this, mmu, instr); break;
+  case Opcode::DAA: execute_daa(*this, mmu, instr); break;
+  case Opcode::CPL: execute_cpl(*this, mmu, instr); break;
+  case Opcode::SCF: execute_scf(*this, mmu,instr); break;
+  case Opcode::CCF: execute_ccf(*this, mmu, instr); break;
+  case Opcode::JR: execute_jr(*this, mmu, instr); break;
+  case Opcode::HALT: execute_halt(*this, mmu, instr); break;
+  case Opcode::LDH: execute_ldh(*this, mmu, instr); break;
+  case Opcode::POP: execute_pop(*this, mmu, instr); break;
+  case Opcode::PUSH: execute_push(*this, mmu, instr); break;
+  case Opcode::RST: execute_rst(*this, mmu, instr); break;
   case Opcode::CALL:
-    if (!execute_call(*this, instr)) {
+    if (!execute_call(*this, mmu, instr)) {
       cycles = instr.cycles_cond;
     }
     break;
   case Opcode::JP:
-    if (!execute_jp(*this, instr)) {
+    if (!execute_jp(*this, mmu, instr)) {
       cycles = instr.cycles_cond;
     }
     break;
   case Opcode::RET:
-    if (!execute_ret(*this, instr)) {
+    if (!execute_ret(*this, mmu, instr)) {
       cycles = instr.cycles_cond;
     }
     break;
-  case Opcode::RETI: execute_reti(*this, instr); break;
-  case Opcode::RLC: execute_rlc(*this, instr); break;
-  case Opcode::RRC: execute_rrc(*this, instr); break;
-  case Opcode::RL: execute_rl(*this, instr); break;
-  case Opcode::RR: execute_rr(*this, instr); break;
-  case Opcode::SLA: execute_sla(*this, instr); break;
-  case Opcode::SRA: execute_sra(*this, instr); break;
-  case Opcode::SWAP: execute_swap(*this, instr); break;
-  case Opcode::SRL: execute_srl(*this, instr); break;
-  case Opcode::BIT: execute_bit(*this, instr); break;
-  case Opcode::RES: execute_res(*this, instr); break;
-  case Opcode::SET: execute_set(*this, instr); break;
-  case Opcode::DI: execute_di(*this, instr); break;
-  case Opcode::EI: execute_ei(*this, instr); break;
-  case Opcode::STOP: execute_stop(*this, instr); break;
+  case Opcode::RETI: execute_reti(*this, mmu, instr); break;
+  case Opcode::RLC: execute_rlc(*this, mmu, instr); break;
+  case Opcode::RRC: execute_rrc(*this, mmu, instr); break;
+  case Opcode::RL: execute_rl(*this, mmu, instr); break;
+  case Opcode::RR: execute_rr(*this, mmu, instr); break;
+  case Opcode::SLA: execute_sla(*this, mmu, instr); break;
+  case Opcode::SRA: execute_sra(*this, mmu, instr); break;
+  case Opcode::SWAP: execute_swap(*this, mmu, instr); break;
+  case Opcode::SRL: execute_srl(*this, mmu, instr); break;
+  case Opcode::BIT: execute_bit(*this, mmu, instr); break;
+  case Opcode::RES: execute_res(*this, mmu, instr); break;
+  case Opcode::SET: execute_set(*this, mmu, instr); break;
+  case Opcode::DI: execute_di(*this, mmu, instr); break;
+  case Opcode::EI: execute_ei(*this, mmu, instr); break;
+  case Opcode::STOP: execute_stop(*this, mmu, instr); break;
   case Opcode::PREFIX: break;
   }
-
-  execute_timers(cycles);
 
   return cycles;
 }
 
-void CPU::execute_interrupts() {
+uint8_t CPU::execute_interrupts(IMMU *mmu) {
   if (!state.ime) {
-    return;
+    return 0;
   }
 
   auto enable =  mmu->read8(std::to_underlying(IO::IE));
   auto flag = mmu->read8(std::to_underlying(IO::IF));
 
   if (!(enable & flag)) {
-    return;
+    return 0;
   }
 
   for (int i = 0; i < std::to_underlying(Interrupt::Count); i++) {
@@ -1231,78 +1232,31 @@ void CPU::execute_interrupts() {
     uint8_t mask = 1 << i;
 
     if (enable & flag & mask) {
-      Mem::push(mmu.get(), regs.sp, regs.pc);
+      Mem::push(mmu, regs.sp, regs.pc);
       regs.pc = interrupt_handler(interrupt);
       uint8_t disabled_bits = enable & ~mask;
       mmu->write(std::to_underlying(IO::IE), disabled_bits);
-      return;
+      return 0;
     }
   }
+
+  return 20;
 }
 
-void CPU::execute_timers(uint8_t cycles) {
-  div_counter += cycles;
-  if (div_counter >= 256) {
-    div_counter -= 256;
-    mmu->inc(std::to_underlying(IO::DIV));
-  }
-
-  auto tac = mmu->read8(std::to_underlying(IO::TAC));
-  if ((tac >> 2) & 0x1) {
-    tima_counter += cycles;
-    update_tima(tac);
-  }
-
-  current_tac = tac;
-}
-
-void CPU::update_tima(uint8_t tac) {
-  static uint16_t timer_freqs[] = {
-    kClockSpeed / 4096,
-    kClockSpeed / 262144,
-    kClockSpeed / 65535,
-    kClockSpeed / 16384,
-  };
-
-  auto freq = timer_freqs[tac & 0x3];
-  if (tima_counter >= freq) {
-    uint8_t tima = mmu->read8(std::to_underlying(IO::TIMA));
-    if (tima == 255) {
-      mmu->write(std::to_underlying(IO::TIMA), mmu->read8(std::to_underlying(IO::TMA)));
-      uint8_t disabled_bits = mmu->read8(std::to_underlying(IO::IE)) & ~(1 << std::to_underlying(Interrupt::Timer));
-      mmu->write(std::to_underlying(IO::IE), disabled_bits);
-    } else {
-      tima += 1;
-      mmu->write(std::to_underlying(IO::TIMA), tima);
-    }
-    tima_counter -= freq;
-  }
-};
-
-uint8_t CPU::read_next8() {
+uint8_t CPU::read_next8(IMMU *mmu) {
   auto result = mmu->read8(regs.pc);
   regs.pc += 1;
   return result;
 }
 
-uint16_t CPU::read_next16() {
+uint16_t CPU::read_next16(IMMU *mmu) {
   auto result = mmu->read16(regs.pc);
   regs.pc += 2;
   return result;
 }
 
 void CPU::init() {
-  mmu->on_write8(std::to_underlying(IO::DIV), [](uint16_t addr, uint8_t val) {
-    return 0;
-  });
-
-  mmu->on_write8(std::to_underlying(IO::TAC), [&](uint16_t addr, uint8_t tac) {
-    update_tima(tac);
-    return tac;
-  });
 }
 
 void CPU::reset() {
-  div_counter = 0;
-  tima_counter = 0;
 }

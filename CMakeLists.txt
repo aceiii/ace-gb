@@ -71,8 +71,6 @@ if(BUILD_TESTS)
         src/test.cpp
         src/cpu.h
         src/cpu.cpp
-        src/emulator.h
-        src/emulator.cpp
         src/decoder.h
         src/decoder.cpp
         src/instructions.h
