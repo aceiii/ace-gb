@@ -35,7 +35,7 @@ Interface::Interface() {
   SetExitKey(KEY_NULL);
   rlImGuiSetup(true);
 
-  emulator.initialize();
+  emulator.init();
 
   while (!IsWindowReady()) {
     // pass
@@ -45,7 +45,7 @@ Interface::Interface() {
 Interface::~Interface() {
   spdlog::info("Cleaning up interface");
 
-  emulator.reset();
+  emulator.cleanup();
 
   CloseAudioDevice();
   CloseWindow();
@@ -58,14 +58,16 @@ void Interface::run() {
     emulator.update();
 
     BeginDrawing();
-    ClearBackground(RAYWHITE);
+    ClearBackground(DARKGRAY);
 
     DrawFPS(10, GetScreenHeight() - 24);
 
-    DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 32, 15, BLACK);
-    DrawText(fmt::format("cycles={}", emulator.cycles()).c_str(), 20, 48, 15, BLACK);
+    DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 32, 15, RAYWHITE);
+    DrawText(fmt::format("cycles={}", emulator.cycles()).c_str(), 20, 48, 15, RAYWHITE);
 
     rlImGuiBegin();
+
+    emulator.render();
 
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("File")) {

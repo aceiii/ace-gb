@@ -33,6 +33,8 @@ set(SOURCE_FILES
     src/immu.cpp
     src/mmu.h
     src/mmu.cpp
+    src/ppu.h
+    src/ppu.cpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)

@@ -3,15 +3,16 @@
 #include <vector>
 
 #include "cpu.h"
+#include "ppu.h"
 #include "registers.h"
 
 class Emulator {
 public:
   Emulator();
 
-  bool initialize();
-  void update();
+  bool init();
   void cleanup();
+  void update();
 
   void load_cartridge(const std::vector<uint8_t> &bytes);
 
@@ -25,8 +26,11 @@ public:
   const Registers& registers() const;
   size_t cycles() const;
 
+  void render();
+
 private:
   CPU cpu;
+  PPU ppu;
 
   size_t num_cycles = 0;
   bool running = false;

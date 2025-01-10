@@ -1,16 +1,19 @@
 #include <fstream>
 #include <memory>
 #include <spdlog/spdlog.h>
+#include <rlImGui.h>
+#include <imgui.h>
 
 #include "emulator.h"
 #include "mmu.h"
 
 Emulator::Emulator() {
   cpu.mmu = std::make_unique<MMU>();
-  cpu.init();
 }
 
-bool Emulator::initialize() {
+bool Emulator::init() {
+  cpu.init();
+  ppu.init();
 
   std::ifstream input("./boot.bin", std::ios::binary);
   if (input.fail()) {
@@ -54,6 +57,7 @@ void Emulator::update() {
 }
 
 void Emulator::cleanup() {
+  ppu.cleanup();
 }
 
 void Emulator::load_cartridge(const std::vector<uint8_t> &bytes) {
@@ -91,4 +95,13 @@ const Registers& Emulator::registers() const {
 
 size_t Emulator::cycles() const {
   return num_cycles;
+}
+
+void Emulator::render() {
+  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  ImGui::Begin("GameBoy");
+  {
+    rlImGuiImageRenderTextureFit(&ppu.target, true);
+  }
+  ImGui::End();
 }
