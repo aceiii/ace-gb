@@ -3,8 +3,6 @@
 #include "mock_mmu.h"
 #include "memory.h"
 
-MockMMU::~MockMMU() = default;
-
 void MockMMU::write(uint16_t addr, uint8_t byte) {
   memory[addr] = byte;
 }

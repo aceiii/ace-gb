@@ -70,8 +70,6 @@ typedef std::function<uint8_t(uint16_t, uint8_t)> mmu_callback;
 
 class IMMU {
 public:
-  virtual ~IMMU() = 0;
-
   virtual void load_boot_rom(const uint8_t *rom) = 0;
   virtual void load_cartridge(const std::vector<uint8_t> &cart) = 0;
 

@@ -29,6 +29,10 @@ public:
 
   void render();
 
+  PPUMode mode() const;
+  IMMU* mmu_ptr() const;
+  Instruction instr() const;
+
 private:
   std::unique_ptr<IMMU> mmu;
   CPU cpu;

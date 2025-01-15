@@ -1,7 +1,7 @@
 #include <fstream>
 #include <memory>
 #include <spdlog/spdlog.h>
-#include <raylib.h>
+#include <imgui.h>
 #include <rlImGui.h>
 
 #include "emulator.h"
@@ -36,8 +36,17 @@ bool Emulator::init() {
 
   std::vector<uint8_t> rom_bytes;
   rom_bytes.reserve(boot_rom_size);
-  rom_bytes.insert(rom_bytes.begin(), std::istream_iterator<uint8_t>(input), std::istream_iterator<uint8_t>());
+  input.read((char*)rom_bytes.data(), boot_rom_size);
 
+  spdlog::info("Boot rom[0x09]: {:02x}", rom_bytes[0x09]);
+  spdlog::info("Boot rom[0x0A]: {:02x}", rom_bytes[0x0a]);
+  spdlog::info("Boot rom[0x0B]: {:02x}", rom_bytes[0x0b]);
+  spdlog::info("Boot rom[0x0C]: {:02x}", rom_bytes[0x0c]);
+  spdlog::info("Boot rom[0x0D]: {:02x}", rom_bytes[0x0d]);
+  spdlog::info("Boot rom[0x0E]: {:02x}", rom_bytes[0x0e]);
+  spdlog::info("Boot rom[0x0F]: {:02x}", rom_bytes[0x0f]);
+
+  spdlog::info("Loading boot ROM data.");
   mmu->load_boot_rom(rom_bytes.data());
 
   for (int i = 0; i < rom_bytes.size(); i++) {
@@ -123,7 +132,7 @@ void Emulator::render() {
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   ImGui::Begin("GameBoy");
   {
-    rlImGuiImageRenderTextureFit(&ppu.target, true);
+    rlImGuiImageRenderTextureFit(ppu.target(), true);
   }
   ImGui::End();
 }
@@ -166,3 +175,23 @@ void Emulator::update_tima(uint8_t tac) {
     tima_counter -= freq;
   }
 };
+
+PPUMode Emulator::mode() const {
+  auto lcd_status = mmu->read8(std::to_underlying(IO::STAT));
+  PPUMode mode {lcd_status & std::to_underlying(LCDStatusMask::PPUMode)};
+  return mode;
+}
+
+IMMU* Emulator::mmu_ptr() const {
+  return mmu.get();
+}
+
+Instruction Emulator::instr() const {
+  auto byte = mmu->read8(cpu.regs.pc);
+  auto instr = Decoder::decode(byte);
+  if (instr.opcode == Opcode::PREFIX) {
+    byte = mmu->read8(cpu.regs.pc + 1);
+    instr = Decoder::decode_prefixed(byte);
+  }
+  return instr;
+}

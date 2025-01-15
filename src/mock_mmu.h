@@ -6,8 +6,6 @@
 
 class MockMMU : public IMMU {
 public:
-  ~MockMMU() override;
-
   void load_boot_rom(const uint8_t *rom) override;
   void load_cartridge(const std::vector<uint8_t> &cart) override;
 

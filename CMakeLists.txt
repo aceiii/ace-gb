@@ -30,7 +30,6 @@ set(SOURCE_FILES
     src/registers.h
     src/util.h
     src/immu.h
-    src/immu.cpp
     src/mmu.h
     src/mmu.cpp
     src/ppu.h
@@ -80,7 +79,6 @@ if(BUILD_TESTS)
         src/registers.h
         src/util.h
         src/immu.h
-        src/immu.cpp
         src/mock_mmu.h
         src/mock_mmu.cpp
     )

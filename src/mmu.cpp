@@ -1,9 +1,8 @@
 #include <algorithm>
+#include <spdlog/spdlog.h>
 
 #include "mmu.h"
 #include "memory.h"
-
-MMU::~MMU() = default;
 
 void MMU::write(uint16_t addr, uint8_t byte) {
   if (addr < 0x8000 || (addr >= 0xff4c && addr < 0xff80)) {

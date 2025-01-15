@@ -62,8 +62,21 @@ void Interface::run() {
 
     DrawFPS(10, GetScreenHeight() - 24);
 
-    DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 32, 15, RAYWHITE);
-    DrawText(fmt::format("cycles={}", emulator.cycles()).c_str(), 20, 48, 15, RAYWHITE);
+    DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 32, 12, RAYWHITE);
+    DrawText(fmt::format("cycles={}", emulator.cycles()).c_str(), 20, 48, 12, RAYWHITE);
+    DrawText(fmt::format("mode={}", magic_enum::enum_name(emulator.mode())).c_str(), 20, 64, 12, RAYWHITE);
+    DrawText(fmt::format("stat={}", emulator.mmu_ptr()->read8(std::to_underlying(IO::STAT))).c_str(), 20, 80, 12, RAYWHITE);
+
+    Instruction instr = emulator.instr();
+    DrawText(fmt::format("opcode={}, bytes={}, cycles={}/{}", magic_enum::enum_name(instr.opcode), instr.bytes, instr.cycles, instr.cycles_cond).c_str() , 20, 96, 12, RAYWHITE);
+
+    uint8_t pc = emulator.registers().pc;
+    DrawText(fmt::format("PC=0x{:02x}", pc).c_str() , 20, 128, 12, RAYWHITE);
+    DrawText(fmt::format("@PC+0={:02x}", emulator.mmu_ptr()->read8(pc)).c_str() , 20, 144, 12, RAYWHITE);
+    DrawText(fmt::format("@PC+1={:02x}", emulator.mmu_ptr()->read8(pc+1)).c_str() , 20, 160, 12, RAYWHITE);
+    DrawText(fmt::format("@PC+2={:02x}", emulator.mmu_ptr()->read8(pc+2)).c_str() , 20, 176, 12, RAYWHITE);
+    DrawText(fmt::format("@PC+4={:02x}", emulator.mmu_ptr()->read8(pc+3)).c_str() , 20, 192, 12, RAYWHITE);
+
 
     rlImGuiBegin();
 
@@ -79,6 +92,10 @@ void Interface::run() {
       }
       if (ImGui::MenuItem("Stop", nullptr, nullptr, emulator.is_playing())) {
         emulator.stop();
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Step", nullptr, nullptr, !emulator.is_playing())) {
+        emulator.step();
       }
       ImGui::EndMenu();
     }
