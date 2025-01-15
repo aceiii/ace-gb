@@ -14,26 +14,26 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(TOML_EXCEPTIONS=0)
 
 set(SOURCE_FILES
-    src/main.cpp
-    src/interface.h
-    src/interface.cpp
-    src/cpu.h
-    src/cpu.cpp
-    src/emulator.h
-    src/emulator.cpp
-    src/decoder.h
-    src/decoder.cpp
-    src/instructions.h
-    src/memory.h
-    src/opcodes.h
-    src/overloaded.h
-    src/registers.h
-    src/util.h
-    src/immu.h
-    src/mmu.h
-    src/mmu.cpp
-    src/ppu.h
-    src/ppu.cpp
+        src/main.cpp
+        src/interface.h
+        src/interface.cpp
+        src/cpu.h
+        src/cpu.cpp
+        src/emulator.h
+        src/emulator.cpp
+        src/decoder.h
+        src/decoder.cpp
+        src/instructions.h
+        src/memory.h
+        src/opcodes.h
+        src/overloaded.h
+        src/registers.h
+        src/util.h
+        src/mmu.h
+        src/mmu.cpp
+        src/ppu.h
+        src/ppu.cpp
+        src/io.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
@@ -67,20 +67,20 @@ target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})
 
 if(BUILD_TESTS)
     set(TEST_FILES
-        src/test.cpp
-        src/cpu.h
-        src/cpu.cpp
-        src/decoder.h
-        src/decoder.cpp
-        src/instructions.h
-        src/memory.h
-        src/opcodes.h
-        src/overloaded.h
-        src/registers.h
-        src/util.h
-        src/immu.h
-        src/mock_mmu.h
-        src/mock_mmu.cpp
+            src/test.cpp
+            src/cpu.h
+            src/cpu.cpp
+            src/decoder.h
+            src/decoder.cpp
+            src/instructions.h
+            src/memory.h
+            src/opcodes.h
+            src/overloaded.h
+            src/registers.h
+            src/util.h
+            src/io.h
+            src/mmu.h
+            src/mmu.cpp
     )
 
     add_executable(${TEST_NAME} ${TEST_FILES})

@@ -3,7 +3,8 @@
 #include "decoder.h"
 #include "registers.h"
 #include "memory.h"
-#include "immu.h"
+#include "mmu.h"
+#include "io.h"
 
 #include <memory>
 #include <valarray>
@@ -31,14 +32,14 @@ class CPU {
 public:
   void init();
   void reset();
-  uint8_t execute(IMMU *mmu);
-  uint8_t read_next8(IMMU *mmu);
-  uint16_t read_next16(IMMU *mmu);
+  uint8_t execute(MMU &mmu);
+  uint8_t read_next8(MMU &mmu);
+  uint16_t read_next16(MMU &mmu);
 
 public:
   Registers regs {};
   State state {};
 
 private:
-  uint8_t execute_interrupts(IMMU *mmu);
+  uint8_t execute_interrupts(MMU &mmu);
 };

@@ -7,13 +7,44 @@
 #include <tl/expected.hpp>
 
 #include "cpu.h"
+#include "io.h"
+#include "mmu.h"
 #include "registers.h"
-#include "mock_mmu.h"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
 constexpr size_t kTestMemSize = 65536;
+
+using TestMemory = std::array<uint8_t, kTestMemSize>;
+
+class TestMemoryDevice : public IMMUDevice {
+public:
+  TestMemoryDevice(TestMemory &mem_):mem{mem_} {}
+
+  void write8(uint16_t addr, uint8_t byte) override {
+    mem[addr] = byte;
+  }
+
+  void write16(uint16_t addr, uint16_t word) override {
+    Mem::set16(mem.data(), addr, word);
+  }
+
+  [[nodiscard]] uint8_t read8(uint16_t addr) const override {
+    return mem[addr];
+  }
+
+  [[nodiscard]] uint16_t read16(uint16_t addr) const override {
+    return Mem::get16(mem.data(), addr);
+  }
+
+  void reset() override {
+    mem.fill(0);
+  }
+
+private:
+  TestMemory& mem;
+};
 
 struct TestConfig {
   fs::path path {};
@@ -42,20 +73,19 @@ void load_registers(json &data, Registers &regs) {
   regs.sp = data.at("sp").get<uint16_t>();
 }
 
-void load_memory(json &data, IMMU *mmu) {
-  mmu->reset();
+void load_memory(const json& data, TestMemory& mem) {
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint16_t>();
-    mmu->write(addr, val);
+    mem[addr] = val;
   }
 }
 
-bool check_memory(json &data, const IMMU *mmu) {
+bool check_memory(const json &data, const TestMemory& mem) {
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint8_t>();
-    if (mmu->read8(addr) != val) {
+    if (mem[addr] != val) {
       return false;
     }
   }
@@ -84,12 +114,12 @@ std::vector<std::tuple<std::string, uint8_t, uint8_t>> mismatched_registers(cons
   return failed;
 }
 
-std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> mismatched_memory(json &data, IMMU *mmu) {
+std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> mismatched_memory(const json& data, const TestMemory& mem) {
   std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> failed;
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint8_t>();
-    auto mem_val = mmu->read8(addr);
+    auto mem_val = mem[addr];
     if (mem_val != val) {
       failed.emplace_back(addr, mem_val, val);
     }
@@ -125,7 +155,10 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
   result.total = tests_to_run.size();
 
   CPU cpu;
-  auto mmu = std::make_unique<MockMMU>();
+  MMU mmu;
+
+  TestMemory mem;
+  mmu.add_device({ 0, mem.size()-1 }, std::make_shared<TestMemoryDevice>(mem));
 
   for (const auto i : tests_to_run) {
     auto test = data.at(i);
@@ -143,12 +176,12 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
 
     Registers final_regs;
     load_registers(final, final_regs);
-    load_memory(initial.at("ram"), mmu.get());
+    load_memory(initial.at("ram"), mem);
 
-    cpu.execute(mmu.get());
+    cpu.execute(mmu);
 
     auto reg_match = regs == final_regs;
-    auto ram_match = check_memory(final.at("ram"), mmu.get());
+    auto ram_match = check_memory(final.at("ram"), mem);
     auto is_success = reg_match && ram_match;
     if (is_success) {
       result.succeeded.emplace_back(i);
@@ -166,7 +199,7 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
       }
 
       if (!ram_match) {
-        for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), mmu.get())) {
+        for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), mem)) {
           spdlog::error("  mem[{}]: {} != {}", addr , a, b);
         }
       }

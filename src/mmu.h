@@ -1,31 +1,38 @@
 #pragma once
 
-#include <array>
 #include <vector>
 #include <unordered_map>
+#include <utility>
 
-#include "immu.h"
+struct addr_range {
+  uint16_t start;
+  uint16_t end;
+};
 
-class MMU : public IMMU {
+class IMMUDevice {
 public:
-  void load_boot_rom(const uint8_t *rom) override;
-  void load_cartridge(const std::vector<uint8_t> &cart) override;
+  virtual void write8(uint16_t addr, uint8_t byte) = 0;
+  virtual void write16(uint16_t addr, uint16_t word) = 0;
 
-  void write(uint16_t addr, uint8_t byte) override;
-  void write(uint16_t addr, uint16_t word) override;
+  [[nodiscard]] virtual uint8_t read8(uint16_t addr) const = 0;
+  [[nodiscard]] virtual uint16_t read16(uint16_t addr) const = 0;
 
-  [[nodiscard]] uint8_t read8(uint16_t addr) const override;
-  [[nodiscard]] uint16_t read16(uint16_t addr) const override;
+  virtual void reset() = 0;
+};
 
-  void inc(uint16_t addr) override;
+class MMU {
+public:
+  void add_device(addr_range range, std::shared_ptr<IMMUDevice> &&device);
 
-  void on_write8(uint16_t addr, mmu_callback callback) override;
+  void write8(uint16_t addr, uint8_t byte);
+  void write16(uint16_t addr, uint16_t word);
 
-  void reset() override;
+  [[nodiscard]] uint8_t read8(uint16_t addr) const;
+  [[nodiscard]] uint16_t read16(uint16_t addr) const;
+
+  void reset_devices();
 
 private:
-  std::array<uint8_t, 256> boot_rom;
-  std::array<uint8_t, 1 << 16> memory;
-  std::vector<uint8_t> cart;
-  std::unordered_map<uint16_t, mmu_callback> callbacks;
+  std::vector<std::pair<addr_range, std::shared_ptr<IMMUDevice>>> devices_;
 };
+
