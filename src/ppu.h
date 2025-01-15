@@ -3,7 +3,7 @@
 #include <array>
 #include <raylib.h>
 
-#include "immu.h"
+#include "mmu.h"
 
 enum class PPUMode {
   HBlank = 0,
@@ -34,25 +34,34 @@ enum class LCDStatusMask {
   PPUMode = 0b11,
 };
 
-class PPU {
+class PPU : public IMMUDevice {
 public:
   void init();
   void cleanup();
-  void execute(IMMU *mmu, uint8_t cycles);
-  void step(IMMU *mmu);
-  void reset();
+  void execute(uint8_t cycles);
+  void step();
 
-  [[nodiscard]] PPUMode current_mode(IMMU *mmu) const;
-  void set_mode(IMMU *mmu, PPUMode mode);
+  void write8(uint16_t addr, uint8_t byte) override;
+  void write16(uint16_t addr, uint16_t word) override;
 
+  [[nodiscard]] uint8_t read8(uint16_t addr) const override;
+  [[nodiscard]] uint16_t read16(uint16_t addr) const override;
+
+  void reset() override;
+
+  [[nodiscard]] PPUMode current_mode() const;
   [[nodiscard]] const RenderTexture2D* target() const;
 
 private:
-  void populate_sprite_buffer(IMMU *mmu);
+  void populate_sprite_buffer();
 
 private:
   std::array<RenderTexture2D, 2> targets;
   std::array<uint16_t, 10> sprites;
+
+
+  bool enable_lcd = false;
+  PPUMode mode = PPUMode::HBlank;
 
   uint8_t num_sprites = 0;
   uint8_t target_index = 0;

@@ -22,6 +22,8 @@ public:
   void play();
   void stop();
 
+  uint8_t read8(uint16_t addr) const;
+
   bool is_playing() const;
 
   const Registers& registers() const;
@@ -30,12 +32,11 @@ public:
   void render();
 
   PPUMode mode() const;
-  IMMU* mmu_ptr() const;
   Instruction instr() const;
 
 private:
-  std::unique_ptr<IMMU> mmu;
   CPU cpu;
+  MMU mmu;
   PPU ppu;
 
   size_t num_cycles = 0;
