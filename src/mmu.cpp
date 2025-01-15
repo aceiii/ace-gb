@@ -1,8 +1,9 @@
-#include <algorithm>
-#include <spdlog/spdlog.h>
-
 #include "mmu.h"
 #include "memory.h"
+
+inline bool within_range(uint16_t addr, const addr_range &range) {
+  return addr >= range.start && addr <= range.end;
+}
 
 void MMU::add_device(addr_range range, std::shared_ptr<IMMUDevice> &&device) {
   devices_.emplace_back(range, device);
@@ -10,7 +11,7 @@ void MMU::add_device(addr_range range, std::shared_ptr<IMMUDevice> &&device) {
 
 void MMU::write8(uint16_t addr, uint8_t byte) {
   for (auto &[range, device] : devices_) {
-    if (addr >= range.start && addr < range.end) {
+    if (within_range(addr, range)) {
       device->write8(addr, byte);
       return;
     }
@@ -19,7 +20,7 @@ void MMU::write8(uint16_t addr, uint8_t byte) {
 
 void MMU::write16(uint16_t addr, uint16_t word) {
   for (auto &[range, device] : devices_) {
-    if (addr >= range.start && addr < range.end) {
+    if (within_range(addr, range)) {
       device->write16(addr, word);
       return;
     }
@@ -28,7 +29,7 @@ void MMU::write16(uint16_t addr, uint16_t word) {
 
 uint8_t MMU::read8(uint16_t addr) const {
   for (auto &[range, device] : devices_) {
-    if (addr >= range.start && addr < range.end) {
+    if (within_range(addr, range)) {
       return device->read8(addr);
     }
   }
@@ -37,7 +38,7 @@ uint8_t MMU::read8(uint16_t addr) const {
 
 uint16_t MMU::read16(uint16_t addr) const {
   for (auto &[range, device] : devices_) {
-    if (addr >= range.start && addr < range.end) {
+    if (within_range(addr, range)) {
       return device->read16(addr);
     }
   }

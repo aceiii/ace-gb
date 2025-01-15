@@ -20,7 +20,7 @@ using TestMemory = std::array<uint8_t, kTestMemSize>;
 
 class TestMemoryDevice : public IMMUDevice {
 public:
-  TestMemoryDevice(TestMemory &mem_):mem{mem_} {}
+  explicit TestMemoryDevice(TestMemory &mem_):mem{mem_} {}
 
   void write8(uint16_t addr, uint8_t byte) override {
     mem[addr] = byte;
@@ -60,7 +60,7 @@ struct TestResult {
   std::vector<TFailed> failed {};
 };
 
-void load_registers(json &data, Registers &regs) {
+void load_registers(const json &data, Registers &regs) {
   regs.set(Reg8::A, data.at("a").get<uint8_t>());
   regs.set(Reg8::B, data.at("b").get<uint8_t>());
   regs.set(Reg8::C, data.at("c").get<uint8_t>());
@@ -77,6 +77,7 @@ void load_memory(const json& data, TestMemory& mem) {
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint16_t>();
+    spdlog::debug("load_memory: {:02x} => {:02x}", addr, val);
     mem[addr] = val;
   }
 }
@@ -170,6 +171,7 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
     spdlog::debug("Running case #{} of {}: {}", i, result.total, name);
 
     cpu.reset();
+    mmu.reset_devices();
 
     Registers &regs = cpu.regs;
     load_registers(initial, regs);

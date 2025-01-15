@@ -14,25 +14,21 @@ public:
   bool init();
   void cleanup();
   void update();
-
-  void load_cartridge(const std::vector<uint8_t> &bytes);
-
   void reset();
   void step();
   void play();
   void stop();
-
-  uint8_t read8(uint16_t addr) const;
-
-  bool is_playing() const;
-
-  const Registers& registers() const;
-  size_t cycles() const;
-
   void render();
 
-  PPUMode mode() const;
-  Instruction instr() const;
+  void load_cartridge(const std::vector<uint8_t> &bytes);
+
+  [[nodiscard]] bool is_playing() const;
+
+  [[nodiscard]] const Registers& registers() const;
+  [[nodiscard]] size_t cycles() const;
+  [[nodiscard]] PPUMode mode() const;
+  [[nodiscard]] Instruction instr() const;
+  [[nodiscard]] uint8_t read8(uint16_t addr) const;
 
 private:
   CPU cpu;

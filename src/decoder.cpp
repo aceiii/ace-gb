@@ -1,4 +1,3 @@
-#include <optional>
 #include <utility>
 
 #include "decoder.h"
