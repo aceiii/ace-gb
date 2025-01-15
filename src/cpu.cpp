@@ -153,7 +153,7 @@ inline void instr_load_reg16_sp_offset(Registers &regs, Reg16 r1, int8_t e) {
 }
 
 inline void instr_push_reg16(Registers &regs, MMU& mmu, Reg16 r1) {
-  Stack::push8(mmu, regs.sp, regs.get(r1));
+  Stack::push16(mmu, regs.sp, regs.get(r1));
 }
 
 inline void instr_pop_reg16(Registers &regs, MMU& mmu, Reg16 r1) {
