@@ -22,6 +22,10 @@ class TestMemoryDevice : public IMMUDevice {
 public:
   explicit TestMemoryDevice(TestMemory &mem_):mem{mem_} {}
 
+  bool valid_for(uint16_t addr) const override {
+    return true;
+  }
+
   void write8(uint16_t addr, uint8_t byte) override {
     mem[addr] = byte;
   }
@@ -151,7 +155,7 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
   MMU mmu;
 
   TestMemory mem;
-  mmu.add_device({ 0, mem.size()-1 }, std::make_shared<TestMemoryDevice>(mem));
+  mmu.add_device(std::make_shared<TestMemoryDevice>(mem));
 
   for (const auto i : tests_to_run) {
     auto test = data.at(i);

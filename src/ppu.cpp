@@ -5,6 +5,8 @@
 #include "ppu.h"
 #include "cpu.h"
 
+namespace {
+
 constexpr uint16_t kLCDWidth = 160;
 constexpr uint16_t kLCDHeight = 144;
 
@@ -15,11 +17,13 @@ constexpr uint16_t kOAMAddrStart = 0xFE00;
 constexpr uint16_t kOAMAddrEnd = 0xFE9F;
 
 constexpr std::array<Color, 4> kLCDPalette {
-  Color{240, 240, 240, 255},
-  Color{178, 178, 178, 255},
-  Color{100, 100, 100, 255},
-  Color {48, 48, 48, 255},
+  Color { 240, 240, 240, 255 },
+  Color { 178, 178, 178, 255 },
+  Color { 100, 100, 100, 255 },
+  Color { 48, 48, 48, 255 },
 };
+
+}
 
 void PPU::init() {
   for (int i = 0; i < targets.size(); i += 1) {

@@ -8,9 +8,9 @@
 #include <spdlog/spdlog.h>
 
 namespace {
-  const int kDefaulWindowWidth = 800;
-  const int kDefaultWindowHeight = 600;
-  const char* kWindowTitle = "Ace::GB - GameBoy Emulator";
+  constexpr int kDefaulWindowWidth = 800;
+  constexpr int kDefaultWindowHeight = 600;
+  constexpr char* kWindowTitle = "Ace::GB - GameBoy Emulator";
 
   Emulator emulator;
 }
