@@ -5,33 +5,11 @@
 
 #include "mmu.h"
 
-enum class PPUMode {
+enum class PPUMode : uint8_t {
   HBlank = 0,
   VBlank = 1,
   OAM = 2,
   Draw = 3,
-};
-
-enum class SpriteFlagMask {
-  Palette = (1 << 4),
-  FlipX = (1 << 5),
-  FlipY = (1 << 6),
-  Priority = (1 << 7),
-};
-
-enum class LCDControlMask {
-  BGWindowEnable = (1 << 0),
-  SpriteEnable = (1 << 1),
-  SpriteSize = (1 << 2),
-  BGTileMapSelect = (1 << 3),
-  TileDataSelect = (1 << 4),
-  WindowDisplayEnable = (1 << 5),
-  WindowTileMapSelect = (1 << 6),
-  LCDDisplayEnable = (1 << 7),
-};
-
-enum class LCDStatusMask {
-  PPUMode = 0b11,
 };
 
 struct ppu_regs {
@@ -66,6 +44,48 @@ struct ppu_regs {
   uint8_t scx;
   uint8_t ly;
   uint8_t lyc;
+
+  inline void reset() {
+    lcdc.val = 0;
+    stat.val = 0;
+    scy = 0;
+    scx = 0;
+    ly = 0;
+    lyc = 0;
+  }
+};
+
+struct sprite {
+  uint8_t y;
+  uint8_t x;
+  uint8_t tile;
+  uint8_t attrs;
+};
+
+struct oam_memory {
+  union {
+    std::array<uint8_t, 160> bytes;
+    std::array<sprite, 40> sprites;
+  };
+
+  inline void reset() {
+    bytes.fill(0);
+  }
+};
+
+struct vram_memory {
+  union {
+    std::array<uint8_t, 8192> bytes;
+    struct {
+      std::array<uint16_t, 384> tile_data;
+      std::array<uint8_t, 1024> tile_map1;
+      std::array<uint8_t, 1024> tile_map2;
+    };
+  };
+
+  inline void reset() {
+    bytes.fill(0);
+  }
 };
 
 class PPU : public IMMUDevice {
@@ -75,21 +95,29 @@ public:
   void execute(uint8_t cycles);
   void step();
 
+  bool valid_for(uint16_t addr) const override;
   void write8(uint16_t addr, uint8_t byte) override;
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
   void reset() override;
 
   [[nodiscard]] PPUMode mode() const;
   [[nodiscard]] const RenderTexture2D* target() const;
+  [[nodiscard]] const RenderTexture2D* bg() const;
+  [[nodiscard]] const RenderTexture2D* window() const;
 
 private:
   void populate_sprite_buffer();
 
 private:
   std::array<RenderTexture2D, 2> targets;
-  std::array<uint16_t, 10> sprites;
 
+  RenderTexture2D target_bg;
+  RenderTexture2D target_window;
+
+  vram_memory vram;
+  oam_memory oam;
   ppu_regs regs;
+
   uint8_t num_sprites = 0;
   uint8_t target_index = 0;
   uint16_t cycle_counter = 0;

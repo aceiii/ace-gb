@@ -5,10 +5,16 @@
 #include "ppu.h"
 #include "cpu.h"
 
-const int kLCDWidth = 160;
-const int kLCDHeight = 144;
+constexpr uint16_t kLCDWidth = 160;
+constexpr uint16_t kLCDHeight = 144;
 
-const std::array<Color, 4> kLCDPalette {
+constexpr uint16_t kVRAMAddrStart = 0x8000;
+constexpr uint16_t kVRAMAddrEnd = 0x9FFF;
+
+constexpr uint16_t kOAMAddrStart = 0xFE00;
+constexpr uint16_t kOAMAddrEnd = 0xFE9F;
+
+constexpr std::array<Color, 4> kLCDPalette {
   Color{240, 240, 240, 255},
   Color{178, 178, 178, 255},
   Color{100, 100, 100, 255},
@@ -42,6 +48,7 @@ inline void PPU::step() {
   }
 
   auto mode = this->mode();
+  spdlog::info("mode!!: {}", magic_enum::enum_name(mode));
 
   if (mode == PPUMode::OAM && cycle_counter == 0) {
     populate_sprite_buffer();
@@ -96,38 +103,75 @@ const RenderTexture2D* PPU::target() const {
   return &targets[target_index];
 }
 
+const RenderTexture2D* PPU::bg() const {
+  return &target_bg;
+}
+
+const RenderTexture2D* PPU::window() const {
+  return &target_window;
+}
+
 void PPU::populate_sprite_buffer() {
   if (!regs.lcdc.lcd_display_enable) {
     return;
   }
 }
 
+bool PPU::valid_for(uint16_t addr) const {
+  if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
+    return true;
+  }
+
+  if (addr >= kOAMAddrStart && addr <= kOAMAddrEnd) {
+    return true;
+  }
+
+  if (addr >= std::to_underlying(IO::LCDC) && addr <= std::to_underlying(IO::LYC)) {
+    return true;
+  }
+
+  return false;
+}
+
 void PPU::write8(uint16_t addr, uint8_t byte) {
+  if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
+    vram.bytes[addr - kVRAMAddrStart] = byte;
+    return;
+  }
+
+  if (addr >= kOAMAddrStart && addr <= kOAMAddrEnd) {
+    oam.bytes[addr - kOAMAddrStart] = byte;
+    return;
+  }
+
   switch (addr) {
     case std::to_underlying(IO::LCDC):
        regs.lcdc.val = byte;
-       break;
+       return;
     case std::to_underlying(IO::STAT):
       regs.stat.val = byte;
-      break;
+      return;
     case std::to_underlying(IO::SCY):
       regs.scy = byte;
-      break;
+      return;
     case std::to_underlying(IO::SCX):
       regs.scx = byte;
-      break;
+      return;
     case std::to_underlying(IO::LY):
       regs.ly = byte;
-      break;
+      return;
     case std::to_underlying(IO::LYC):
       regs.lyc = byte;
-      break;
-    default:
-      break;
+      return;
+    default: return;
   }
 }
 
 [[nodiscard]] uint8_t PPU::read8(uint16_t addr) const {
+  if (addr >= kOAMAddrStart && addr < kOAMAddrEnd) {
+    return oam.bytes[addr - kOAMAddrStart];
+  }
+
   switch (addr) {
     case std::to_underlying(IO::LCDC):
       return regs.lcdc.val;
@@ -147,8 +191,14 @@ void PPU::write8(uint16_t addr, uint8_t byte) {
 }
 
 void PPU::reset() {
+  vram.reset();
+  oam.reset();
+  regs.reset();
+  num_sprites = 0;
+  target_index = 0;
+  cycle_counter = 0;
 }
 
-PPUMode PPU::mode() const {
-  return PPUMode{regs.stat.ppu_mode};
+inline PPUMode PPU::mode() const {
+  return static_cast<PPUMode>(regs.stat.ppu_mode);
 }
