@@ -25,34 +25,49 @@ constexpr std::array<Color, 4> kLCDPalette {
 
 }
 
-void PPU::init() {
+inline uint16_t addr_mode_8000(uint8_t addr) {
+  return 0x8000 + addr;
+}
+
+inline uint16_t addr_mode_8800(uint8_t addr) {
+  return 0x9000 + static_cast<int8_t>(addr);
+}
+
+void Ppu::init() {
   for (int i = 0; i < targets.size(); i += 1) {
     targets[i] = LoadRenderTexture(kLCDWidth, kLCDHeight);
     BeginTextureMode(targets[i]);
     ClearBackground(Color(75, 0, 1, 255));
     EndTextureMode();
   }
+
+  constexpr int tiles_width = 24;
+  constexpr int tiles_height = 16;
+
+  target_tiles = LoadRenderTexture(tiles_width * 8, tiles_height * 8);
+  BeginTextureMode(target_tiles);
+  ClearBackground(BLANK);
+  EndTextureMode();
 }
 
-void PPU::cleanup() {
+void Ppu::cleanup() {
   for (int i = 0; i < targets.size(); i += 1) {
     UnloadRenderTexture(targets[i]);
   }
 }
 
-void PPU::execute(uint8_t cycles) {
+void Ppu::execute(uint8_t cycles) {
   do {
     step();
   } while(--cycles);
 }
 
-inline void PPU::step() {
+inline void Ppu::step() {
   if (!regs.lcdc.lcd_display_enable) {
     return;
   }
 
   auto mode = this->mode();
-  spdlog::info("mode!!: {}", magic_enum::enum_name(mode));
 
   if (mode == PPUMode::OAM && cycle_counter == 0) {
     populate_sprite_buffer();
@@ -103,25 +118,29 @@ inline void PPU::step() {
   }
 }
 
-const RenderTexture2D* PPU::target() const {
+const RenderTexture2D* Ppu::target() const {
   return &targets[target_index];
 }
 
-const RenderTexture2D* PPU::bg() const {
+const RenderTexture2D* Ppu::bg() const {
   return &target_bg;
 }
 
-const RenderTexture2D* PPU::window() const {
+const RenderTexture2D* Ppu::window() const {
   return &target_window;
 }
 
-void PPU::populate_sprite_buffer() {
+void Ppu::populate_sprite_buffer() {
   if (!regs.lcdc.lcd_display_enable) {
     return;
   }
 }
 
-bool PPU::valid_for(uint16_t addr) const {
+void Ppu::update_tiles_target() {
+
+}
+
+bool Ppu::valid_for(uint16_t addr) const {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     return true;
   }
@@ -137,7 +156,7 @@ bool PPU::valid_for(uint16_t addr) const {
   return false;
 }
 
-void PPU::write8(uint16_t addr, uint8_t byte) {
+void Ppu::write8(uint16_t addr, uint8_t byte) {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     vram.bytes[addr - kVRAMAddrStart] = byte;
     return;
@@ -171,7 +190,7 @@ void PPU::write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-[[nodiscard]] uint8_t PPU::read8(uint16_t addr) const {
+[[nodiscard]] uint8_t Ppu::read8(uint16_t addr) const {
   if (addr >= kOAMAddrStart && addr < kOAMAddrEnd) {
     return oam.bytes[addr - kOAMAddrStart];
   }
@@ -194,7 +213,7 @@ void PPU::write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-void PPU::reset() {
+void Ppu::reset() {
   vram.reset();
   oam.reset();
   regs.reset();
@@ -203,6 +222,6 @@ void PPU::reset() {
   cycle_counter = 0;
 }
 
-inline PPUMode PPU::mode() const {
+PPUMode Ppu::mode() const {
   return static_cast<PPUMode>(regs.stat.ppu_mode);
 }

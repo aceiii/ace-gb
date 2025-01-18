@@ -4,26 +4,12 @@
 #include <unordered_map>
 #include <utility>
 
-class IMMUDevice {
+#include "mmu_device.h"
+
+class Mmu {
 public:
-  virtual bool valid_for(uint16_t addr) const = 0;
-  virtual void write8(uint16_t addr, uint8_t byte) = 0;
-  [[nodiscard]] virtual uint8_t read8(uint16_t addr) const = 0;
-  virtual void reset() = 0;
-
-  inline void write16(uint16_t address, uint16_t val) {
-    write8(address, val & 0xff);
-    write8(address + 1, val >> 8);
-  }
-
-  [[nodiscard]] inline uint16_t read16(uint16_t address) const {
-    return read8(address) | (read8(address + 1) << 8);
-  }
-};
-
-class MMU {
-public:
-  void add_device(std::shared_ptr<IMMUDevice> &&device);
+  void clear_devices();
+  void add_device(mmu_device_ptr device);
 
   void write8(uint16_t addr, uint8_t byte);
   void write16(uint16_t addr, uint16_t word);
@@ -34,6 +20,6 @@ public:
   void reset_devices();
 
 private:
-  std::vector<std::shared_ptr<IMMUDevice>> devices_;
+  std::vector<mmu_device_ptr> devices;
 };
 

@@ -78,8 +78,7 @@ struct vram_memory {
     std::array<uint8_t, 8192> bytes;
     struct {
       std::array<uint16_t, 384> tile_data;
-      std::array<uint8_t, 1024> tile_map1;
-      std::array<uint8_t, 1024> tile_map2;
+      std::array<std::array<uint8_t, 1024>, 2> tile_map;
     };
   };
 
@@ -88,7 +87,7 @@ struct vram_memory {
   }
 };
 
-class PPU : public IMMUDevice {
+class Ppu : public MmuDevice {
 public:
   void init();
   void cleanup();
@@ -107,12 +106,14 @@ public:
 
 private:
   void populate_sprite_buffer();
+  void update_tiles_target();
 
 private:
   std::array<RenderTexture2D, 2> targets;
 
   RenderTexture2D target_bg;
   RenderTexture2D target_window;
+  RenderTexture2D target_tiles;
 
   vram_memory vram;
   oam_memory oam;

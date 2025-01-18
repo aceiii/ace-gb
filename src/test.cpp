@@ -18,7 +18,7 @@ constexpr size_t kTestMemSize = 65536;
 
 using TestMemory = std::array<uint8_t, kTestMemSize>;
 
-class TestMemoryDevice : public IMMUDevice {
+class TestMemoryDevice : public MmuDevice {
 public:
   explicit TestMemoryDevice(TestMemory &mem_):mem{mem_} {}
 
@@ -151,11 +151,12 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
 
   result.total = tests_to_run.size();
 
-  CPU cpu;
-  MMU mmu;
+  Cpu cpu;
+  Mmu mmu;
 
   TestMemory mem;
-  mmu.add_device(std::make_shared<TestMemoryDevice>(mem));
+  TestMemoryDevice device{mem};
+  mmu.add_device(&device);
 
   for (const auto i : tests_to_run) {
     auto test = data.at(i);

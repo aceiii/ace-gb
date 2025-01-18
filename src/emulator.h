@@ -1,17 +1,20 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
+#include <tl/expected.hpp>
 
 #include "cpu.h"
 #include "ppu.h"
 #include "registers.h"
+#include "boot_rom_device.h"
 
 class Emulator {
 public:
   Emulator();
 
-  bool init();
+  tl::expected<bool, std::string> init();
   void cleanup();
   void update();
   void reset();
@@ -31,9 +34,10 @@ public:
   [[nodiscard]] uint8_t read8(uint16_t addr) const;
 
 private:
-  CPU cpu;
-  MMU mmu;
-  PPU ppu;
+  Cpu cpu;
+  Mmu mmu;
+  Ppu ppu;
+  BootRomDevice boot_rom;
 
   size_t num_cycles = 0;
   bool running = false;

@@ -5,13 +5,18 @@
 #include <rlImGui.h>
 
 #include "emulator.h"
+#include "file.h"
 #include "mmu.h"
 
 Emulator::Emulator() = default;
 
-bool Emulator::init() {
+tl::expected<bool, std::string> Emulator::init() {
   cpu.init();
   ppu.init();
+
+  mmu.clear_devices();
+  mmu.add_device(&boot_rom);
+  mmu.add_device(&ppu);
 
 //  mmu->on_write8(std::to_underlying(IO::DIV), [](uint16_t addr, uint8_t val) {
 //    return 0;
@@ -22,37 +27,16 @@ bool Emulator::init() {
 //    return tac;
 //  });
 
-  std::ifstream input("./boot.bin", std::ios::binary);
-  if (input.fail()) {
-    spdlog::error("Failed to load boot rom: {}", strerror(errno));
-    return false;
+  auto result = load_bin("./boot.bin");
+  if (!result) {
+    return tl::unexpected(fmt::format("Failed to load boot rom: {}", result.error()));
   }
 
-  input.seekg(0, std::ios::end);
-  auto boot_rom_size = input.tellg();
-  input.seekg(0, std::ios::beg);
+  auto rom_bytes = result.value();
+  spdlog::info("Loading boot ROM data. {}", rom_bytes.size());
+  boot_rom.load_bytes(rom_bytes);
 
-  std::vector<uint8_t> rom_bytes;
-  rom_bytes.reserve(boot_rom_size);
-  input.read((char*)rom_bytes.data(), boot_rom_size);
-
-  spdlog::info("Boot rom[0x09]: {:02x}", rom_bytes[0x09]);
-  spdlog::info("Boot rom[0x0A]: {:02x}", rom_bytes[0x0a]);
-  spdlog::info("Boot rom[0x0B]: {:02x}", rom_bytes[0x0b]);
-  spdlog::info("Boot rom[0x0C]: {:02x}", rom_bytes[0x0c]);
-  spdlog::info("Boot rom[0x0D]: {:02x}", rom_bytes[0x0d]);
-  spdlog::info("Boot rom[0x0E]: {:02x}", rom_bytes[0x0e]);
-  spdlog::info("Boot rom[0x0F]: {:02x}", rom_bytes[0x0f]);
-
-  spdlog::info("Loading boot ROM data.");
-//  mmu->load_boot_rom(rom_bytes.data());
-
-  for (int i = 0; i < rom_bytes.size(); i++) {
-    uint8_t byte = rom_bytes[i];
-//    mmu->write(i, byte);
-  }
-
-  spdlog::info("Starting CPU.");
+  spdlog::info("Starting Cpu.");
 
   return true;
 }
@@ -86,6 +70,7 @@ void Emulator::load_cartridge(const std::vector<uint8_t> &bytes) {
 void Emulator::reset() {
   cpu.reset();
   mmu.reset_devices();
+  boot_rom.reset();
 
   div_counter = 0;
   tima_counter = 0;

@@ -10,7 +10,7 @@
 namespace {
   constexpr int kDefaulWindowWidth = 800;
   constexpr int kDefaultWindowHeight = 600;
-  constexpr char* kWindowTitle = "Ace::GB - GameBoy Emulator";
+  constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
 
   Emulator emulator;
 }
@@ -35,7 +35,10 @@ Interface::Interface() {
   SetExitKey(KEY_NULL);
   rlImGuiSetup(true);
 
-  emulator.init();
+  if (auto result = emulator.init(); !result) {
+    spdlog::error("Failed to initialize emulator");
+    error_message = result.error();
+  }
 
   while (!IsWindowReady()) {
     // pass
@@ -65,7 +68,7 @@ void Interface::run() {
     DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 32, 12, RAYWHITE);
     DrawText(fmt::format("cycles={}", emulator.cycles()).c_str(), 20, 48, 12, RAYWHITE);
     DrawText(fmt::format("mode={}", magic_enum::enum_name(emulator.mode())).c_str(), 20, 64, 12, RAYWHITE);
-    DrawText(fmt::format("stat={}", emulator.read8(std::to_underlying(IO::STAT))).c_str(), 20, 80, 12, RAYWHITE);
+//    DrawText(fmt::format("stat={}", emulator.read8(std::to_underlying(IO::STAT))).c_str(), 20, 80, 12, RAYWHITE);
 
     Instruction instr = emulator.instr();
     DrawText(fmt::format("opcode={}, bytes={}, cycles={}/{}", magic_enum::enum_name(instr.opcode), instr.bytes, instr.cycles, instr.cycles_cond).c_str() , 20, 96, 12, RAYWHITE);
@@ -103,8 +106,25 @@ void Interface::run() {
 
     rlImGuiEnd();
 
+    render_error();
+
     EndDrawing();
   }
 
   spdlog::info("Shutting down...");
+}
+
+void Interface::render_error() {
+  if (error_message.empty()) {
+    return;
+  }
+
+  auto text_width = MeasureText(error_message.c_str(), 15);
+  auto text_height = 20;
+  auto text_x = (kDefaulWindowWidth - text_width) / 2;
+  auto text_y = (kDefaultWindowHeight / 2) - (text_height / 2);
+  auto padding = 10;
+
+  DrawRectangle(text_x - padding, text_y - padding, text_width + padding + padding, text_height + padding + padding, Color{32,32,32,127});
+  DrawText(error_message.c_str(), text_x, text_y, 15, RED);
 }
