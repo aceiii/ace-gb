@@ -34,6 +34,40 @@ enum class LCDStatusMask {
   PPUMode = 0b11,
 };
 
+struct ppu_regs {
+  union {
+    struct {
+      uint8_t bg_window_enable      : 1;
+      uint8_t sprite_enable         : 1;
+      uint8_t sprite_size           : 1;
+      uint8_t bg_tilemap_select     : 1;
+      uint8_t tile_data_select      : 1;
+      uint8_t window_display_enable : 1;
+      uint8_t windw_tilemap_select  : 1;
+      uint8_t lcd_display_enable    : 1;
+    };
+    uint8_t val;
+  } lcdc;
+
+  union {
+    struct {
+      uint8_t ppu_mode              : 2;
+      uint8_t coincidence_flag      : 1;
+      uint8_t stat_interrupt_mode0  : 1;
+      uint8_t stat_interrupt_mode1  : 1;
+      uint8_t stat_interrupt_mode2  : 1;
+      uint8_t stat_interrupt_lyc_ly : 1;
+      uint8_t unused                : 1;
+    };
+    uint8_t val;
+  } stat;
+
+  uint8_t scy;
+  uint8_t scx;
+  uint8_t ly;
+  uint8_t lyc;
+};
+
 class PPU : public IMMUDevice {
 public:
   void init();
@@ -42,14 +76,10 @@ public:
   void step();
 
   void write8(uint16_t addr, uint8_t byte) override;
-  void write16(uint16_t addr, uint16_t word) override;
-
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
-  [[nodiscard]] uint16_t read16(uint16_t addr) const override;
-
   void reset() override;
 
-  [[nodiscard]] PPUMode current_mode() const;
+  [[nodiscard]] PPUMode mode() const;
   [[nodiscard]] const RenderTexture2D* target() const;
 
 private:
@@ -59,12 +89,9 @@ private:
   std::array<RenderTexture2D, 2> targets;
   std::array<uint16_t, 10> sprites;
 
-
-  bool enable_lcd = false;
-  PPUMode mode = PPUMode::HBlank;
-
+  ppu_regs regs;
   uint8_t num_sprites = 0;
   uint8_t target_index = 0;
   uint16_t cycle_counter = 0;
-  uint16_t scanline_y = 0;
+
 };

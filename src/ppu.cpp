@@ -37,9 +37,11 @@ void PPU::execute(uint8_t cycles) {
 }
 
 inline void PPU::step() {
-  if (!enable_lcd) {
+  if (!regs.lcdc.lcd_display_enable) {
     return;
   }
+
+  auto mode = this->mode();
 
   if (mode == PPUMode::OAM && cycle_counter == 0) {
     populate_sprite_buffer();
@@ -58,9 +60,9 @@ inline void PPU::step() {
     case PPUMode::HBlank:
       if (cycle_counter >= 456) {
         cycle_counter = 0;
-        scanline_y += 1;
+        regs.lyc += 1;
         PPUMode new_mode;
-        if (scanline_y >= kLCDHeight) {
+        if (regs.lyc >= kLCDHeight) {
           new_mode = PPUMode::VBlank;
 
           // TODO: enable vblank interrupt
@@ -79,10 +81,10 @@ inline void PPU::step() {
     case PPUMode::VBlank:
       if (cycle_counter >= 456) {
         cycle_counter = 0;
-        scanline_y += 1;
+        regs.lyc += 1;
 
-        if (scanline_y >= kLCDHeight + 10) {
-          scanline_y = 0;
+        if (regs.lyc >= kLCDHeight + 10) {
+          regs.lyc = 0;
           mode = PPUMode::OAM;
         }
       }
@@ -95,26 +97,58 @@ const RenderTexture2D* PPU::target() const {
 }
 
 void PPU::populate_sprite_buffer() {
-  if (!enable_lcd) {
+  if (!regs.lcdc.lcd_display_enable) {
     return;
   }
 }
 
 void PPU::write8(uint16_t addr, uint8_t byte) {
-}
-
-void PPU::write16(uint16_t addr, uint16_t word) {
+  switch (addr) {
+    case std::to_underlying(IO::LCDC):
+       regs.lcdc.val = byte;
+       break;
+    case std::to_underlying(IO::STAT):
+      regs.stat.val = byte;
+      break;
+    case std::to_underlying(IO::SCY):
+      regs.scy = byte;
+      break;
+    case std::to_underlying(IO::SCX):
+      regs.scx = byte;
+      break;
+    case std::to_underlying(IO::LY):
+      regs.ly = byte;
+      break;
+    case std::to_underlying(IO::LYC):
+      regs.lyc = byte;
+      break;
+    default:
+      break;
+  }
 }
 
 [[nodiscard]] uint8_t PPU::read8(uint16_t addr) const {
-}
-
-[[nodiscard]] uint16_t PPU::read16(uint16_t addr) const {
+  switch (addr) {
+    case std::to_underlying(IO::LCDC):
+      return regs.lcdc.val;
+    case std::to_underlying(IO::STAT):
+      return regs.stat.val;
+    case std::to_underlying(IO::SCY):
+      return regs.scy;
+    case std::to_underlying(IO::SCX):
+      return regs.scx;
+    case std::to_underlying(IO::LY):
+      return regs.ly;
+    case std::to_underlying(IO::LYC):
+      return regs.lyc;
+    default:
+      return 0;
+  }
 }
 
 void PPU::reset() {
 }
 
-PPUMode PPU::current_mode() const {
-  return mode;
+PPUMode PPU::mode() const {
+  return PPUMode{regs.stat.ppu_mode};
 }

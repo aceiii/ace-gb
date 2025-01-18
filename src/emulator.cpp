@@ -172,7 +172,7 @@ void Emulator::update_tima(uint8_t tac) {
 };
 
 PPUMode Emulator::mode() const {
-  return ppu.current_mode();
+  return ppu.mode();
 }
 
 Instruction Emulator::instr() const {

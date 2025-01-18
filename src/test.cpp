@@ -26,16 +26,8 @@ public:
     mem[addr] = byte;
   }
 
-  void write16(uint16_t addr, uint16_t word) override {
-    Mem::set16(mem.data(), addr, word);
-  }
-
   [[nodiscard]] uint8_t read8(uint16_t addr) const override {
     return mem[addr];
-  }
-
-  [[nodiscard]] uint16_t read16(uint16_t addr) const override {
-    return Mem::get16(mem.data(), addr);
   }
 
   void reset() override {

@@ -3,6 +3,8 @@
 #include <array>
 #include <memory>
 
+#include "mmu.h"
+
 namespace Mem {
   inline void set16(uint8_t *bytes, uint16_t address, uint16_t val) {
     bytes[address] = val & 0xff;
