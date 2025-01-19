@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "cpu.h"
+#include "emulator.h"
 
 class Interface {
 public:
@@ -13,6 +13,8 @@ public:
   void load_cartridge();
 
 private:
+  Emulator emulator;
+
   bool auto_start = true;
   std::string error_message;
   void render_error();

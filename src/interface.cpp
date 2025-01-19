@@ -16,8 +16,6 @@ namespace {
   constexpr int kDefaulWindowWidth = 800;
   constexpr int kDefaultWindowHeight = 600;
   constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
-
-  Emulator emulator;
 }
 
 Interface::Interface() {
