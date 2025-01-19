@@ -98,6 +98,8 @@ void Interface::run() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Emulator")) {
+      ImGui::MenuItem("Auto-Start", nullptr, &auto_start);
+      ImGui::Separator();
       if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator.is_playing())) {
         emulator.play();
       }
@@ -159,6 +161,10 @@ void Interface::load_cartridge() {
 
     emulator.load_cartridge(std::move(load_result.value()));
     spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
+
+    if (auto_start) {
+      emulator.play();
+    }
   } else if (result == NFD_CANCEL) {
     spdlog::info("Load cancelled by user.");
   } else {

@@ -13,6 +13,7 @@ public:
   void load_cartridge();
 
 private:
+  bool auto_start = true;
   std::string error_message;
   void render_error();
   void render_info();
