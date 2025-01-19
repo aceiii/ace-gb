@@ -44,6 +44,7 @@ private:
   CartDevice cart;
   WramDevice wram;
   Timer timer;
+  InterruptDevice interrupts;
 
   std::array<uint8_t, kBootRomSize> boot_rom;
   std::vector<uint8_t> cart_bytes;

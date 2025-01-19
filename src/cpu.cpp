@@ -35,7 +35,7 @@ inline uint16_t pop16(const Mmu &mmu, uint16_t &sp) {
 inline uint16_t interrupt_handler(Interrupt interrupt) {
   switch (interrupt) {
     case Interrupt::VBlank: return 0x40;
-    case Interrupt::Stat: return 0x48;
+    case Interrupt::LCD: return 0x48;
     case Interrupt::Timer: return 050;
     case Interrupt::Serial: return 0x58;
     case Interrupt::Joypad: return 0x60;
@@ -1243,7 +1243,7 @@ uint8_t Cpu::execute_interrupts() {
     return 0;
   }
 
-  auto enable =  mmu.read8(std::to_underlying(IO::IE));
+  auto enable = mmu.read8(std::to_underlying(IO::IE));
   auto flag = mmu.read8(std::to_underlying(IO::IF));
 
   if (!(enable & flag)) {
@@ -1251,19 +1251,19 @@ uint8_t Cpu::execute_interrupts() {
   }
 
   for (int i = 0; i < std::to_underlying(Interrupt::Count); i++) {
-    Interrupt interrupt {i};
-    uint8_t mask = 1 << i;
+    Interrupt interrupt { i };
+    if (interrupts.is_requested(interrupt)) {
+      state.ime = false;
+      interrupts.clear_interrupt(interrupt);
 
-    if (enable & flag & mask) {
-      Stack::push16(mmu, regs.sp, regs.pc);
-      regs.pc = interrupt_handler(interrupt);
-      uint8_t disabled_bits = enable & ~mask;
-      mmu.write8(std::to_underlying(IO::IE), disabled_bits);
-      return 0;
+      auto handler_addr = interrupt_handler(interrupt);
+      instr_call_imm16(regs, mmu, handler_addr);
+
+      return 20;
     }
   }
 
-  return 20;
+  return 0;
 }
 
 uint8_t Cpu::read_next8() {
@@ -1283,4 +1283,4 @@ void Cpu::reset() {
   state.reset();
 }
 
-Cpu::Cpu(Mmu &mmu_):mmu{mmu_} {}
+Cpu::Cpu(Mmu &mmu_, InterruptDevice &interrupts_):mmu{mmu_}, interrupts{interrupts_} {}

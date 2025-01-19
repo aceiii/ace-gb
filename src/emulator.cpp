@@ -8,7 +8,7 @@
 #include "file.h"
 #include "mmu.h"
 
-Emulator::Emulator():cpu{mmu} {
+Emulator::Emulator():cpu{mmu, interrupts} {
 }
 
 tl::expected<bool, std::string> Emulator::init() {

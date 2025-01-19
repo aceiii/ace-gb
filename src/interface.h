@@ -15,4 +15,5 @@ public:
 private:
   std::string error_message;
   void render_error();
+  void render_info();
 };

@@ -44,6 +44,9 @@ set(SOURCE_FILES
         src/wram_device.h
         src/timer.cpp
         src/timer.h
+        src/interrupt_device.cpp
+        src/interrupt_device.h
+        src/interrupt.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
@@ -91,6 +94,9 @@ if(BUILD_TESTS)
             src/io.h
             src/mmu.h
             src/mmu.cpp
+            src/interrupt.h
+            src/interrupt_device.h
+            src/interrupt_device.cpp
     )
 
     add_executable(${TEST_NAME} ${TEST_FILES})

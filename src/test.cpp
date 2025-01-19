@@ -7,9 +7,9 @@
 #include <tl/expected.hpp>
 
 #include "cpu.h"
-#include "io.h"
 #include "mmu.h"
 #include "registers.h"
+#include "interrupt_device.h"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -152,7 +152,8 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
   result.total = tests_to_run.size();
 
   Mmu mmu;
-  Cpu cpu{mmu};
+  InterruptDevice interrupts;
+  Cpu cpu{mmu, interrupts};
 
   TestMemory mem;
   TestMemoryDevice device{mem};

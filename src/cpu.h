@@ -5,21 +5,14 @@
 #include "memory.h"
 #include "mmu.h"
 #include "io.h"
+#include "interrupt.h"
+#include "interrupt_device.h"
 
 #include <memory>
 #include <valarray>
 #include <vector>
 
 constexpr size_t kClockSpeed = 4194304;
-
-enum class Interrupt {
-  VBlank = 0,
-  Stat,
-  Timer,
-  Serial,
-  Joypad,
-  Count,
-};
 
 struct State {
   bool ime = false;
@@ -37,7 +30,8 @@ struct State {
 
 class Cpu {
 public:
-  explicit Cpu(Mmu &mmu);
+  Cpu() = delete;
+  explicit Cpu(Mmu &mmu, InterruptDevice &interrupts);
 
   void reset();
   uint8_t execute();
@@ -46,6 +40,7 @@ public:
 
 public:
   Mmu &mmu;
+  InterruptDevice &interrupts;
   Registers regs;
   State state;
 
