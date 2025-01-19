@@ -156,6 +156,7 @@ void Interface::load_cartridge() {
     auto load_result = load_bin(path.string());
     if (!load_result) {
       error_message = load_result.error();
+      spdlog::error("{}", error_message);
       return;
     }
 
