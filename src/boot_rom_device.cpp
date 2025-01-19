@@ -35,9 +35,9 @@ void BootRomDevice::write8(uint16_t addr, uint8_t byte) {
 
 void BootRomDevice::reset() {
   disable = 0;
+  rom.fill(0);
 }
 
-void BootRomDevice::load_bytes(const std::vector<uint8_t> &bytes) {
-  auto size = std::min(bytes.size(), rom.size());
-  std::copy_n(bytes.begin(), size, rom.begin());
+void BootRomDevice::load_bytes(const std::array<uint8_t, kBootRomSize> &bytes) {
+  rom = bytes;
 }

@@ -9,6 +9,9 @@
 #include "ppu.h"
 #include "registers.h"
 #include "boot_rom_device.h"
+#include "cart_device.h"
+#include "wram_device.h"
+#include "timer.h"
 
 class Emulator {
 public:
@@ -34,18 +37,17 @@ public:
   [[nodiscard]] uint8_t read8(uint16_t addr) const;
 
 private:
-  Cpu cpu;
   Mmu mmu;
+  Cpu cpu;
   Ppu ppu;
-  BootRomDevice boot_rom;
+  BootRomDevice boot;
+  CartDevice cart;
+  WramDevice wram;
+  Timer timer;
+
+  std::array<uint8_t, kBootRomSize> boot_rom;
+  std::vector<uint8_t> cart_bytes;
 
   size_t num_cycles = 0;
   bool running = false;
-
-  uint16_t div_counter = 0;
-  uint16_t tima_counter = 0;
-  uint8_t current_tac = 0;
-
-  void execute_timers(uint8_t cycles);
-  void update_tima(uint8_t tac);
 };

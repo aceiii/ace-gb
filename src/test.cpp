@@ -151,8 +151,8 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
 
   result.total = tests_to_run.size();
 
-  Cpu cpu;
   Mmu mmu;
+  Cpu cpu{mmu};
 
   TestMemory mem;
   TestMemoryDevice device{mem};
@@ -177,7 +177,7 @@ tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &confi
     load_registers(final, final_regs);
     load_memory(initial.at("ram"), mem);
 
-    cpu.execute(mmu);
+    cpu.execute();
 
     auto reg_match = regs == final_regs;
     auto ram_match = check_memory(final.at("ram"), mem);

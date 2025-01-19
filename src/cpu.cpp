@@ -1140,37 +1140,35 @@ void execute_stop(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   mmu.write8(std::to_underlying(IO::DIV), 0);
 }
 
-uint8_t Cpu::execute(Mmu& mmu) {
-  auto interrupt_cycles = execute_interrupts(mmu);
+uint8_t Cpu::execute() {
+  auto interrupt_cycles = execute_interrupts();
   if (interrupt_cycles) {
     return interrupt_cycles;
   }
 
-  Instruction instr = Decoder::decode(read_next8(mmu));
+  Instruction instr = Decoder::decode(read_next8());
 
   if (instr.opcode == Opcode::PREFIX) {
-    instr = Decoder::decode_prefixed(read_next8(mmu));
+    instr = Decoder::decode_prefixed(read_next8());
   }
 
-  spdlog::debug("Decoded: {}", instr);
-
   std::visit(overloaded{
-     [&](Operands_Imm8 &operands) { operands.imm = read_next8(mmu); },
-     [&](Operands_Imm16 &operands) { operands.imm = read_next16(mmu); },
-     [&](Operands_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8(mmu)); },
-     [&](Operands_Reg8_Imm8 &operands) { operands.imm = read_next8(mmu); },
-     [&](Operands_Reg16_Imm16 &operands) { operands.imm =read_next16(mmu); },
-     [&](Operands_Cond_Imm16 &operands) { operands.imm = read_next16(mmu); },
-     [&](Operands_Cond_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8(mmu)); },
-     [&](Operands_SP_Imm16 &operands) { operands.imm = read_next16(mmu); },
-     [&](Operands_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8(mmu)); },
-     [&](Operands_Imm16_Ptr_Reg8 &operands) { operands.addr = read_next16(mmu); },
-     [&](Operands_Imm16_Ptr_SP &operands) { operands.addr = read_next16(mmu); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { operands.addr = read_next8(mmu); },
-     [&](Operands_Reg8_Imm8_Ptr &operands) { operands.addr = read_next8(mmu); },
-     [&](Operands_Reg8_Imm16_Ptr &operands) { operands.addr = read_next16(mmu); },
-     [&](Operands_Reg16_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8(mmu)); },
-     [&](Operands_Reg16_Ptr_Imm8 &operands) { operands.imm = read_next8(mmu); },
+     [&](Operands_Imm8 &operands) { operands.imm = read_next8(); },
+     [&](Operands_Imm16 &operands) { operands.imm = read_next16(); },
+     [&](Operands_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
+     [&](Operands_Reg8_Imm8 &operands) { operands.imm = read_next8(); },
+     [&](Operands_Reg16_Imm16 &operands) { operands.imm =read_next16(); },
+     [&](Operands_Cond_Imm16 &operands) { operands.imm = read_next16(); },
+     [&](Operands_Cond_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
+     [&](Operands_SP_Imm16 &operands) { operands.imm = read_next16(); },
+     [&](Operands_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
+     [&](Operands_Imm16_Ptr_Reg8 &operands) { operands.addr = read_next16(); },
+     [&](Operands_Imm16_Ptr_SP &operands) { operands.addr = read_next16(); },
+     [&](Operands_Imm8_Ptr_Reg8 &operands) { operands.addr = read_next8(); },
+     [&](Operands_Reg8_Imm8_Ptr &operands) { operands.addr = read_next8(); },
+     [&](Operands_Reg8_Imm16_Ptr &operands) { operands.addr = read_next16(); },
+     [&](Operands_Reg16_SP_Offset &operands) { operands.offset = static_cast<int8_t>(read_next8()); },
+     [&](Operands_Reg16_Ptr_Imm8 &operands) { operands.imm = read_next8(); },
      [&](auto &operands) { /* pass */ }
   }, instr.operands);
 
@@ -1240,7 +1238,7 @@ uint8_t Cpu::execute(Mmu& mmu) {
   return cycles;
 }
 
-uint8_t Cpu::execute_interrupts(Mmu& mmu) {
+uint8_t Cpu::execute_interrupts() {
   if (!state.ime) {
     return 0;
   }
@@ -1268,20 +1266,21 @@ uint8_t Cpu::execute_interrupts(Mmu& mmu) {
   return 20;
 }
 
-uint8_t Cpu::read_next8(Mmu& mmu) {
+uint8_t Cpu::read_next8() {
   auto result = mmu.read8(regs.pc);
   regs.pc += 1;
   return result;
 }
 
-uint16_t Cpu::read_next16(Mmu& mmu) {
+uint16_t Cpu::read_next16() {
   auto result = mmu.read16(regs.pc);
   regs.pc += 2;
   return result;
 }
 
-void Cpu::init() {
+void Cpu::reset() {
+  regs.reset();
+  state.reset();
 }
 
-void Cpu::reset() {
-}
+Cpu::Cpu(Mmu &mmu_):mmu{mmu_} {}

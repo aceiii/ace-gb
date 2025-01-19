@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 class MmuDevice;
 using mmu_device_ptr = MmuDevice*;
 

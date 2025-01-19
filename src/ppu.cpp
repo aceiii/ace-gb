@@ -5,8 +5,6 @@
 #include "ppu.h"
 #include "cpu.h"
 
-namespace {
-
 constexpr uint16_t kLCDWidth = 160;
 constexpr uint16_t kLCDHeight = 144;
 
@@ -22,8 +20,6 @@ constexpr std::array<Color, 4> kLCDPalette {
   Color { 100, 100, 100, 255 },
   Color { 48, 48, 48, 255 },
 };
-
-}
 
 inline uint16_t addr_mode_8000(uint8_t addr) {
   return 0x8000 + addr;
@@ -158,11 +154,13 @@ bool Ppu::valid_for(uint16_t addr) const {
 
 void Ppu::write8(uint16_t addr, uint8_t byte) {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
+    spdlog::debug("Writing to VRAM: [0x{:02x}] = {}", addr, byte);
     vram.bytes[addr - kVRAMAddrStart] = byte;
     return;
   }
 
   if (addr >= kOAMAddrStart && addr <= kOAMAddrEnd) {
+    spdlog::debug("Writing to OAM: [0x{:02x}] = {}", addr, byte);
     oam.bytes[addr - kOAMAddrStart] = byte;
     return;
   }

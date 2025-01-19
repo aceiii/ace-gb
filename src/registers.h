@@ -78,6 +78,8 @@ struct Registers {
 
   inline void reset() {
     vals.fill(0);
+    sp = 0;
+    pc = 0;
   }
 };
 

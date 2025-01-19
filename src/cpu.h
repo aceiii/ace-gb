@@ -26,20 +26,29 @@ struct State {
   bool halt = false;
   bool stop = false;
   bool hard_lock = false;
+
+  inline void reset() {
+    ime = false;
+    halt = false;
+    stop = false;
+    hard_lock = false;
+  }
 };
 
 class Cpu {
 public:
-  void init();
+  explicit Cpu(Mmu &mmu);
+
   void reset();
-  uint8_t execute(Mmu &mmu);
-  uint8_t read_next8(Mmu &mmu);
-  uint16_t read_next16(Mmu &mmu);
+  uint8_t execute();
+  uint8_t read_next8();
+  uint16_t read_next16();
 
 public:
-  Registers regs {};
-  State state {};
+  Mmu &mmu;
+  Registers regs;
+  State state;
 
 private:
-  uint8_t execute_interrupts(Mmu &mmu);
+  uint8_t execute_interrupts();
 };

@@ -55,9 +55,17 @@ Interface::~Interface() {
 }
 
 void Interface::run() {
+  emulator.reset();
+
   spdlog::info("Running...");
 
-  while (!WindowShouldClose()) {
+  static bool should_close = false;
+
+  while (!should_close) {
+    if (WindowShouldClose()) {
+      should_close = true;
+    }
+
     emulator.update();
 
     BeginDrawing();
@@ -80,13 +88,20 @@ void Interface::run() {
     DrawText(fmt::format("@PC+2={:02x}", emulator.read8(pc+2)).c_str() , 20, 176, 12, RAYWHITE);
     DrawText(fmt::format("@PC+4={:02x}", emulator.read8(pc+3)).c_str() , 20, 192, 12, RAYWHITE);
 
-
     rlImGuiBegin();
 
     emulator.render();
 
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem("Load Cartridge")) {
+        spdlog::info("Loading cart...");
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Exit")) {
+        spdlog::info("Exiting...");
+        should_close = true;
+      }
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Emulator")) {
@@ -99,6 +114,10 @@ void Interface::run() {
       ImGui::Separator();
       if (ImGui::MenuItem("Step", nullptr, nullptr, !emulator.is_playing())) {
         emulator.step();
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Reset")) {
+        emulator.reset();
       }
       ImGui::EndMenu();
     }
