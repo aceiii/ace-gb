@@ -10,6 +10,7 @@ public:
   ~Interface();
 
   void run();
+  void load_cartridge();
 
 private:
   std::string error_message;

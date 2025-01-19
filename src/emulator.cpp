@@ -55,8 +55,8 @@ void Emulator::cleanup() {
   ppu.cleanup();
 }
 
-void Emulator::load_cartridge(const std::vector<uint8_t> &bytes) {
-  cart_bytes = bytes;
+void Emulator::load_cartridge(std::vector<uint8_t> &&bytes) {
+  cart_bytes = std::move(bytes);
   reset();
 }
 

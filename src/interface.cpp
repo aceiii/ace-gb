@@ -1,11 +1,16 @@
-#include "interface.h"
-#include "emulator.h"
-
+#include <filesystem>
+#include <string>
 #include <raylib.h>
 #include <imgui.h>
 #include <nfd.h>
 #include <rlImGui.h>
 #include <spdlog/spdlog.h>
+
+#include "interface.h"
+#include "emulator.h"
+#include "file.h"
+
+namespace fs = std::filesystem;
 
 namespace {
   constexpr int kDefaulWindowWidth = 800;
@@ -96,6 +101,7 @@ void Interface::run() {
     if (ImGui::BeginMenu("File")) {
       if (ImGui::MenuItem("Load Cartridge")) {
         spdlog::info("Loading cart...");
+        load_cartridge();
       }
       ImGui::Separator();
       if (ImGui::MenuItem("Exit")) {
@@ -147,3 +153,29 @@ void Interface::render_error() {
   DrawRectangle(text_x - padding, text_y - padding, text_width + padding + padding, text_height + padding + padding, Color{32,32,32,127});
   DrawText(error_message.c_str(), text_x, text_y, 15, RED);
 }
+
+void Interface::load_cartridge() {
+  nfdchar_t* file_path = nullptr;
+  std::array<nfdfilteritem_t, 1> filter_items = {{
+    {"GB", "gb"},
+  }};
+
+  nfdresult_t result = NFD_OpenDialog(&file_path, filter_items.data(), filter_items.size(), nullptr);
+  if (result == NFD_OKAY) {
+    fs::path path{file_path};
+
+    auto load_result = load_bin(path.string());
+    if (!load_result) {
+      error_message = load_result.error();
+      return;
+    }
+
+    emulator.load_cartridge(std::move(load_result.value()));
+    spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
+  } else if (result == NFD_CANCEL) {
+    spdlog::info("Load cancelled by user.");
+  } else {
+    spdlog::error("Loading failed: {}", NFD_GetError());
+  }
+}
+

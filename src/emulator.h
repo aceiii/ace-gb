@@ -26,7 +26,7 @@ public:
   void stop();
   void render();
 
-  void load_cartridge(const std::vector<uint8_t> &bytes);
+  void load_cartridge(std::vector<uint8_t> &&bytes);
 
   [[nodiscard]] bool is_playing() const;
 
