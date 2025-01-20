@@ -124,7 +124,7 @@ void Interface::run() {
     }
     if (ImGui::BeginMenu("Hardware")) {
       if (ImGui::BeginMenu("PPU")) {
-        ImGui::MenuItem("LCD", nullptr, &show_lcd);
+        ImGui::MenuItem("Stat", nullptr, &show_lcd);
         ImGui::MenuItem("VRAM");
         ImGui::MenuItem("OAM");
         ImGui::MenuItem("BG");

@@ -2,7 +2,7 @@
 
 enum class Interrupt {
   VBlank = 0,
-  LCD,
+  Stat,
   Timer,
   Serial,
   Joypad,

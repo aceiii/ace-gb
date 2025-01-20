@@ -43,7 +43,7 @@ void InterruptDevice::enable_interrupt(Interrupt interrupt) {
     case Interrupt::VBlank:
       enable.vblank = 1;
       return;
-    case Interrupt::LCD:
+    case Interrupt::Stat:
       enable.lcd = 1;
       return;
     case Interrupt::Timer:
@@ -64,7 +64,7 @@ void InterruptDevice::disable_interrupt(Interrupt interrupt) {
     case Interrupt::VBlank:
       enable.vblank = 0;
       return;
-    case Interrupt::LCD:
+    case Interrupt::Stat:
       enable.lcd = 0;
       return;
     case Interrupt::Timer:
@@ -85,7 +85,7 @@ void InterruptDevice::request_interrupt(Interrupt interrupt) {
     case Interrupt::VBlank:
       flag.vblank = 1;
       return;
-    case Interrupt::LCD:
+    case Interrupt::Stat:
       flag.lcd = 1;
       return;
     case Interrupt::Timer:
@@ -106,7 +106,7 @@ void InterruptDevice::clear_interrupt(Interrupt interrupt) {
     case Interrupt::VBlank:
       flag.vblank = 0;
       return;
-    case Interrupt::LCD:
+    case Interrupt::Stat:
       flag.lcd = 0;
       return;
     case Interrupt::Timer:
@@ -126,7 +126,7 @@ bool InterruptDevice::is_requested(Interrupt interrupt) const {
   switch (interrupt) {
     case Interrupt::VBlank:
       return enable.vblank & flag.vblank;
-    case Interrupt::LCD:
+    case Interrupt::Stat:
       return enable.lcd & flag.lcd;
     case Interrupt::Timer:
       return enable.timer & flag.timer;

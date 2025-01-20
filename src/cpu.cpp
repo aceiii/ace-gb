@@ -35,7 +35,7 @@ inline uint16_t pop16(const Mmu &mmu, uint16_t &sp) {
 inline uint16_t interrupt_handler(Interrupt interrupt) {
   switch (interrupt) {
     case Interrupt::VBlank: return 0x40;
-    case Interrupt::LCD: return 0x48;
+    case Interrupt::Stat: return 0x48;
     case Interrupt::Timer: return 050;
     case Interrupt::Serial: return 0x58;
     case Interrupt::Joypad: return 0x60;

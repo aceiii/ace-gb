@@ -4,6 +4,7 @@
 #include <raylib.h>
 
 #include "mmu.h"
+#include "interrupt_device.h"
 
 enum class PPUMode : uint8_t {
   HBlank = 0,
@@ -37,8 +38,8 @@ struct ppu_regs {
           uint8_t stat_interrupt_mode0: 1;
           uint8_t stat_interrupt_mode1: 1;
           uint8_t stat_interrupt_mode2: 1;
-          uint8_t stat_interrupt_lyc_ly: 1;
-          uint8_t unused: 1;
+          uint8_t stat_interrupt_lyc: 1;
+          uint8_t : 1;
         };
         uint8_t val;
       } stat;
@@ -108,12 +109,14 @@ struct vram_memory {
 
 class Ppu : public MmuDevice {
 public:
+  explicit Ppu(InterruptDevice &interrupts);
+
   void init();
   void cleanup();
   void execute(uint8_t cycles);
   void step();
 
-  bool valid_for(uint16_t addr) const override;
+  [[nodiscard]] bool valid_for(uint16_t addr) const override;
   void write8(uint16_t addr, uint8_t byte) override;
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
   void reset() override;
@@ -129,6 +132,8 @@ public:
   void update_render_targets();
 
 private:
+  InterruptDevice &interrupts;
+
   std::array<RenderTexture2D, 2> targets;
 
   RenderTexture2D target_bg;

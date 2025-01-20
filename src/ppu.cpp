@@ -36,6 +36,9 @@ inline uint16_t addr_mode_8800(uint8_t addr) {
   return 0x9000 + static_cast<int8_t>(addr);
 }
 
+Ppu::Ppu(InterruptDevice &interrupts_):interrupts{interrupts_} {
+}
+
 void Ppu::init() {
   for (int i = 0; i < targets.size(); i += 1) {
     targets[i] = LoadRenderTexture(kLCDWidth, kLCDHeight);
@@ -91,17 +94,11 @@ inline void Ppu::step() {
     case PPUMode::HBlank:
       if (cycle_counter >= 456) {
         cycle_counter = 0;
-        regs.lyc += 1;
+        regs.ly += 1;
         PPUMode new_mode;
-        if (regs.lyc >= kLCDHeight) {
+        if (regs.ly >= kLCDHeight) {
           new_mode = PPUMode::VBlank;
-
-          // TODO: enable vblank interrupt
-//          uint8_t interrupt = mmu->read8(std::to_underlying(IO::IF));
-//          uint8_t mask = 1 << std::to_underlying(Interrupt::VBlank);
-//          interrupt = (interrupt & ~mask) | (1 << std::to_underlying(Interrupt::VBlank));
-//          mmu->write(std::to_underlying(IO::IF), interrupt);
-
+          interrupts.request_interrupt(Interrupt::VBlank);
           target_index = target_index % targets.size();
         } else {
           new_mode = PPUMode::OAM;
@@ -112,14 +109,18 @@ inline void Ppu::step() {
     case PPUMode::VBlank:
       if (cycle_counter >= 456) {
         cycle_counter = 0;
-        regs.lyc += 1;
+        regs.ly += 1;
 
-        if (regs.lyc >= kLCDHeight + 10) {
-          regs.lyc = 0;
+        if (regs.ly >= kLCDHeight + 10) {
+          regs.ly = 0;
           mode = PPUMode::OAM;
         }
       }
       break;
+  }
+
+  if (regs.ly == regs.lyc) {
+    interrupts.request_interrupt(Interrupt::Stat);
   }
 }
 
@@ -155,6 +156,8 @@ void Ppu::update_render_targets() {
 
   BeginTextureMode(target_tiles);
 
+  /*
+  // NOTE: Test tile data and palette
   regs.bgp.id0 = 3;
   regs.bgp.id1 = 2;
   regs.bgp.id2 = 1;
@@ -168,6 +171,16 @@ void Ppu::update_render_targets() {
   vram.bytes[10] = 0x7e; vram.bytes[11] = 0x0a;
   vram.bytes[12] = 0x7c; vram.bytes[13] = 0x56;
   vram.bytes[14] = 0x38; vram.bytes[15] = 0x7c;
+
+  vram.bytes[16] = 0xff; vram.bytes[17] = 0x00;
+  vram.bytes[18] = 0x7e; vram.bytes[19] = 0xff;
+  vram.bytes[20] = 0x85; vram.bytes[21] = 0x81;
+  vram.bytes[22] = 0x89; vram.bytes[23] = 0x83;
+  vram.bytes[24] = 0x93; vram.bytes[25] = 0x85;
+  vram.bytes[26] = 0xa5; vram.bytes[27] = 0x8b;
+  vram.bytes[28] = 0xc9; vram.bytes[29] = 0x97;
+  vram.bytes[30] = 0x7e; vram.bytes[31] = 0xff;
+  */
 
   int x = 0;
   int y = 0;
@@ -232,29 +245,30 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
     return;
   }
 
+  if (addr == std::to_underlying(IO::LY)) {
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::STAT)) {
+    regs.stat.val = (regs.stat.val & 0b11) | (byte & ~0b11);
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::LCDC)) {
+    auto enable_before = regs.lcdc.lcd_display_enable;
+    regs.lcdc.val = byte;
+    if (enable_before && !regs.lcdc.lcd_display_enable) {
+      regs.ly = 0;
+      cycle_counter = 0;
+    }
+    return;
+  }
+
   regs.bytes[addr - std::to_underlying(IO::LCDC)] = byte;
 
-//  switch (addr) {
-//    case std::to_underlying(IO::LCDC):
-//       regs.lcdc.val = byte;
-//       return;
-//    case std::to_underlying(IO::STAT):
-//      regs.stat.val = byte;
-//      return;
-//    case std::to_underlying(IO::SCY):
-//      regs.scy = byte;
-//      return;
-//    case std::to_underlying(IO::SCX):
-//      regs.scx = byte;
-//      return;
-//    case std::to_underlying(IO::LY):
-//      regs.ly = byte;
-//      return;
-//    case std::to_underlying(IO::LYC):
-//      regs.lyc = byte;
-//      return;
-//    default: return;
-//  }
+  if (addr == std::to_underlying(IO::LYC) && byte == regs.ly) {
+    interrupts.request_interrupt(Interrupt::Stat);
+  }
 }
 
 [[nodiscard]] uint8_t Ppu::read8(uint16_t addr) const {
@@ -262,22 +276,7 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
     return oam.bytes[addr - kOAMAddrStart];
   }
 
-  switch (addr) {
-    case std::to_underlying(IO::LCDC):
-      return regs.lcdc.val;
-    case std::to_underlying(IO::STAT):
-      return regs.stat.val;
-    case std::to_underlying(IO::SCY):
-      return regs.scy;
-    case std::to_underlying(IO::SCX):
-      return regs.scx;
-    case std::to_underlying(IO::LY):
-      return regs.ly;
-    case std::to_underlying(IO::LYC):
-      return regs.lyc;
-    default:
-      return 0;
-  }
+  return regs.bytes[addr - std::to_underlying(IO::LCDC)];
 }
 
 void Ppu::reset() {
