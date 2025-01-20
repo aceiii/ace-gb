@@ -49,6 +49,8 @@ void Emulator::update() {
   } while (cycles < cycles_per_frame);
 
   num_cycles += cycles;
+
+  ppu.update_render_targets();
 }
 
 void Emulator::cleanup() {
@@ -68,6 +70,8 @@ void Emulator::reset() {
   mmu.reset_devices();
   boot.load_bytes(boot_rom);
   cart.load_cartridge(cart_bytes);
+
+
 }
 
 void Emulator::step() {
@@ -102,11 +106,11 @@ size_t Emulator::cycles() const {
   return num_cycles;
 }
 
-void Emulator::render() {
+void Emulator::render(bool &show_window) {
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  ImGui::Begin("GameBoy");
+  ImGui::Begin("GameBoy", &show_window);
   {
-    rlImGuiImageRenderTextureFit(ppu.target(), true);
+    rlImGuiImageRenderTextureFit(&ppu.lcd(), true);
   }
   ImGui::End();
 }
@@ -127,4 +131,8 @@ Instruction Emulator::instr() const {
 
 uint8_t Emulator::read8(uint16_t addr) const {
   return mmu.read8(addr);
+}
+
+const RenderTexture2D &Emulator::target_tiles() const {
+  return ppu.tiles();
 }

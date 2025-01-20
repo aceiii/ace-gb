@@ -24,7 +24,7 @@ public:
   void step();
   void play();
   void stop();
-  void render();
+  void render(bool& show_window);
 
   void load_cartridge(std::vector<uint8_t> &&bytes);
 
@@ -35,6 +35,8 @@ public:
   [[nodiscard]] PPUMode mode() const;
   [[nodiscard]] Instruction instr() const;
   [[nodiscard]] uint8_t read8(uint16_t addr) const;
+
+  [[nodiscard]] const RenderTexture2D& target_tiles() const;
 
 private:
   Mmu mmu;
