@@ -24,10 +24,10 @@ struct ppu_regs {
           uint8_t bg_window_enable: 1;
           uint8_t sprite_enable: 1;
           uint8_t sprite_size: 1;
-          uint8_t bg_tilemap_select: 1;
-          uint8_t tile_data_select: 1;
-          uint8_t window_display_enable: 1;
-          uint8_t window_tilemap_select: 1;
+          uint8_t bg_tilemap_area: 1;
+          uint8_t tiledata_area: 1;
+          uint8_t window_enable: 1;
+          uint8_t window_tilemap_area: 1;
           uint8_t lcd_enable: 1;
         };
         uint8_t val;

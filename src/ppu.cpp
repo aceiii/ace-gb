@@ -36,6 +36,11 @@ inline uint16_t addr_mode_8800(uint8_t addr) {
   return 0x9000 + static_cast<int8_t>(addr);
 }
 
+inline uint16_t addr_with_mode(uint8_t mode, uint8_t addr) {
+//  spdlog::info("addr_with_mode({}): {} -> {}", mode, addr, mode ? addr_mode_8000(addr) : addr_mode_8800(addr));
+  return mode ? addr_mode_8000(addr * 16) : addr_mode_8800(addr * 16);
+}
+
 Ppu::Ppu(InterruptDevice &interrupts_):interrupts{interrupts_} {
 }
 
@@ -152,69 +157,121 @@ void Ppu::update_render_targets() {
   constexpr int tile_height = 24;
 
   BeginTextureMode(target_tiles);
+  {
 
-  /*
-  // NOTE: Test tile data and palette
-  regs.bgp.id0 = 3;
-  regs.bgp.id1 = 2;
-  regs.bgp.id2 = 1;
-  regs.bgp.id3 = 0;
+    /*
+    // NOTE: Test tile data and palette
+    regs.bgp.id0 = 3;
+    regs.bgp.id1 = 2;
+    regs.bgp.id2 = 1;
+    regs.bgp.id3 = 0;
 
-  for (int i = 0; i < 78; i += 1) {
-    int b = i * 32;
-    vram.bytes[b +  0] = 0x3c; vram.bytes[b +  1] = 0x7e;
-    vram.bytes[b +  2] = 0x42; vram.bytes[b +  3] = 0x42;
-    vram.bytes[b +  4] = 0x42; vram.bytes[b +  5] = 0x42;
-    vram.bytes[b +  6] = 0x42; vram.bytes[b +  7] = 0x42;
-    vram.bytes[b +  8] = 0x7e; vram.bytes[b +  9] = 0x5e;
-    vram.bytes[b + 10] = 0x7e; vram.bytes[b + 11] = 0x0a;
-    vram.bytes[b + 12] = 0x7c; vram.bytes[b + 13] = 0x56;
-    vram.bytes[b + 14] = 0x38; vram.bytes[b + 15] = 0x7c;
+    for (int i = 0; i < 78; i += 1) {
+      int b = i * 32;
+      vram.bytes[b +  0] = 0x3c; vram.bytes[b +  1] = 0x7e;
+      vram.bytes[b +  2] = 0x42; vram.bytes[b +  3] = 0x42;
+      vram.bytes[b +  4] = 0x42; vram.bytes[b +  5] = 0x42;
+      vram.bytes[b +  6] = 0x42; vram.bytes[b +  7] = 0x42;
+      vram.bytes[b +  8] = 0x7e; vram.bytes[b +  9] = 0x5e;
+      vram.bytes[b + 10] = 0x7e; vram.bytes[b + 11] = 0x0a;
+      vram.bytes[b + 12] = 0x7c; vram.bytes[b + 13] = 0x56;
+      vram.bytes[b + 14] = 0x38; vram.bytes[b + 15] = 0x7c;
 
-    vram.bytes[b + 16] = 0xff; vram.bytes[b + 17] = 0x00;
-    vram.bytes[b + 18] = 0x7e; vram.bytes[b + 19] = 0xff;
-    vram.bytes[b + 20] = 0x85; vram.bytes[b + 21] = 0x81;
-    vram.bytes[b + 22] = 0x89; vram.bytes[b + 23] = 0x83;
-    vram.bytes[b + 24] = 0x93; vram.bytes[b + 25] = 0x85;
-    vram.bytes[b + 26] = 0xa5; vram.bytes[b + 27] = 0x8b;
-    vram.bytes[b + 28] = 0xc9; vram.bytes[b + 29] = 0x97;
-    vram.bytes[b + 30] = 0x7e; vram.bytes[b + 31] = 0xff;
+      vram.bytes[b + 16] = 0xff; vram.bytes[b + 17] = 0x00;
+      vram.bytes[b + 18] = 0x7e; vram.bytes[b + 19] = 0xff;
+      vram.bytes[b + 20] = 0x85; vram.bytes[b + 21] = 0x81;
+      vram.bytes[b + 22] = 0x89; vram.bytes[b + 23] = 0x83;
+      vram.bytes[b + 24] = 0x93; vram.bytes[b + 25] = 0x85;
+      vram.bytes[b + 26] = 0xa5; vram.bytes[b + 27] = 0x8b;
+      vram.bytes[b + 28] = 0xc9; vram.bytes[b + 29] = 0x97;
+      vram.bytes[b + 30] = 0x7e; vram.bytes[b + 31] = 0xff;
+    }
+    */
+
+    int x = 0;
+    int y = 0;
+    for (auto &tile : vram.tile_data) {
+      for (int row = 0; row < tile.size(); row += 1) {
+        uint16_t hi = (tile[row] >> 8) << 1;
+        uint8_t lo = tile[row];
+        for (int b = 7; b >= 0; b -= 1) {
+          uint8_t bits = (hi & 0b10) | (lo & 0b1);
+
+//          uint8_t id;
+//          switch (bits) {
+//            case 0: id = regs.bgp.id0; break;
+//            case 1: id = regs.bgp.id1; break;
+//            case 2: id = regs.bgp.id2; break;
+//            case 3: id = regs.bgp.id3; break;
+//            default: std::unreachable();
+//          }
+
+          auto color = kLCDPalette[bits];
+          DrawPixel((x * 8) + b, (y * 8) + row, color);
+
+          hi >>= 1;
+          lo >>= 1;
+        }
+      }
+
+      x += 1;
+      if (x >= tile_width) {
+        x = 0;
+        y += 1;
+      }
+    }
   }
-  */
+  EndTextureMode();
 
-  int x = 0;
-  int y = 0;
-  for (auto &tile : vram.tile_data) {
-    for (int row = 0; row < tile.size(); row += 1) {
-      uint16_t hi = (tile[row] >> 8) << 1;
-      uint8_t lo = tile[row];
-      for (int b = 7; b >= 0; b -= 1) {
-        uint8_t bits = (hi & 0b10) | (lo & 0b1);
+  BeginTextureMode(target_bg);
+  {
+    auto tilemap_area = regs.lcdc.bg_tilemap_area;
+    auto tiledata_area = regs.lcdc.tiledata_area;
+    auto &tilemap = vram.tile_map[tilemap_area];
 
-//        uint8_t id;
-//        switch (bits) {
-//          case 0: id = regs.bgp.id0; break;
-//          case 1: id = regs.bgp.id1; break;
-//          case 2: id = regs.bgp.id2; break;
-//          case 3: id = regs.bgp.id3; break;
-//          default: std::unreachable();
-//        }
+    uint8_t i = 0;
+    for (auto &tile_id : tilemap) {
+      tile_id = i;
+      i++;
+    }
 
-        auto color = kLCDPalette[bits];
-        DrawPixel((x * 8) + b, (y * 8) + row, color);
+    int x = 0;
+    int y = 0;
+    for (const auto &tile_id : tilemap) {
+      auto tile_idx = (addr_with_mode(tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+      auto dst_y = tile_idx / 16;
+      auto dst_x = tile_idx % 16;
 
-        hi >>= 1;
-        lo >>= 1;
+      Rectangle rect {
+        static_cast<float>(dst_x * 8),
+        static_cast<float>(target_tiles.texture.height - (dst_y * 8) - 8),
+        8.f,
+        -8.f,
+      };
+
+      Vector2 pos {
+        static_cast<float>(x * 8),
+        static_cast<float>(y * 8),
+      };
+      DrawTextureRec(target_tiles.texture, rect, pos, WHITE);
+
+      x += 1;
+      if (x >= 32) {
+        x = 0;
+        y += 1;
       }
     }
 
-    x += 1;
-    if (x >= tile_width) {
-      x = 0;
-      y += 1;
-    }
-  }
+    auto x1 = regs.scx;
+    auto y1 = regs.scy;
+    auto x2 = (regs.scx + kLCDWidth) % 256;
+    auto y2 = (regs.scy + kLCDHeight) % 256;
 
+    DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, RED);
+    DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, GREEN);
+    DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, YELLOW);
+    DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, BLUE);
+  }
   EndTextureMode();
 }
 
@@ -256,12 +313,12 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
   }
 
   if (addr == std::to_underlying(IO::LCDC)) {
+    spdlog::info("Writing to LCDC: {:02x}", byte);
     auto enable_before = regs.lcdc.lcd_enable;
     regs.lcdc.val = byte;
     if (enable_before && !regs.lcdc.lcd_enable) {
       regs.ly = 0;
       cycle_counter = 0;
-
       clear_target_buffers();
     }
     return;

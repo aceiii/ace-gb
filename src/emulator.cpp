@@ -137,3 +137,7 @@ uint8_t Emulator::read8(uint16_t addr) const {
 const RenderTexture2D &Emulator::target_tiles() const {
   return ppu.tiles();
 }
+
+const RenderTexture2D &Emulator::target_bg() const {
+  return ppu.bg();
+}
