@@ -11,7 +11,9 @@
 #include "boot_rom_device.h"
 #include "cart_device.h"
 #include "wram_device.h"
+#include "hram_device.h"
 #include "timer.h"
+#include "audio.h"
 
 class Emulator {
 public:
@@ -45,8 +47,10 @@ private:
   BootRomDevice boot;
   CartDevice cart;
   WramDevice wram;
+  HramDevice hram;
   Timer timer;
   InterruptDevice interrupts;
+  Audio audio;
 
   std::array<uint8_t, kBootRomSize> boot_rom;
   std::vector<uint8_t> cart_bytes;

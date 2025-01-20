@@ -6,6 +6,8 @@
 #include "mmu.h"
 #include "interrupt_device.h"
 
+constexpr int kNumTiles = 384;
+
 enum class PPUMode : uint8_t {
   HBlank = 0,
   VBlank = 1,
@@ -25,8 +27,8 @@ struct ppu_regs {
           uint8_t bg_tilemap_select: 1;
           uint8_t tile_data_select: 1;
           uint8_t window_display_enable: 1;
-          uint8_t windw_tilemap_select: 1;
-          uint8_t lcd_display_enable: 1;
+          uint8_t window_tilemap_select: 1;
+          uint8_t lcd_enable: 1;
         };
         uint8_t val;
       } lcdc;
@@ -97,7 +99,7 @@ struct vram_memory {
   union {
     std::array<uint8_t, 8192> bytes;
     struct {
-      std::array<std::array<uint16_t, 8>, 384> tile_data;
+      std::array<std::array<uint16_t, 8>, kNumTiles> tile_data;
       std::array<std::array<uint8_t, 1024>, 2> tile_map;
     };
   };
@@ -128,6 +130,7 @@ public:
   [[nodiscard]] const RenderTexture2D& sprites() const;
   [[nodiscard]] const RenderTexture2D& tiles() const;
 
+  void clear_target_buffers();
   void populate_sprite_buffer();
   void update_render_targets();
 
@@ -148,5 +151,4 @@ private:
   uint8_t num_sprites = 0;
   uint8_t target_index = 0;
   uint16_t cycle_counter = 0;
-
 };

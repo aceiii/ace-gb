@@ -1,24 +1,20 @@
 #pragma once
 
 #include <array>
-#include <vector>
 
-#include "mmu.h"
+#include "mmu_device.h"
 
-constexpr size_t kBootRomSize = 256;
+constexpr int kHramStart = 0xff80;
+constexpr int kHramEnd = 0xfffe;
+constexpr int kHramSize = kHramEnd - kHramStart + 1;
 
-using rom_buffer = std::array<uint8_t, kBootRomSize>;
-
-class BootRomDevice : public MmuDevice {
+class HramDevice : public MmuDevice {
 public:
-  void load_bytes(const rom_buffer &bytes);
-
   [[nodiscard]] bool valid_for(uint16_t addr) const override;
   void write8(uint16_t addr, uint8_t byte) override;
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
   void reset() override;
 
 private:
-  rom_buffer rom;
-  uint8_t disable = 0;
+  std::array<uint8_t, kHramSize> ram;
 };

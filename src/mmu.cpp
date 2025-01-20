@@ -1,3 +1,5 @@
+#include <spdlog/spdlog.h>
+
 #include "mmu.h"
 
 void Mmu::clear_devices() {
@@ -15,6 +17,7 @@ void Mmu::write8(uint16_t addr, uint8_t byte) {
       return;
     }
   }
+  spdlog::error("No device implemented for address: 0x{:02x}", addr);
 }
 
 void Mmu::write16(uint16_t addr, uint16_t word) {
@@ -24,6 +27,7 @@ void Mmu::write16(uint16_t addr, uint16_t word) {
       return;
     }
   }
+  spdlog::error("No device implemented for address: 0x{:02x}", addr);
 }
 
 uint8_t Mmu::read8(uint16_t addr) const {
@@ -32,7 +36,7 @@ uint8_t Mmu::read8(uint16_t addr) const {
       return device->read8(addr);
     }
   }
-  return 0;
+  std::unreachable();
 }
 
 uint16_t Mmu::read16(uint16_t addr) const {
@@ -41,7 +45,7 @@ uint16_t Mmu::read16(uint16_t addr) const {
       return device->read16(addr);
     }
   }
-  return 0;
+  std::unreachable();
 }
 
 void Mmu::reset_devices() {

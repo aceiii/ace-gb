@@ -60,5 +60,5 @@ enum class IO {
   SVBK = 0xff70,
   PCM12 = 0xff76,
   PCM34 = 0xff77,
-  IE = 0xfff,
+  IE = 0xffff,
 };

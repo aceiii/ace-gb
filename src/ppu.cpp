@@ -42,9 +42,6 @@ Ppu::Ppu(InterruptDevice &interrupts_):interrupts{interrupts_} {
 void Ppu::init() {
   for (int i = 0; i < targets.size(); i += 1) {
     targets[i] = LoadRenderTexture(kLCDWidth, kLCDHeight);
-    BeginTextureMode(targets[i]);
-    ClearBackground(Color(75, 0, 1, 255));
-    EndTextureMode();
   }
 
   constexpr int tiles_width = 16 * 8;
@@ -71,7 +68,7 @@ void Ppu::execute(uint8_t cycles) {
 }
 
 inline void Ppu::step() {
-  if (!regs.lcdc.lcd_display_enable) {
+  if (!regs.lcdc.lcd_enable) {
     return;
   }
 
@@ -145,7 +142,7 @@ const RenderTexture2D& Ppu::tiles() const {
 }
 
 void Ppu::populate_sprite_buffer() {
-  if (!regs.lcdc.lcd_display_enable) {
+  if (!regs.lcdc.lcd_enable) {
     return;
   }
 }
@@ -163,23 +160,26 @@ void Ppu::update_render_targets() {
   regs.bgp.id2 = 1;
   regs.bgp.id3 = 0;
 
-  vram.bytes[0] = 0x3c; vram.bytes[1] = 0x7e;
-  vram.bytes[2] = 0x42; vram.bytes[3] = 0x42;
-  vram.bytes[4] = 0x42; vram.bytes[5] = 0x42;
-  vram.bytes[6] = 0x42; vram.bytes[7] = 0x42;
-  vram.bytes[8] = 0x7e; vram.bytes[9] = 0x5e;
-  vram.bytes[10] = 0x7e; vram.bytes[11] = 0x0a;
-  vram.bytes[12] = 0x7c; vram.bytes[13] = 0x56;
-  vram.bytes[14] = 0x38; vram.bytes[15] = 0x7c;
+  for (int i = 0; i < 78; i += 1) {
+    int b = i * 32;
+    vram.bytes[b +  0] = 0x3c; vram.bytes[b +  1] = 0x7e;
+    vram.bytes[b +  2] = 0x42; vram.bytes[b +  3] = 0x42;
+    vram.bytes[b +  4] = 0x42; vram.bytes[b +  5] = 0x42;
+    vram.bytes[b +  6] = 0x42; vram.bytes[b +  7] = 0x42;
+    vram.bytes[b +  8] = 0x7e; vram.bytes[b +  9] = 0x5e;
+    vram.bytes[b + 10] = 0x7e; vram.bytes[b + 11] = 0x0a;
+    vram.bytes[b + 12] = 0x7c; vram.bytes[b + 13] = 0x56;
+    vram.bytes[b + 14] = 0x38; vram.bytes[b + 15] = 0x7c;
 
-  vram.bytes[16] = 0xff; vram.bytes[17] = 0x00;
-  vram.bytes[18] = 0x7e; vram.bytes[19] = 0xff;
-  vram.bytes[20] = 0x85; vram.bytes[21] = 0x81;
-  vram.bytes[22] = 0x89; vram.bytes[23] = 0x83;
-  vram.bytes[24] = 0x93; vram.bytes[25] = 0x85;
-  vram.bytes[26] = 0xa5; vram.bytes[27] = 0x8b;
-  vram.bytes[28] = 0xc9; vram.bytes[29] = 0x97;
-  vram.bytes[30] = 0x7e; vram.bytes[31] = 0xff;
+    vram.bytes[b + 16] = 0xff; vram.bytes[b + 17] = 0x00;
+    vram.bytes[b + 18] = 0x7e; vram.bytes[b + 19] = 0xff;
+    vram.bytes[b + 20] = 0x85; vram.bytes[b + 21] = 0x81;
+    vram.bytes[b + 22] = 0x89; vram.bytes[b + 23] = 0x83;
+    vram.bytes[b + 24] = 0x93; vram.bytes[b + 25] = 0x85;
+    vram.bytes[b + 26] = 0xa5; vram.bytes[b + 27] = 0x8b;
+    vram.bytes[b + 28] = 0xc9; vram.bytes[b + 29] = 0x97;
+    vram.bytes[b + 30] = 0x7e; vram.bytes[b + 31] = 0xff;
+  }
   */
 
   int x = 0;
@@ -191,16 +191,16 @@ void Ppu::update_render_targets() {
       for (int b = 7; b >= 0; b -= 1) {
         uint8_t bits = (hi & 0b10) | (lo & 0b1);
 
-        uint8_t id;
-        switch (bits) {
-          case 0: id = regs.bgp.id0; break;
-          case 1: id = regs.bgp.id1; break;
-          case 2: id = regs.bgp.id2; break;
-          case 3: id = regs.bgp.id3; break;
-          default: std::unreachable();
-        }
+//        uint8_t id;
+//        switch (bits) {
+//          case 0: id = regs.bgp.id0; break;
+//          case 1: id = regs.bgp.id1; break;
+//          case 2: id = regs.bgp.id2; break;
+//          case 3: id = regs.bgp.id3; break;
+//          default: std::unreachable();
+//        }
 
-        auto color = kLCDPalette[id];
+        auto color = kLCDPalette[bits];
         DrawPixel((x * 8) + b, (y * 8) + row, color);
 
         hi >>= 1;
@@ -236,6 +236,7 @@ bool Ppu::valid_for(uint16_t addr) const {
 
 void Ppu::write8(uint16_t addr, uint8_t byte) {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
+    spdlog::debug("Writing to VRAM: [0x{:02x}] = 0x{:02x}", addr, byte);
     vram.bytes[addr - kVRAMAddrStart] = byte;
     return;
   }
@@ -255,11 +256,13 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
   }
 
   if (addr == std::to_underlying(IO::LCDC)) {
-    auto enable_before = regs.lcdc.lcd_display_enable;
+    auto enable_before = regs.lcdc.lcd_enable;
     regs.lcdc.val = byte;
-    if (enable_before && !regs.lcdc.lcd_display_enable) {
+    if (enable_before && !regs.lcdc.lcd_enable) {
       regs.ly = 0;
       cycle_counter = 0;
+
+      clear_target_buffers();
     }
     return;
   }
@@ -272,6 +275,10 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
 }
 
 [[nodiscard]] uint8_t Ppu::read8(uint16_t addr) const {
+  if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
+    return vram.bytes[addr - kVRAMAddrStart];
+  }
+
   if (addr >= kOAMAddrStart && addr < kOAMAddrEnd) {
     return oam.bytes[addr - kOAMAddrStart];
   }
@@ -288,22 +295,33 @@ void Ppu::reset() {
   cycle_counter = 0;
 
   BeginTextureMode(target_tiles);
-  ClearBackground(BLANK);
+  ClearBackground(BLACK);
   EndTextureMode();
 
   BeginTextureMode(target_bg);
-  ClearBackground(BLANK);
+  ClearBackground(BLACK);
   EndTextureMode();
 
   BeginTextureMode(target_bg);
-  ClearBackground(BLANK);
+  ClearBackground(BLACK);
   EndTextureMode();
 
   BeginTextureMode(target_sprites);
-  ClearBackground(BLANK);
+  ClearBackground(BLACK);
   EndTextureMode();
+
+  clear_target_buffers();
+}
+
+void Ppu::clear_target_buffers() {
+  for (int i = 0; i < targets.size(); i += 1) {
+    BeginTextureMode(targets[i]);
+    ClearBackground(BLACK);
+    EndTextureMode();
+  }
 }
 
 PPUMode Ppu::mode() const {
   return static_cast<PPUMode>(regs.stat.ppu_mode);
 }
+

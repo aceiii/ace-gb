@@ -19,7 +19,10 @@ tl::expected<bool, std::string> Emulator::init() {
   mmu.add_device(&cart);
   mmu.add_device(&wram);
   mmu.add_device(&ppu);
+  mmu.add_device(&hram);
+  mmu.add_device(&audio);
   mmu.add_device(&timer);
+  mmu.add_device(&interrupts);
 
   auto result = load_bin("./boot.bin");
   if (!result) {
@@ -70,8 +73,6 @@ void Emulator::reset() {
   mmu.reset_devices();
   boot.load_bytes(boot_rom);
   cart.load_cartridge(cart_bytes);
-
-
 }
 
 void Emulator::step() {

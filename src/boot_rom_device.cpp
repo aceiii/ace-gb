@@ -8,7 +8,7 @@ bool BootRomDevice::valid_for(uint16_t addr) const {
     return true;
   }
 
-  if (addr < kBootRomSize && !disable) {
+  if (addr < rom.size() && !disable) {
     return true;
   }
 
@@ -16,15 +16,14 @@ bool BootRomDevice::valid_for(uint16_t addr) const {
 }
 
 void BootRomDevice::write8(uint16_t addr, uint8_t byte) {
-  if (addr == std::to_underlying(IO::BOOT)) {
-    spdlog::debug("Writing to BOOT flag: {}", byte);
-    disable = byte;
+  if (addr != std::to_underlying(IO::BOOT)) {
     return;
   }
+  disable = byte;
 }
 
 [[nodiscard]] uint8_t BootRomDevice::read8(uint16_t addr) const {
-  if (addr < kBootRomSize) {
+  if (addr < rom.size()) {
     return rom[addr];
   }
   if (addr == std::to_underlying(IO::BOOT)) {
@@ -38,6 +37,6 @@ void BootRomDevice::reset() {
   rom.fill(0);
 }
 
-void BootRomDevice::load_bytes(const std::array<uint8_t, kBootRomSize> &bytes) {
+void BootRomDevice::load_bytes(const rom_buffer &bytes) {
   rom = bytes;
 }
