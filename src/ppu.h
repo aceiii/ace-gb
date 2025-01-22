@@ -125,22 +125,23 @@ public:
 
   [[nodiscard]] PPUMode mode() const;
   [[nodiscard]] const RenderTexture2D& lcd() const;
-  [[nodiscard]] const RenderTexture2D& bg() const;
-  [[nodiscard]] const RenderTexture2D& window() const;
+  [[nodiscard]] const RenderTexture2D& tilemap1() const;
+  [[nodiscard]] const RenderTexture2D& tilemap2() const;
   [[nodiscard]] const RenderTexture2D& sprites() const;
   [[nodiscard]] const RenderTexture2D& tiles() const;
 
   void clear_target_buffers();
-  void populate_sprite_buffer();
   void update_render_targets();
 
 private:
   InterruptDevice &interrupts;
 
   std::array<RenderTexture2D, 2> targets;
+  RenderTexture2D *target_lcd_front;
+  RenderTexture2D *target_lcd_back;
 
-  RenderTexture2D target_bg;
-  RenderTexture2D target_window;
+  RenderTexture2D target_tilemap1;
+  RenderTexture2D target_tilemap2;
   RenderTexture2D target_sprites;
   RenderTexture2D target_tiles;
 
@@ -149,6 +150,10 @@ private:
   ppu_regs regs;
 
   uint8_t num_sprites = 0;
-  uint8_t target_index = 0;
   uint16_t cycle_counter = 0;
+
+private:
+  void set_mode(PPUMode mode);
+  void draw_lcd_row();
+  void swap_lcd_targets();
 };

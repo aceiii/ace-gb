@@ -39,7 +39,7 @@ public:
   [[nodiscard]] uint8_t read8(uint16_t addr) const;
 
   [[nodiscard]] const RenderTexture2D& target_tiles() const;
-  [[nodiscard]] const RenderTexture2D& target_bg() const;
+  [[nodiscard]] const RenderTexture2D& target_tilemap(uint8_t id) const;
 
 private:
   Mmu mmu;

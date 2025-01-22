@@ -138,6 +138,11 @@ const RenderTexture2D &Emulator::target_tiles() const {
   return ppu.tiles();
 }
 
-const RenderTexture2D &Emulator::target_bg() const {
-  return ppu.bg();
+const RenderTexture2D &Emulator::target_tilemap(uint8_t idx) const {
+  if (idx == 0) {
+    return ppu.tilemap1();
+  } else if (idx == 1) {
+    return ppu.tilemap2();
+  }
+  std::unreachable();
 }

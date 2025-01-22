@@ -65,7 +65,8 @@ void Interface::run() {
   static bool should_close = false;
   static bool show_lcd = true;
   static bool show_tiles = true;
-  static bool show_bg = true;
+  static bool show_tilemap1 = true;
+  static bool show_tilemap2 = true;
 
   while (!should_close) {
     if (WindowShouldClose()) {
@@ -91,8 +92,12 @@ void Interface::run() {
       render_tiles(show_tiles);
     }
 
-    if (show_bg) {
-      render_bg(show_bg);
+    if (show_tilemap1) {
+      render_tilemap1(show_tilemap1);
+    }
+
+    if (show_tilemap2) {
+      render_tilemap2(show_tilemap2);
     }
 
     ImGui::BeginMainMenuBar();
@@ -132,8 +137,8 @@ void Interface::run() {
         ImGui::MenuItem("Stat", nullptr, &show_lcd);
         ImGui::MenuItem("VRAM");
         ImGui::MenuItem("OAM");
-        ImGui::MenuItem("BG", nullptr, &show_bg);
-        ImGui::MenuItem("Window");
+        ImGui::MenuItem("TileMap 1", nullptr, &show_tilemap1);
+        ImGui::MenuItem("TileMap 2", nullptr, &show_tilemap2);
         ImGui::MenuItem("Sprites");
         ImGui::MenuItem("Tiles", nullptr, &show_tiles);
         ImGui::EndMenu();
@@ -230,14 +235,30 @@ void Interface::render_tiles(bool &show_window) {
   ImGui::End();
 }
 
-void Interface::render_bg(bool &show_window) {
+void Interface::render_tilemap1(bool &show_window) {
   if (!show_window) {
     return;
   }
 
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  if (ImGui::Begin("BG TileMap", &show_window)) {
-    auto &target = emulator.target_bg();
+  if (ImGui::Begin("TileMap 1", &show_window)) {
+    auto &target = emulator.target_tilemap(0);
+    auto width = target.texture.width;
+    auto height = target.texture.height;
+    auto scale = 2;
+    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle{ 0,0, static_cast<float>(width), -static_cast<float>(height) });
+  }
+  ImGui::End();
+}
+
+void Interface::render_tilemap2(bool &show_window) {
+  if (!show_window) {
+    return;
+  }
+
+  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("TileMap 2", &show_window)) {
+    auto &target = emulator.target_tilemap(1);
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;

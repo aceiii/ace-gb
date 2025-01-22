@@ -19,7 +19,7 @@ void InterruptDevice::write8(uint16_t addr, uint8_t byte) {
     case std::to_underlying(IO::IE):
       enable.val = byte;
       return;
-    default: return;
+    default: std::unreachable();
   }
 }
 
@@ -29,7 +29,7 @@ uint8_t InterruptDevice::read8(uint16_t addr) const {
       return flag.val;
     case std::to_underlying(IO::IE):
       return enable.val;
-    default: return 0;
+    default: std::unreachable();
   }
 }
 
@@ -55,7 +55,7 @@ void InterruptDevice::enable_interrupt(Interrupt interrupt) {
     case Interrupt::Joypad:
       enable.joypad = 1;
       return;
-    default: return;
+    default: std::unreachable();
   }
 }
 
@@ -76,7 +76,7 @@ void InterruptDevice::disable_interrupt(Interrupt interrupt) {
     case Interrupt::Joypad:
       enable.joypad = 0;
       return;
-    default: return;
+    default: std::unreachable();
   }
 }
 
@@ -97,7 +97,7 @@ void InterruptDevice::request_interrupt(Interrupt interrupt) {
     case Interrupt::Joypad:
       flag.joypad = 1;
       return;
-    default: return;
+    default: std::unreachable();
   }
 }
 
@@ -118,7 +118,7 @@ void InterruptDevice::clear_interrupt(Interrupt interrupt) {
     case Interrupt::Joypad:
       flag.joypad = 0;
       return;
-    default: return;
+    default: std::unreachable();
   }
 }
 
@@ -134,6 +134,6 @@ bool InterruptDevice::is_requested(Interrupt interrupt) const {
       return enable.serial & flag.serial;
     case Interrupt::Joypad:
       return enable.joypad & flag.joypad;
-    default: return false;
+    default: std::unreachable();
   }
 }

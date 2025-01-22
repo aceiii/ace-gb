@@ -3,23 +3,22 @@
 #include <spdlog/spdlog.h>
 
 #include "ppu.h"
-#include "cpu.h"
+
+namespace {
 
 constexpr uint16_t kLCDWidth = 160;
 constexpr uint16_t kLCDHeight = 144;
 
 constexpr uint16_t kVRAMAddrStart = 0x8000;
 constexpr uint16_t kVRAMAddrEnd = 0x9FFF;
+constexpr uint16_t kVRAMRelStart = 0x9000;
 
 constexpr uint16_t kOAMAddrStart = 0xFE00;
 constexpr uint16_t kOAMAddrEnd = 0xFE9F;
 
-//constexpr std::array<Color, 4> kLCDPalette {
-//  Color { 240, 240, 240, 255 },
-//  Color { 178, 178, 178, 255 },
-//  Color { 100, 100, 100, 255 },
-//  Color { 48, 48, 48, 255 },
-//};
+constexpr size_t kDotsPerOAM = 80;
+constexpr size_t kDotsPerDraw = 172;
+constexpr size_t kDotsPerRow = 456;
 
 constexpr std::array<Color, 4> kLCDPalette {
   Color { 223, 247, 207, 255 },
@@ -28,20 +27,34 @@ constexpr std::array<Color, 4> kLCDPalette {
   Color { 8, 23, 32, 255 },
 };
 
+}
+
+inline uint8_t get_palette_index(uint8_t id, ppu_regs &regs) {
+  switch (id) {
+    case 0: return regs.bgp.id0;
+    case 1: return regs.bgp.id1;
+    case 2: return regs.bgp.id2;
+    case 3: return regs.bgp.id3;
+    default: std::unreachable();
+  }
+}
+
 inline uint16_t addr_mode_8000(uint8_t addr) {
-  return 0x8000 + addr;
+  return kVRAMAddrStart + addr * 16;
 }
 
 inline uint16_t addr_mode_8800(uint8_t addr) {
-  return 0x9000 + static_cast<int8_t>(addr);
+  return kVRAMRelStart + (static_cast<int8_t>(addr) * 16);
 }
 
 inline uint16_t addr_with_mode(uint8_t mode, uint8_t addr) {
-//  spdlog::info("addr_with_mode({}): {} -> {}", mode, addr, mode ? addr_mode_8000(addr) : addr_mode_8800(addr));
-  return mode ? addr_mode_8000(addr * 16) : addr_mode_8800(addr * 16);
+  return mode ? addr_mode_8000(addr) : addr_mode_8800(addr);
 }
 
-Ppu::Ppu(InterruptDevice &interrupts_):interrupts{interrupts_} {
+Ppu::Ppu(InterruptDevice &interrupts_)
+:interrupts{interrupts_},
+target_lcd_front{targets.begin()},
+target_lcd_back{targets.begin() + 1} {
 }
 
 void Ppu::init() {
@@ -55,8 +68,8 @@ void Ppu::init() {
 
   constexpr int tilemap_width = 256;
   constexpr int tilemap_height = 256;
-  target_bg = LoadRenderTexture(tilemap_width, tilemap_height);
-  target_window = LoadRenderTexture(tilemap_width, tilemap_height);
+  target_tilemap1 = LoadRenderTexture(tilemap_width, tilemap_height);
+  target_tilemap2 = LoadRenderTexture(tilemap_width, tilemap_height);
   target_sprites = LoadRenderTexture(tilemap_width, tilemap_height);
 }
 
@@ -79,63 +92,110 @@ inline void Ppu::step() {
 
   auto mode = this->mode();
 
-  if (mode == PPUMode::OAM && cycle_counter == 0) {
-    populate_sprite_buffer();
-  } else if (mode == PPUMode::Draw && cycle_counter == 80) {
-  }
-
   cycle_counter += 1;
 
-  switch (mode) {
-    case PPUMode::OAM:
-      if (cycle_counter >= 80) {
-        mode = PPUMode::Draw;
-      }
-      break;
-    case PPUMode::Draw: break;
-    case PPUMode::HBlank:
-      if (cycle_counter >= 456) {
-        cycle_counter = 0;
-        regs.ly += 1;
-        PPUMode new_mode;
-        if (regs.ly >= kLCDHeight) {
-          new_mode = PPUMode::VBlank;
-          interrupts.request_interrupt(Interrupt::VBlank);
-          target_index = target_index % targets.size();
-        } else {
-          new_mode = PPUMode::OAM;
-        }
-        mode = new_mode;
-      }
-      break;
-    case PPUMode::VBlank:
-      if (cycle_counter >= 456) {
-        cycle_counter = 0;
-        regs.ly += 1;
-
-        if (regs.ly >= kLCDHeight + 10) {
-          regs.ly = 0;
-          mode = PPUMode::OAM;
-        }
-      }
-      break;
+  if (cycle_counter >= kDotsPerRow) {
+    regs.ly += 1;
+    cycle_counter = 0;
   }
 
-  if (regs.ly == regs.lyc) {
+  if (regs.ly >= kLCDHeight + 10) {
+    regs.ly = 0;
+  }
+
+  if (regs.ly >= kLCDHeight) {
+    if (mode != PPUMode::VBlank) {
+      regs.stat.ppu_mode = std::to_underlying(PPUMode::VBlank);
+      interrupts.request_interrupt(Interrupt::VBlank);
+      if (regs.stat.stat_interrupt_mode1) {
+        interrupts.request_interrupt(Interrupt::Stat);
+      }
+      swap_lcd_targets();
+    }
+  } else {
+    if (cycle_counter < kDotsPerOAM) {
+      if (mode != PPUMode::OAM) {
+        regs.stat.ppu_mode = std::to_underlying(PPUMode::OAM);
+        if (regs.stat.stat_interrupt_mode2) {
+          interrupts.request_interrupt(Interrupt::Stat);
+        }
+      }
+    } else if (cycle_counter <= (kDotsPerOAM + kDotsPerDraw)) {
+      if (mode != PPUMode::Draw) {
+        regs.stat.ppu_mode = std::to_underlying(PPUMode::Draw);
+      }
+    } else {
+      if (mode != PPUMode::HBlank) {
+        regs.stat.ppu_mode = std::to_underlying(PPUMode::HBlank);
+        if (regs.stat.stat_interrupt_mode0) {
+          interrupts.request_interrupt(Interrupt::Stat);
+        }
+        draw_lcd_row();
+      }
+    }
+  }
+
+  if (regs.ly == regs.lyc && regs.stat.stat_interrupt_lyc) {
     interrupts.request_interrupt(Interrupt::Stat);
   }
 }
 
+void Ppu::swap_lcd_targets() {
+//  std::swap(target_lcd_front, target_lcd_back);
+//  BeginTextureMode(*target_lcd_back);
+//  ClearBackground(BLACK);
+//  EndTextureMode();
+}
+
+void Ppu::draw_lcd_row() {
+  BeginTextureMode(*target_lcd_back);
+  {
+    if (regs.lcdc.bg_window_enable) {
+      auto enable_window = regs.lcdc.window_enable;
+      auto &tilemap = vram.tile_map[enable_window ? regs.lcdc.window_tilemap_area : regs.lcdc.bg_tilemap_area];
+
+      const uint8_t y = regs.ly;
+      const uint8_t py = regs.scy + y;
+      const uint8_t ty = (py >> 3 ) & 31;
+      const uint8_t row = py % 8;
+
+      for (auto x = 0; x < kLCDWidth; x += 1) {
+        const uint8_t px = regs.scx + x;
+        const uint8_t tx = (px >> 3) & 31;
+        const uint8_t col = px % 8;
+
+        auto map_idx = (ty * 32) + tx;
+        auto tile_id = tilemap[map_idx];
+        auto tile_idx = (addr_with_mode(regs.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+        auto tile = vram.tile_data[tile_idx];
+
+        uint16_t hi = (tile[row] >> 8) >> (7 - col);
+        uint8_t lo = tile[row] >> (7 - col);
+        uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
+        auto cid = get_palette_index(bits, regs);
+        auto color = kLCDPalette[cid];
+        DrawPixel(x, y, color);
+      }
+    } else {
+      DrawLine(0, regs.ly, kLCDWidth - 1, regs.ly, kLCDPalette[0]);
+    }
+
+    if (regs.lcdc.sprite_enable) {
+    }
+  }
+  EndTextureMode();
+}
+
 const RenderTexture2D& Ppu::lcd() const {
-  return targets[target_index];
+  return *target_lcd_back;
 }
 
-const RenderTexture2D& Ppu::bg() const {
-  return target_bg;
+const RenderTexture2D& Ppu::tilemap1() const {
+  return target_tilemap1;
 }
 
-const RenderTexture2D& Ppu::window() const {
-  return target_window;
+const RenderTexture2D& Ppu::tilemap2() const {
+  return target_tilemap2;
 }
 
 const RenderTexture2D& Ppu::sprites() const {
@@ -146,48 +206,12 @@ const RenderTexture2D& Ppu::tiles() const {
   return target_tiles;
 }
 
-void Ppu::populate_sprite_buffer() {
-  if (!regs.lcdc.lcd_enable) {
-    return;
-  }
-}
-
 void Ppu::update_render_targets() {
   constexpr int tile_width = 16;
   constexpr int tile_height = 24;
 
   BeginTextureMode(target_tiles);
   {
-
-    /*
-    // NOTE: Test tile data and palette
-    regs.bgp.id0 = 3;
-    regs.bgp.id1 = 2;
-    regs.bgp.id2 = 1;
-    regs.bgp.id3 = 0;
-
-    for (int i = 0; i < 78; i += 1) {
-      int b = i * 32;
-      vram.bytes[b +  0] = 0x3c; vram.bytes[b +  1] = 0x7e;
-      vram.bytes[b +  2] = 0x42; vram.bytes[b +  3] = 0x42;
-      vram.bytes[b +  4] = 0x42; vram.bytes[b +  5] = 0x42;
-      vram.bytes[b +  6] = 0x42; vram.bytes[b +  7] = 0x42;
-      vram.bytes[b +  8] = 0x7e; vram.bytes[b +  9] = 0x5e;
-      vram.bytes[b + 10] = 0x7e; vram.bytes[b + 11] = 0x0a;
-      vram.bytes[b + 12] = 0x7c; vram.bytes[b + 13] = 0x56;
-      vram.bytes[b + 14] = 0x38; vram.bytes[b + 15] = 0x7c;
-
-      vram.bytes[b + 16] = 0xff; vram.bytes[b + 17] = 0x00;
-      vram.bytes[b + 18] = 0x7e; vram.bytes[b + 19] = 0xff;
-      vram.bytes[b + 20] = 0x85; vram.bytes[b + 21] = 0x81;
-      vram.bytes[b + 22] = 0x89; vram.bytes[b + 23] = 0x83;
-      vram.bytes[b + 24] = 0x93; vram.bytes[b + 25] = 0x85;
-      vram.bytes[b + 26] = 0xa5; vram.bytes[b + 27] = 0x8b;
-      vram.bytes[b + 28] = 0xc9; vram.bytes[b + 29] = 0x97;
-      vram.bytes[b + 30] = 0x7e; vram.bytes[b + 31] = 0xff;
-    }
-    */
-
     int x = 0;
     int y = 0;
     for (auto &tile : vram.tile_data) {
@@ -196,16 +220,6 @@ void Ppu::update_render_targets() {
         uint8_t lo = tile[row];
         for (int b = 7; b >= 0; b -= 1) {
           uint8_t bits = (hi & 0b10) | (lo & 0b1);
-
-//          uint8_t id;
-//          switch (bits) {
-//            case 0: id = regs.bgp.id0; break;
-//            case 1: id = regs.bgp.id1; break;
-//            case 2: id = regs.bgp.id2; break;
-//            case 3: id = regs.bgp.id3; break;
-//            default: std::unreachable();
-//          }
-
           auto color = kLCDPalette[bits];
           DrawPixel((x * 8) + b, (y * 8) + row, color);
 
@@ -223,21 +237,14 @@ void Ppu::update_render_targets() {
   }
   EndTextureMode();
 
-  BeginTextureMode(target_bg);
+  BeginTextureMode(target_tilemap1);
   {
-    auto tilemap_area = regs.lcdc.bg_tilemap_area;
     auto tiledata_area = regs.lcdc.tiledata_area;
-    auto &tilemap = vram.tile_map[tilemap_area];
-
-    uint8_t i = 0;
-    for (auto &tile_id : tilemap) {
-      tile_id = i;
-      i++;
-    }
+    auto &tilemap = vram.tile_map[0];
 
     int x = 0;
     int y = 0;
-    for (const auto &tile_id : tilemap) {
+    for (auto tile_id : tilemap) {
       auto tile_idx = (addr_with_mode(tiledata_area, tile_id) - kVRAMAddrStart) / 16;
       auto dst_y = tile_idx / 16;
       auto dst_x = tile_idx % 16;
@@ -253,6 +260,7 @@ void Ppu::update_render_targets() {
         static_cast<float>(x * 8),
         static_cast<float>(y * 8),
       };
+
       DrawTextureRec(target_tiles.texture, rect, pos, WHITE);
 
       x += 1;
@@ -262,15 +270,87 @@ void Ppu::update_render_targets() {
       }
     }
 
-    auto x1 = regs.scx;
-    auto y1 = regs.scy;
-    auto x2 = (regs.scx + kLCDWidth) % 256;
-    auto y2 = (regs.scy + kLCDHeight) % 256;
+    if (regs.lcdc.bg_tilemap_area == 0) {
+      auto x1 = regs.scx;
+      auto y1 = regs.scy;
+      auto x2 = (x1 + kLCDWidth - 1) % 256;
+      auto y2 = (y1 + kLCDHeight - 1) % 256;
 
-    DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, RED);
-    DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, GREEN);
-    DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, YELLOW);
-    DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, BLUE);
+      DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, RED);
+      DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, RED);
+      DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, RED);
+      DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, RED);
+    }
+    if (regs.lcdc.window_tilemap_area == 0) {
+      auto x1 = regs.wx < 7 ? kLCDWidth + regs.wx - 7 : regs.wx - 7;
+      auto y1 = regs.wy;
+      auto x2 = (x1 + kLCDWidth - 1) % 256;
+      auto y2 = (y1 + kLCDHeight - 1) % 256;
+
+      DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, BLUE);
+      DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, BLUE);
+      DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, BLUE);
+      DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, BLUE);
+    }
+  }
+  EndTextureMode();
+
+  BeginTextureMode(target_tilemap2);
+  {
+    auto tilemap_area = regs.lcdc.bg_tilemap_area;
+    auto tiledata_area = regs.lcdc.tiledata_area;
+    auto &tilemap = vram.tile_map[1];
+
+    int x = 0;
+    int y = 0;
+    for (auto tile_id : tilemap) {
+      auto tile_idx = (addr_with_mode(tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+      auto dst_y = tile_idx / 16;
+      auto dst_x = tile_idx % 16;
+
+      Rectangle rect {
+        static_cast<float>(dst_x * 8),
+        static_cast<float>(target_tiles.texture.height - (dst_y * 8) - 8),
+        8.f,
+        -8.f,
+      };
+
+      Vector2 pos {
+        static_cast<float>(x * 8),
+        static_cast<float>(y * 8),
+      };
+
+      DrawTextureRec(target_tiles.texture, rect, pos, WHITE);
+
+      x += 1;
+      if (x >= 32) {
+        x = 0;
+        y += 1;
+      }
+    }
+
+    if (regs.lcdc.bg_tilemap_area == 1) {
+      auto x1 = regs.scx;
+      auto y1 = regs.scy;
+      auto x2 = (x1 + kLCDWidth - 1) % 256;
+      auto y2 = (y1 + kLCDHeight - 1) % 256;
+
+      DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, RED);
+      DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, RED);
+      DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, RED);
+      DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, RED);
+    }
+    if (regs.lcdc.window_tilemap_area == 1) {
+      auto x1 = regs.wx < 7 ? kLCDWidth + (regs.wx - 7) : regs.wx - 7;
+      auto y1 = regs.wy;
+      auto x2 = (x1 + kLCDWidth - 1) % 256;
+      auto y2 = (y1 + kLCDHeight - 1) % 256;
+
+      DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, BLUE);
+      DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, BLUE);
+      DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, BLUE);
+      DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, BLUE);
+    }
   }
   EndTextureMode();
 }
@@ -348,18 +428,17 @@ void Ppu::reset() {
   oam.reset();
   regs.reset();
   num_sprites = 0;
-  target_index = 0;
   cycle_counter = 0;
 
   BeginTextureMode(target_tiles);
   ClearBackground(BLACK);
   EndTextureMode();
 
-  BeginTextureMode(target_bg);
+  BeginTextureMode(target_tilemap1);
   ClearBackground(BLACK);
   EndTextureMode();
 
-  BeginTextureMode(target_bg);
+  BeginTextureMode(target_tilemap2);
   ClearBackground(BLACK);
   EndTextureMode();
 
@@ -382,3 +461,6 @@ PPUMode Ppu::mode() const {
   return static_cast<PPUMode>(regs.stat.ppu_mode);
 }
 
+void Ppu::set_mode(PPUMode mode) {
+  regs.stat.ppu_mode = std::to_underlying(mode);
+}
