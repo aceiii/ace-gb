@@ -147,53 +147,74 @@ inline void Ppu::step() {
 }
 
 void Ppu::swap_lcd_targets() {
-//  std::swap(target_lcd_front, target_lcd_back);
-//  BeginTextureMode(*target_lcd_back);
-//  ClearBackground(BLACK);
-//  EndTextureMode();
-
   UpdateTexture(target_lcd_front, target_lcd_back.data);
 }
 
 void Ppu::draw_lcd_row() {
-//  BeginTextureMode(*target_lcd_back);
-  {
-    if (regs.lcdc.bg_window_enable) {
-      auto enable_window = regs.lcdc.window_enable;
+  if (regs.lcdc.bg_window_enable) {
+    const bool enable_window_flag = regs.lcdc.window_enable &&
+      regs.wx >= 0 && regs.wx <= 166 && regs.wy >= 0 && regs.wy <= 143;
+    const uint8_t y = regs.ly;
+
+    uint8_t py = regs.scy + y;
+    uint8_t ty = (py >> 3 ) & 31;
+    uint8_t row = py % 8;
+
+    bool enable_window = false;
+    for (auto x = 0; x < kLCDWidth; x += 1) {
+      if (!enable_window && enable_window_flag && x >= regs.wx - 7 && y >= regs.wy) {
+        enable_window = true;
+        py = y - regs.wy;
+        ty = (py >> 3 ) & 31;
+        row = py % 8;
+      }
+
       auto &tilemap = vram.tile_map[enable_window ? regs.lcdc.window_tilemap_area : regs.lcdc.bg_tilemap_area];
 
-      const uint8_t y = regs.ly;
-      const uint8_t py = regs.scy + y;
-      const uint8_t ty = (py >> 3 ) & 31;
-      const uint8_t row = py % 8;
+      uint8_t px = enable_window ? x - (regs.wx - 7) : regs.scx + x;
+      uint8_t tx = (px >> 3) & 31;
+      uint8_t sub_x = px % 8;
 
-      for (auto x = 0; x < kLCDWidth; x += 1) {
-        const uint8_t px = regs.scx + x;
-        const uint8_t tx = (px >> 3) & 31;
-        const uint8_t col = px % 8;
+      auto map_idx = (ty * 32) + tx;
+      auto tile_id = tilemap[map_idx];
+      auto tile_idx = (addr_with_mode(regs.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+      auto tile = vram.tile_data[tile_idx];
 
-        auto map_idx = (ty * 32) + tx;
-        auto tile_id = tilemap[map_idx];
-        auto tile_idx = (addr_with_mode(regs.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
-        auto tile = vram.tile_data[tile_idx];
+      uint16_t hi = (tile[row] >> 8) >> (7 - sub_x);
+      uint8_t lo = tile[row] >> (7 - sub_x);
+      uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
-        uint16_t hi = (tile[row] >> 8) >> (7 - col);
-        uint8_t lo = tile[row] >> (7 - col);
-        uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
-        auto cid = get_palette_index(bits, regs);
-        auto color = kLCDPalette[cid];
-//        DrawPixel(x, y, color);
-        ImageDrawPixel(&target_lcd_back, x, y, color);
+      auto cid = get_palette_index(bits, regs);
+      auto color = kLCDPalette[cid];
+      ImageDrawPixel(&target_lcd_back, x, y, color);
+    }
+  } else {
+    ImageDrawLine(&target_lcd_back, 0, regs.ly, kLCDWidth -1, regs.ly, kLCDPalette[0]);
+  }
+
+  if (regs.lcdc.sprite_enable) {
+    static std::vector<sprite*> valid_sprites;
+    valid_sprites.clear();
+    valid_sprites.reserve(10);
+
+    const auto height = regs.lcdc.sprite_size ? 16 : 8;
+    const auto y = regs.ly;
+
+    for (auto &sprite : oam.sprites) {
+      if (y >= sprite.y && y < (sprite.y + height - 16) && sprite.x > 0 && sprite.x < 168) {
+        valid_sprites.push_back(&sprite);
       }
-    } else {
-//      DrawLine(0, regs.ly, kLCDWidth - 1, regs.ly, kLCDPalette[0]);
-      ImageDrawLine(&target_lcd_back, 0, regs.ly, kLCDWidth -1, regs.ly, kLCDPalette[0]);
     }
 
-    if (regs.lcdc.sprite_enable) {
+    for (const auto sprite : valid_sprites) {
+      for (auto x = 0; x < 8; x += 1) {
+        auto palette_addr = std::to_underlying(sprite->attrs.dmg_palette ? IO::OBP0 : IO::OBP1);
+        auto palette = read8(palette_addr);
+        auto color = RED;
+        ImageDrawPixel(&target_lcd_back, sprite->x + x - 8, sprite->y + y - 16, color);
+      }
     }
   }
-//  EndTextureMode();
 }
 
 const Texture2D& Ppu::lcd() const {
@@ -418,6 +439,8 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
 
   if (addr == std::to_underlying(IO::LYC) && byte == regs.ly) {
     interrupts.request_interrupt(Interrupt::Stat);
+  } else if (addr == std::to_underlying(IO::DMA)) {
+    start_dma();
   }
 }
 
@@ -470,4 +493,16 @@ PPUMode Ppu::mode() const {
 
 void Ppu::set_mode(PPUMode mode) {
   regs.stat.ppu_mode = std::to_underlying(mode);
+}
+
+void Ppu::start_dma() {
+  auto dma = read8(std::to_underlying(IO::DMA));
+  uint16_t source = dma << 8;
+
+  spdlog::info("Starting DMA, source: 0x{:02x}", source);
+
+  for (auto i = 0; i < oam.bytes.size(); i += 1) {
+    // TODO: dma must read memory from mmu outside of ppu
+    oam.bytes[i] = read8(source + i);
+  }
 }

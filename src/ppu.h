@@ -81,7 +81,17 @@ struct sprite {
   uint8_t y;
   uint8_t x;
   uint8_t tile;
-  uint8_t attrs;
+  union {
+    struct {
+      uint8_t cgb_palette : 1;
+      uint8_t cgb_bank    : 1;
+      uint8_t dmg_palette : 1;
+      uint8_t x_flip      : 1;
+      uint8_t y_flip      : 1;
+      uint8_t priority    : 1;
+    };
+    uint8_t val;
+  } attrs;
 };
 
 struct oam_memory {
@@ -154,4 +164,5 @@ private:
   void set_mode(PPUMode mode);
   void draw_lcd_row();
   void swap_lcd_targets();
+  void start_dma();
 };
