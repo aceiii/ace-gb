@@ -8,6 +8,34 @@
 #include "file.h"
 #include "mmu.h"
 
+void rlImGuiImageTextureFit(const Texture2D *image, bool center)
+{
+  if (!image)
+    return;
+
+  ImVec2 area = ImGui::GetContentRegionAvail();
+
+  float scale =  area.x / image->width;
+
+  float y = image->height * scale;
+  if (y > area.y)
+  {
+    scale = area.y / image->height;
+  }
+
+  int sizeX = image->width * scale;
+  int sizeY = image->height * scale;
+
+  if (center)
+  {
+    ImGui::SetCursorPosX(0);
+    ImGui::SetCursorPosX(area.x/2 - sizeX/2);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (area.y / 2 - sizeY / 2));
+  }
+
+  rlImGuiImageRect(image, sizeX, sizeY, Rectangle{ 0,0, static_cast<float>(image->width), static_cast<float>(image->height) });
+}
+
 Emulator::Emulator():cpu{mmu, interrupts}, ppu{interrupts} {
 }
 
@@ -113,7 +141,7 @@ void Emulator::render(bool &show_window) {
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   ImGui::Begin("GameBoy", &show_window);
   {
-    rlImGuiImageRenderTextureFit(&ppu.lcd(), true);
+    rlImGuiImageTextureFit(&ppu.lcd(), true);
   }
   ImGui::End();
 }

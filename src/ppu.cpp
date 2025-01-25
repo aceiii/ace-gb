@@ -52,15 +52,14 @@ inline uint16_t addr_with_mode(uint8_t mode, uint8_t addr) {
 }
 
 Ppu::Ppu(InterruptDevice &interrupts_)
-:interrupts{interrupts_},
-target_lcd_front{targets.begin()},
-target_lcd_back{targets.begin() + 1} {
-}
+:interrupts{interrupts_}
+{}
 
 void Ppu::init() {
-  for (int i = 0; i < targets.size(); i += 1) {
-    targets[i] = LoadRenderTexture(kLCDWidth, kLCDHeight);
-  }
+  target_lcd_back = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
+  ImageFormat(&target_lcd_back, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+
+  target_lcd_front = LoadTextureFromImage(target_lcd_back);
 
   constexpr int tiles_width = 16 * 8;
   constexpr int tiles_height = 24 * 8;
@@ -71,12 +70,19 @@ void Ppu::init() {
   target_tilemap1 = LoadRenderTexture(tilemap_width, tilemap_height);
   target_tilemap2 = LoadRenderTexture(tilemap_width, tilemap_height);
   target_sprites = LoadRenderTexture(tilemap_width, tilemap_height);
+
+  target_lcd_back = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
+  ImageFormat(&target_lcd_back, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
 }
 
 void Ppu::cleanup() {
-  for (int i = 0; i < targets.size(); i += 1) {
-    UnloadRenderTexture(targets[i]);
-  }
+  UnloadRenderTexture(target_tiles);
+  UnloadRenderTexture(target_tilemap1);
+  UnloadRenderTexture(target_tilemap2);
+  UnloadRenderTexture(target_sprites);
+
+  UnloadImage(target_lcd_back);
+  UnloadTexture(target_lcd_front);
 }
 
 void Ppu::execute(uint8_t cycles) {
@@ -145,10 +151,12 @@ void Ppu::swap_lcd_targets() {
 //  BeginTextureMode(*target_lcd_back);
 //  ClearBackground(BLACK);
 //  EndTextureMode();
+
+  UpdateTexture(target_lcd_front, target_lcd_back.data);
 }
 
 void Ppu::draw_lcd_row() {
-  BeginTextureMode(*target_lcd_back);
+//  BeginTextureMode(*target_lcd_back);
   {
     if (regs.lcdc.bg_window_enable) {
       auto enable_window = regs.lcdc.window_enable;
@@ -174,20 +182,22 @@ void Ppu::draw_lcd_row() {
         uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
         auto cid = get_palette_index(bits, regs);
         auto color = kLCDPalette[cid];
-        DrawPixel(x, y, color);
+//        DrawPixel(x, y, color);
+        ImageDrawPixel(&target_lcd_back, x, y, color);
       }
     } else {
-      DrawLine(0, regs.ly, kLCDWidth - 1, regs.ly, kLCDPalette[0]);
+//      DrawLine(0, regs.ly, kLCDWidth - 1, regs.ly, kLCDPalette[0]);
+      ImageDrawLine(&target_lcd_back, 0, regs.ly, kLCDWidth -1, regs.ly, kLCDPalette[0]);
     }
 
     if (regs.lcdc.sprite_enable) {
     }
   }
-  EndTextureMode();
+//  EndTextureMode();
 }
 
-const RenderTexture2D& Ppu::lcd() const {
-  return *target_lcd_back;
+const Texture2D& Ppu::lcd() const {
+  return target_lcd_front;
 }
 
 const RenderTexture2D& Ppu::tilemap1() const {
@@ -450,11 +460,8 @@ void Ppu::reset() {
 }
 
 void Ppu::clear_target_buffers() {
-  for (int i = 0; i < targets.size(); i += 1) {
-    BeginTextureMode(targets[i]);
-    ClearBackground(BLACK);
-    EndTextureMode();
-  }
+  ImageClearBackground(&target_lcd_back, BLACK);
+  UpdateTexture(target_lcd_front, target_lcd_back.data);
 }
 
 PPUMode Ppu::mode() const {

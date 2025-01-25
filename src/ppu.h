@@ -124,7 +124,7 @@ public:
   void reset() override;
 
   [[nodiscard]] PPUMode mode() const;
-  [[nodiscard]] const RenderTexture2D& lcd() const;
+  [[nodiscard]] const Texture2D& lcd() const;
   [[nodiscard]] const RenderTexture2D& tilemap1() const;
   [[nodiscard]] const RenderTexture2D& tilemap2() const;
   [[nodiscard]] const RenderTexture2D& sprites() const;
@@ -135,10 +135,8 @@ public:
 
 private:
   InterruptDevice &interrupts;
-
-  std::array<RenderTexture2D, 2> targets;
-  RenderTexture2D *target_lcd_front;
-  RenderTexture2D *target_lcd_back;
+  Texture2D target_lcd_front;
+  Image target_lcd_back;
 
   RenderTexture2D target_tilemap1;
   RenderTexture2D target_tilemap2;
