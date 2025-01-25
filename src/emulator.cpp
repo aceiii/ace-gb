@@ -23,6 +23,8 @@ tl::expected<bool, std::string> Emulator::init() {
   mmu.add_device(&audio);
   mmu.add_device(&timer);
   mmu.add_device(&interrupts);
+  mmu.add_device(&input_device);
+  mmu.add_device(&null_device);
 
   auto result = load_bin("./boot.bin");
   if (!result) {

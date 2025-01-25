@@ -14,6 +14,8 @@
 #include "hram_device.h"
 #include "timer.h"
 #include "audio.h"
+#include "null_device.h"
+#include "input_device.h"
 
 class Emulator {
 public:
@@ -52,6 +54,8 @@ private:
   Timer timer;
   InterruptDevice interrupts;
   Audio audio;
+  NullDevice null_device;
+  InputDevice input_device;
 
   std::array<uint8_t, kBootRomSize> boot_rom;
   std::vector<uint8_t> cart_bytes;

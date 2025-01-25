@@ -51,6 +51,10 @@ set(SOURCE_FILES
         src/hram_device.h
         src/audio.cpp
         src/audio.h
+        src/null_device.cpp
+        src/null_device.h
+        src/input_device.cpp
+        src/input_device.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
