@@ -121,7 +121,7 @@ struct vram_memory {
 
 class Ppu : public MmuDevice {
 public:
-  explicit Ppu(InterruptDevice &interrupts);
+  explicit Ppu(Mmu &mmu, InterruptDevice &interrupts);
 
   void init();
   void cleanup();
@@ -144,6 +144,7 @@ public:
   void update_render_targets();
 
 private:
+  Mmu &mmu;
   InterruptDevice &interrupts;
   Texture2D target_lcd_front;
   Image target_lcd_back;

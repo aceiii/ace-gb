@@ -67,6 +67,7 @@ void Interface::run() {
   static bool show_tiles = true;
   static bool show_tilemap1 = true;
   static bool show_tilemap2 = true;
+  static bool show_sprites = true;
 
   while (!should_close) {
     if (WindowShouldClose()) {
@@ -98,6 +99,10 @@ void Interface::run() {
 
     if (show_tilemap2) {
       render_tilemap2(show_tilemap2);
+    }
+
+    if (show_sprites) {
+      render_sprites(show_sprites);
     }
 
     ImGui::BeginMainMenuBar();
@@ -259,6 +264,22 @@ void Interface::render_tilemap2(bool &show_window) {
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("TileMap 2", &show_window)) {
     auto &target = emulator.target_tilemap(1);
+    auto width = target.texture.width;
+    auto height = target.texture.height;
+    auto scale = 2;
+    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle{ 0,0, static_cast<float>(width), -static_cast<float>(height) });
+  }
+  ImGui::End();
+}
+
+void Interface::render_sprites(bool &show_window) {
+  if (!show_window) {
+    return;
+  }
+
+  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Sprites", &show_window)) {
+    auto &target = emulator.target_sprites();
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;

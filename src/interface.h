@@ -22,4 +22,5 @@ private:
   void render_tiles(bool &show_window);
   void render_tilemap1(bool &show_window);
   void render_tilemap2(bool &show_window);
+  void render_sprites(bool &show_window);
 };

@@ -36,7 +36,7 @@ void rlImGuiImageTextureFit(const Texture2D *image, bool center)
   rlImGuiImageRect(image, sizeX, sizeY, Rectangle{ 0,0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
-Emulator::Emulator():cpu{mmu, interrupts}, ppu{interrupts} {
+Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts} {
 }
 
 tl::expected<bool, std::string> Emulator::init() {
@@ -175,4 +175,8 @@ const RenderTexture2D &Emulator::target_tilemap(uint8_t idx) const {
     return ppu.tilemap2();
   }
   std::unreachable();
+}
+
+const RenderTexture2D &Emulator::target_sprites() const {
+  return ppu.sprites();
 }
