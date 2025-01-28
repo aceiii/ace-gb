@@ -36,7 +36,10 @@ void rlImGuiImageTextureFit(const Texture2D *image, bool center)
   rlImGuiImageRect(image, sizeX, sizeY, Rectangle{ 0,0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
-Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts} {
+Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts} {
+  serial_device.on_line([] (const std::string &str) {
+    spdlog::info("Serial: {}", str);
+  });
 }
 
 tl::expected<bool, std::string> Emulator::init() {
@@ -50,8 +53,9 @@ tl::expected<bool, std::string> Emulator::init() {
   mmu.add_device(&hram);
   mmu.add_device(&audio);
   mmu.add_device(&timer);
-  mmu.add_device(&interrupts);
   mmu.add_device(&input_device);
+  mmu.add_device(&serial_device);
+  mmu.add_device(&interrupts);
   mmu.add_device(&null_device);
 
   auto result = load_bin("./boot.bin");
@@ -79,6 +83,7 @@ void Emulator::update() {
     cycles += cpu.execute();
     timer.execute(cycles);
     ppu.execute(cycles);
+    serial_device.execute(cycles);
   } while (cycles < cycles_per_frame);
 
   num_cycles += cycles;
@@ -113,6 +118,7 @@ void Emulator::step() {
   auto cycles = cpu.execute();
   timer.execute(cycles);
   ppu.execute(cycles);
+  serial_device.execute(cycles);
 
   num_cycles += cycles;
 }

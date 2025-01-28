@@ -55,6 +55,8 @@ set(SOURCE_FILES
         src/null_device.h
         src/input_device.cpp
         src/input_device.h
+        src/serial_device.cpp
+        src/serial_device.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
