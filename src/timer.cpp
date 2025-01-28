@@ -10,6 +10,8 @@ namespace {
   };
 }
 
+Timer::Timer(InterruptDevice &interrupts):interrupts{interrupts} {}
+
 bool Timer::valid_for(uint16_t addr) const {
   switch (addr) {
     case std::to_underlying(IO::DIV):
@@ -35,7 +37,7 @@ void Timer::write8(uint16_t addr, uint8_t byte) {
     case std::to_underlying(IO::TAC):
       regs.tac = byte;
       return;
-    default: return;
+    default: std::unreachable();
   }
 }
 
@@ -49,7 +51,7 @@ uint8_t Timer::read8(uint16_t addr) const {
       return regs.tma;
     case std::to_underlying(IO::TAC):
       return regs.tac;
-    default: return 0;
+    default: std::unreachable();
   }
 }
 
@@ -74,7 +76,7 @@ void Timer::execute(uint8_t cycles) {
     if (tima_counter >= freq) {
       if (regs.tima == 255) {
         regs.tima = regs.tma;
-        // TODO: overflowed, enable timer interrupt
+        interrupts.request_interrupt(Interrupt::Timer);
       } else {
         regs.tima += 1;
       }

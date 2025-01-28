@@ -980,7 +980,7 @@ void execute_jr(Cpu &cpu, Mmu& mmu, Instruction &instr) {
 }
 
 void execute_halt(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  // TODO: halt
+  cpu.state.halt = true;
 }
 
 void execute_ldh(Cpu &cpu, Mmu& mmu, Instruction &instr) {
@@ -1128,10 +1128,12 @@ void execute_set(Cpu &cpu, Mmu& mmu, Instruction &instr) {
 }
 
 void execute_di(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+  spdlog::info("execute_di");
   cpu.state.ime = false;
 }
 
 void execute_ei(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+  spdlog::info("execute_ei");
   cpu.state.ime = true;
 }
 
@@ -1144,6 +1146,10 @@ uint8_t Cpu::execute() {
   auto interrupt_cycles = execute_interrupts();
   if (interrupt_cycles) {
     return interrupt_cycles;
+  }
+
+  if (state.halt) {
+    return 4;
   }
 
   Instruction instr = Decoder::decode(read_next8());
@@ -1239,7 +1245,7 @@ uint8_t Cpu::execute() {
 }
 
 uint8_t Cpu::execute_interrupts() {
-  if (!state.ime) {
+  if (!state.ime && !state.halt) {
     return 0;
   }
 
@@ -1250,9 +1256,15 @@ uint8_t Cpu::execute_interrupts() {
     return 0;
   }
 
+  state.halt = false;
+  if (!state.ime) {
+    return 0;
+  }
+
   for (int i = 0; i < std::to_underlying(Interrupt::Count); i++) {
     Interrupt interrupt { i };
     if (interrupts.is_requested(interrupt)) {
+      spdlog::debug("Handling interrupt: {}", magic_enum::enum_name(interrupt));
       state.ime = false;
       interrupts.clear_interrupt(interrupt);
 

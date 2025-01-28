@@ -36,7 +36,7 @@ void rlImGuiImageTextureFit(const Texture2D *image, bool center)
   rlImGuiImageRect(image, sizeX, sizeY, Rectangle{ 0,0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
-Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts} {
+Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts} {
   serial_device.on_line([] (const std::string &str) {
     spdlog::info("Serial: {}", str);
   });
@@ -137,6 +137,10 @@ bool Emulator::is_playing() const {
 
 const Registers& Emulator::registers() const {
   return cpu.regs;
+}
+
+const State& Emulator::state() const {
+  return cpu.state;
 }
 
 size_t Emulator::cycles() const {

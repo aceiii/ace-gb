@@ -222,6 +222,9 @@ void Interface::render_info() {
   DrawText(fmt::format("@PC+1={:02x}", emulator.read8(pc+1)).c_str() , 20, 160, 12, RAYWHITE);
   DrawText(fmt::format("@PC+2={:02x}", emulator.read8(pc+2)).c_str() , 20, 176, 12, RAYWHITE);
   DrawText(fmt::format("@PC+4={:02x}", emulator.read8(pc+3)).c_str() , 20, 192, 12, RAYWHITE);
+
+  const auto &state = emulator.state();
+  DrawText(fmt::format("CPU State ime={}, halt={}, stop={}, hard_lock={}", state.ime, state.halt, state.stop, state.hard_lock).c_str(), 20, 224, 12, RAYWHITE);
 }
 
 void Interface::render_tiles(bool &show_window) {

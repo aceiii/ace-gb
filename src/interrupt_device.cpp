@@ -1,4 +1,6 @@
 #include <utility>
+#include <spdlog/spdlog.h>
+#include <magic_enum/magic_enum.hpp>
 
 #include "interrupt_device.h"
 
@@ -81,6 +83,7 @@ void InterruptDevice::disable_interrupt(Interrupt interrupt) {
 }
 
 void InterruptDevice::request_interrupt(Interrupt interrupt) {
+  spdlog::debug("Requesting interrupt: {}", magic_enum::enum_name(interrupt));
   switch (interrupt) {
     case Interrupt::VBlank:
       flag.vblank = 1;

@@ -36,6 +36,7 @@ public:
   [[nodiscard]] bool is_playing() const;
 
   [[nodiscard]] const Registers& registers() const;
+  [[nodiscard]] const State& state() const;
   [[nodiscard]] size_t cycles() const;
   [[nodiscard]] PPUMode mode() const;
   [[nodiscard]] Instruction instr() const;

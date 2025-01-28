@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mmu_device.h"
+#include "interrupt_device.h"
 
 struct timer_registers {
   uint8_t div;
@@ -18,6 +19,8 @@ struct timer_registers {
 
 class Timer : public MmuDevice {
 public:
+  explicit Timer(InterruptDevice &interrupts);
+
   [[nodiscard]] bool valid_for(uint16_t addr) const override;
   void write8(uint16_t addr, uint8_t byte) override;
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
@@ -26,6 +29,7 @@ public:
   void execute(uint8_t cycles);
 
 private:
+  InterruptDevice &interrupts;
   uint16_t div_counter;
   uint16_t tima_counter;
   timer_registers regs;
