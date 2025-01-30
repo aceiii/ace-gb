@@ -77,16 +77,17 @@ void Emulator::update() {
 
   const auto fps = 60;
   const auto cycles_per_frame = kClockSpeed / fps;
-  int cycles = 0;
+  int current_cycles = 0;
 
   do {
-    cycles += cpu.execute();
+    auto cycles = cpu.execute();
     timer.execute(cycles);
     ppu.execute(cycles);
     serial_device.execute(cycles);
-  } while (cycles < cycles_per_frame);
+    current_cycles += cycles;
+  } while (current_cycles < cycles_per_frame);
 
-  num_cycles += cycles;
+  num_cycles += current_cycles;
 
   ppu.update_render_targets();
 }

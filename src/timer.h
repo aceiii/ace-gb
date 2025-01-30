@@ -4,7 +4,7 @@
 #include "interrupt_device.h"
 
 struct timer_registers {
-  uint8_t div;
+  uint16_t div;
   uint8_t tima;
   uint8_t tma;
   union {
@@ -30,7 +30,6 @@ public:
 
 private:
   InterruptDevice &interrupts;
-  uint16_t div_counter;
   uint16_t tima_counter;
   timer_registers regs;
 };

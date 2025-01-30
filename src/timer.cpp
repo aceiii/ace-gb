@@ -1,3 +1,5 @@
+#include <spdlog/spdlog.h>
+
 #include "timer.h"
 #include "cpu.h"
 
@@ -44,7 +46,7 @@ void Timer::write8(uint16_t addr, uint8_t byte) {
 uint8_t Timer::read8(uint16_t addr) const {
   switch (addr) {
     case std::to_underlying(IO::DIV):
-      return regs.div;
+      return regs.div >> 8;
     case std::to_underlying(IO::TIMA):
       return regs.tima;
     case std::to_underlying(IO::TMA):
@@ -63,22 +65,17 @@ void Timer::reset() {
 }
 
 void Timer::execute(uint8_t cycles) {
-  div_counter += cycles;
-  if (div_counter >= 256) {
-    div_counter -= 256;
-    regs.div += 1;
-  }
+  regs.div += cycles;
 
   if (regs.enable_tima) {
     tima_counter += cycles;
 
-    auto freq = kTimerFreqs[regs.clock_select];
-    if (tima_counter >= freq) {
-      if (regs.tima == 255) {
+    const auto freq = kTimerFreqs[regs.clock_select];
+    while (tima_counter >= freq) {
+      regs.tima += 1;
+      if (regs.tima == 0) {
         regs.tima = regs.tma;
         interrupts.request_interrupt(Interrupt::Timer);
-      } else {
-        regs.tima += 1;
       }
       tima_counter -= freq;
     }
