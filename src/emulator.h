@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 #include <tl/expected.hpp>
@@ -46,6 +47,10 @@ public:
   [[nodiscard]] const RenderTexture2D& target_tilemap(uint8_t id) const;
   [[nodiscard]] const RenderTexture2D& target_sprites() const;
 
+  void add_breakpoint(uint16_t addr);
+  void remove_breakpoint(uint16_t addr);
+  void clear_breakpoints();
+
 private:
   Mmu mmu;
   Cpu cpu;
@@ -63,6 +68,7 @@ private:
 
   std::array<uint8_t, kBootRomSize> boot_rom;
   std::vector<uint8_t> cart_bytes;
+  std::set<uint16_t> breakpoints;
 
   size_t num_cycles = 0;
   bool running = false;

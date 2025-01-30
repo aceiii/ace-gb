@@ -59,6 +59,7 @@ Interface::~Interface() {
 
 void Interface::run() {
   emulator.reset();
+  emulator.add_breakpoint(0x150);
 
   spdlog::info("Running...");
 

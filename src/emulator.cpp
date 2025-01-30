@@ -85,6 +85,11 @@ void Emulator::update() {
     ppu.execute(cycles);
     serial_device.execute(cycles);
     current_cycles += cycles;
+
+    if (breakpoints.contains(cpu.regs.pc)) {
+      running = false;
+      break;
+    }
   } while (current_cycles < cycles_per_frame);
 
   num_cycles += current_cycles;
@@ -190,4 +195,16 @@ const RenderTexture2D &Emulator::target_tilemap(uint8_t idx) const {
 
 const RenderTexture2D &Emulator::target_sprites() const {
   return ppu.sprites();
+}
+
+void Emulator::add_breakpoint(uint16_t addr) {
+  breakpoints.insert(addr);
+}
+
+void Emulator::remove_breakpoint(uint16_t addr) {
+  breakpoints.erase(addr);
+}
+
+void Emulator::clear_breakpoints() {
+  breakpoints.clear();
 }
