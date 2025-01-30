@@ -21,13 +21,8 @@ void Mmu::write8(uint16_t addr, uint8_t byte) {
 }
 
 void Mmu::write16(uint16_t addr, uint16_t word) {
-  for (auto &device : devices) {
-    if (device->valid_for(addr)) {
-      device->write16(addr, word);
-      return;
-    }
-  }
-  spdlog::error("No device implemented for address: 0x{:02x}", addr);
+  write8(addr, word & 0xff);
+  write8(addr + 1, word >> 8);
 }
 
 uint8_t Mmu::read8(uint16_t addr) const {
@@ -40,12 +35,9 @@ uint8_t Mmu::read8(uint16_t addr) const {
 }
 
 uint16_t Mmu::read16(uint16_t addr) const {
-  for (const auto &device : devices) {
-    if (device->valid_for(addr)) {
-      return device->read16(addr);
-    }
-  }
-  std::unreachable();
+  uint8_t lo = read8(addr);
+  uint8_t hi = read8(addr + 1);
+  return lo | (hi << 8);
 }
 
 void Mmu::reset_devices() {

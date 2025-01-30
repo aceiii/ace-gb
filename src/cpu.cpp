@@ -1,5 +1,6 @@
 #include <cassert>
 #include <spdlog/spdlog.h>
+#include <magic_enum/magic_enum.hpp>
 
 #include "cpu.h"
 #include "opcodes.h"
@@ -153,12 +154,15 @@ inline void instr_load_reg16_sp_offset(Registers &regs, Reg16 r1, int8_t e) {
 }
 
 inline void instr_push_reg16(Registers &regs, Mmu& mmu, Reg16 r1) {
-  Stack::push16(mmu, regs.sp, regs.get(r1));
+  uint16_t val = regs.get(r1);
+  Stack::push16(mmu, regs.sp, val);
+  spdlog::info("pushed [{}:{:04x}]", magic_enum::enum_name(r1), val);
 }
 
 inline void instr_pop_reg16(Registers &regs, Mmu& mmu, Reg16 r1) {
-  auto result = Stack::pop16(mmu, regs.sp);
-  regs.set(r1, result);
+  auto val = Stack::pop16(mmu, regs.sp);
+  regs.set(r1, val);
+  spdlog::info("popped [{}] <= {:04x}", magic_enum::enum_name(r1), val);
 }
 
 inline uint8_t instr_add8(Registers &regs, uint8_t a, uint8_t b, uint8_t c) {
