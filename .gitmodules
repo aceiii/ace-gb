@@ -10,3 +10,6 @@
 [submodule "external/sm83"]
 	path = external/sm83
 	url = https://github.com/SingleStepTests/sm83.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git
