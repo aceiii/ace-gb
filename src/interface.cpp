@@ -53,6 +53,8 @@ Interface::~Interface() {
 
   emulator.cleanup();
 
+  rlImGuiShutdown();
+
   CloseAudioDevice();
   CloseWindow();
 }
