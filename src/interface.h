@@ -11,6 +11,7 @@ public:
 
   void run();
   void load_cartridge();
+  void load_cart_rom(const std::string &path);
 
 private:
   Emulator emulator;

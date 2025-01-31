@@ -75,6 +75,20 @@ void Interface::run() {
       should_close = true;
     }
 
+    if (IsFileDropped()) {
+      FilePathList dropped_files = LoadDroppedFiles();
+
+      if (dropped_files.count > 1) {
+        spdlog::warn("Loading only last dropped file");
+      }
+
+      auto idx = dropped_files.count - 1;
+      std::string file_path {dropped_files.paths[idx]};
+      load_cart_rom(file_path);
+
+      UnloadDroppedFiles(dropped_files);
+    }
+
     emulator.update();
 
     BeginDrawing();
@@ -180,31 +194,42 @@ void Interface::render_error() {
 
 void Interface::load_cartridge() {
   nfdchar_t* file_path = nullptr;
-  std::array<nfdfilteritem_t, 1> filter_items = {{
+  std::array<nfdfilteritem_t, 3> filter_items = {{
     {"GB", "gb"},
+    {"BIN", "bin"},
+    {"ROM", "rom"}
   }};
 
   nfdresult_t result = NFD_OpenDialog(&file_path, filter_items.data(), filter_items.size(), nullptr);
   if (result == NFD_OKAY) {
-    fs::path path{file_path};
-
-    auto load_result = load_bin(path.string());
-    if (!load_result) {
-      error_message = load_result.error();
-      spdlog::error("{}", error_message);
-      return;
-    }
-
-    emulator.load_cartridge(std::move(load_result.value()));
-    spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
-
-    if (auto_start) {
-      emulator.play();
-    }
+    load_cart_rom(file_path);
   } else if (result == NFD_CANCEL) {
     spdlog::info("Load cancelled by user.");
   } else {
     spdlog::error("Loading failed: {}", NFD_GetError());
+  }
+}
+
+void Interface::load_cart_rom(const std::string &file_path) {
+  fs::path path{file_path};
+  auto ext = path.extension();
+  if (ext != ".gb" && ext != ".bin" && ext != ".rom") {
+    spdlog::error("Invalid file extension: {}. Only supports loading .gb, .bin, .rom", ext.string());
+    return;
+  }
+
+  auto load_result = load_bin(path.string());
+  if (!load_result) {
+    error_message = load_result.error();
+    spdlog::error("{}", error_message);
+    return;
+  }
+
+  emulator.load_cartridge(std::move(load_result.value()));
+  spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
+
+  if (auto_start) {
+    emulator.play();
   }
 }
 
