@@ -5,6 +5,8 @@
 #include <nfd.h>
 #include <rlImGui.h>
 #include <spdlog/spdlog.h>
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include "interface.h"
 #include "emulator.h"
@@ -37,6 +39,9 @@ Interface::Interface() {
 
   SetExitKey(KEY_NULL);
   rlImGuiSetup(true);
+
+  auto &io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   if (auto result = emulator.init(); !result) {
     spdlog::error("Failed to initialize emulator");
@@ -72,6 +77,8 @@ void Interface::run() {
   static bool show_tilemap2 = true;
   static bool show_sprites = true;
 
+  auto &io = ImGui::GetIO();
+
   while (!should_close) {
     if (WindowShouldClose()) {
       should_close = true;
@@ -101,6 +108,8 @@ void Interface::run() {
     render_info();
 
     rlImGuiBegin();
+
+    ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
     if (show_lcd) {
       emulator.render(show_lcd);
