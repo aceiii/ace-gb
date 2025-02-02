@@ -7,31 +7,6 @@
 #include "overloaded.h"
 #include "instructions.h"
 
-namespace Stack {
-
-inline void push8(Mmu &mmu, uint16_t &sp, uint8_t val) {
-  sp -= 1;
-  mmu.write8(sp, val);
-}
-
-inline void push16(Mmu &mmu, uint16_t &sp, uint16_t val) {
-  sp -= 2;
-  mmu.write16(sp, val);
-}
-
-inline uint8_t pop8(const Mmu &mmu, uint16_t &sp) {
-  auto result = mmu.read8(sp);
-  sp += 1;
-  return result;
-}
-
-inline uint16_t pop16(const Mmu &mmu, uint16_t &sp) {
-  auto result = mmu.read16(sp);
-  sp += 2;
-  return result;
-}
-
-}
 
 inline uint16_t interrupt_handler(Interrupt interrupt) {
   switch (interrupt) {
@@ -44,419 +19,419 @@ inline uint16_t interrupt_handler(Interrupt interrupt) {
   }
 }
 
-inline bool check_cond(Registers &regs, Cond cond) {
+inline bool check_cond(Cpu &cpu, Cond cond) {
   switch (cond) {
-  case Cond::NZ: return !regs.get(Flag::Z);
-  case Cond::Z: return regs.get(Flag::Z);
-  case Cond::NC: return !regs.get(Flag::C);
-  case Cond::C: return regs.get(Flag::C);
+  case Cond::NZ: return !cpu.regs.get(Flag::Z);
+  case Cond::Z: return cpu.regs.get(Flag::Z);
+  case Cond::NC: return !cpu.regs.get(Flag::C);
+  case Cond::C: return cpu.regs.get(Flag::C);
   default: std::unreachable();
   }
 }
 
-inline void instr_load_reg8_reg8(Registers &regs, Reg8 r1, Reg8 r2) {
-  regs.at(r1) = regs.get(r2);
+inline void instr_load_reg8_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+  cpu.regs.at(r1) = cpu.regs.get(r2);
 }
 
-inline void instr_load_reg8_imm8(Registers &regs, Reg8 r1, uint8_t imm) {
-  regs.at(r1) = imm;
+inline void instr_load_reg8_imm8(Cpu &cpu, Reg8 r1, uint8_t imm) {
+  cpu.regs.at(r1) = imm;
 }
 
-inline void instr_load_reg8_reg16_ptr(Registers &regs, const Mmu& mmu, Reg8 r1, Reg16 r2) {
-  regs.at(r1) = mmu.read8(regs.get(r2));
+inline void instr_load_reg8_reg16_ptr(Cpu &cpu, Reg8 r1, Reg16 r2) {
+  cpu.regs.at(r1) = cpu.read8(cpu.regs.get(r2));
 }
 
-inline void instr_load_reg16_ptr_reg8(Registers &regs, Mmu& mmu, Reg16 r1, Reg8 r2) {
-  mmu.write8(regs.get(r1), regs.get(r2));
+inline void instr_load_reg16_ptr_reg8(Cpu &cpu, Reg16 r1, Reg8 r2) {
+  cpu.write8(cpu.regs.get(r1), cpu.regs.get(r2));
 }
 
-inline void instr_load_reg16_ptr_imm8(Registers &regs, Mmu& mmu, Reg16 r1, uint8_t val) {
-  mmu.write8(regs.get(r1), val);
+inline void instr_load_reg16_ptr_imm8(Cpu &cpu, Reg16 r1, uint8_t val) {
+  cpu.write8(cpu.regs.get(r1), val);
 }
 
-inline void instr_load_reg8_imm16_ptr(Registers &regs, const Mmu& mmu, Reg8 r1, uint16_t val) {
-  regs.at(r1) = mmu.read8(val);
+inline void instr_load_reg8_imm16_ptr(Cpu &cpu, Reg8 r1, uint16_t val) {
+  cpu.regs.at(r1) = cpu.read8(val);
 }
 
-inline void instr_load_imm16_ptr_reg8(Registers &regs, Mmu& mmu, uint16_t val, Reg8 r1) {
-  mmu.write8(val, regs.get(r1));
+inline void instr_load_imm16_ptr_reg8(Cpu &cpu, uint16_t val, Reg8 r1) {
+  cpu.write8(val, cpu.regs.get(r1));
 }
 
-inline void instr_load_hi_reg8_reg8_ptr(Registers &regs, const Mmu& mmu, Reg8 r1, Reg8 r2) {
-  regs.at(r1) = mmu.read8(0xff00 | regs.get(r2));
+inline void instr_load_hi_reg8_reg8_ptr(Cpu &cpu, Reg8 r1, Reg8 r2) {
+  cpu.regs.at(r1) = cpu.read8(0xff00 | cpu.regs.get(r2));
 }
 
-inline void instr_load_hi_reg8_ptr_reg8(Registers &regs, Mmu& mmu, Reg8 r1, Reg8 r2) {
-  mmu.write8(0xff00 | regs.get(r1), regs.get(r2));
+inline void instr_load_hi_reg8_ptr_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+  cpu.write8(0xff00 | cpu.regs.get(r1), cpu.regs.get(r2));
 }
 
-inline void instr_load_hi_reg8_imm8_ptr(Registers &regs, const Mmu& mmu, Reg8 r1, uint8_t val) {
-  regs.at(r1) = mmu.read8(0xff00 | val);
+inline void instr_load_hi_reg8_imm8_ptr(Cpu &cpu, Reg8 r1, uint8_t val) {
+  cpu.regs.at(r1) = cpu.read8(0xff00 | val);
 }
 
-inline void instr_load_hi_imm8_ptr_reg8(Registers &regs, Mmu& mmu, uint8_t val, Reg8 r1) {
-  mmu.write8(0xff00 | val, regs.get(r1));
+inline void instr_load_hi_imm8_ptr_reg8(Cpu &cpu, uint8_t val, Reg8 r1) {
+  cpu.write8(0xff00 | val, cpu.regs.get(r1));
 }
 
-inline void instr_load_reg8_reg16_ptr_dec(Registers &regs, const Mmu& mmu, Reg8 r1, Reg16 r2) {
-  auto addr = regs.get(r2);
-  regs.at(r1) = mmu.read8(addr);
-  regs.set(r2, addr - 1);
+inline void instr_load_reg8_reg16_ptr_dec(Cpu &cpu, Reg8 r1, Reg16 r2) {
+  auto addr = cpu.regs.get(r2);
+  cpu.regs.at(r1) = cpu.read8(addr);
+  cpu.regs.set(r2, addr - 1);
 }
 
-inline void instr_load_reg16_ptr_dec_reg8(Registers &regs, Mmu& mmu, Reg16 r1, Reg8 r2) {
-  auto addr = regs.get(r1);
-  mmu.write8(addr, regs.get(r2));
-  regs.set(r1, addr - 1);
+inline void instr_load_reg16_ptr_dec_reg8(Cpu &cpu, Reg16 r1, Reg8 r2) {
+  auto addr = cpu.regs.get(r1);
+  cpu.write8(addr, cpu.regs.get(r2));
+  cpu.regs.set(r1, addr - 1);
 }
 
-inline void instr_load_reg8_reg16_ptr_inc(Registers &regs, const Mmu& mmu, Reg8 r1, Reg16 r2) {
-  auto addr = regs.get(r2);
-  regs.at(r1) = mmu.read8(addr);
-  regs.set(r2, addr + 1);
+inline void instr_load_reg8_reg16_ptr_inc(Cpu &cpu, Reg8 r1, Reg16 r2) {
+  auto addr = cpu.regs.get(r2);
+  cpu.regs.at(r1) = cpu.read8(addr);
+  cpu.regs.set(r2, addr + 1);
 }
 
-inline void instr_load_reg16_ptr_inc_reg8(Registers &regs, Mmu& mmu, Reg16 r1, Reg8 r2) {
-  auto addr = regs.get(r1);
-  mmu.write8(addr, regs.get(r2));
-  regs.set(r1, addr + 1);
+inline void instr_load_reg16_ptr_inc_reg8(Cpu &cpu, Reg16 r1, Reg8 r2) {
+  auto addr = cpu.regs.get(r1);
+  cpu.write8(addr, cpu.regs.get(r2));
+  cpu.regs.set(r1, addr + 1);
 }
 
-inline void instr_load_reg16_reg16(Registers &regs, Reg16 r1, Reg16 r2) {
-  regs.set(r1, regs.get(r2));
+inline void instr_load_reg16_reg16(Cpu &cpu, Reg16 r1, Reg16 r2) {
+  cpu.regs.set(r1, cpu.regs.get(r2));
 }
 
-inline void instr_load_reg16_imm16(Registers &regs, Reg16 r1, uint16_t val) {
-  regs.set(r1, val);
+inline void instr_load_reg16_imm16(Cpu &cpu, Reg16 r1, uint16_t val) {
+  cpu.regs.set(r1, val);
 }
 
-inline void instr_load_imm16_ptr_sp(Registers &regs, Mmu& mmu, uint16_t val) {
-  mmu.write16(val, regs.sp);
+inline void instr_load_imm16_ptr_sp(Cpu &cpu, uint16_t val) {
+  cpu.write16(val, cpu.regs.sp);
 }
 
-inline void instr_load_sp_reg16(Registers &regs, Reg16 r1) {
-  regs.sp = regs.get(r1);
+inline void instr_load_sp_reg16(Cpu &cpu, Reg16 r1) {
+  cpu.regs.sp = cpu.regs.get(r1);
 }
 
-inline void instr_load_sp_imm16(Registers &regs, uint16_t imm) {
-  regs.sp = imm;
+inline void instr_load_sp_imm16(Cpu &cpu, uint16_t imm) {
+  cpu.regs.sp = imm;
 }
 
-inline void instr_load_reg16_sp_offset(Registers &regs, Reg16 r1, int8_t e) {
-  uint32_t sp = regs.sp;
+inline void instr_load_reg16_sp_offset(Cpu &cpu, Reg16 r1, int8_t e) {
+  uint32_t sp = cpu.regs.sp;
   uint32_t result = sp + e;
 
-  regs.set(r1, result);
-  regs.set(Flag::Z, 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, (sp & 0xf) + (e & 0xf) > 0xf ? 1 : 0);
-  regs.set(Flag::C, (sp & 0xff) + (e & 0xff) > 0xff ? 1 : 0);
+  cpu.regs.set(r1, result);
+  cpu.regs.set(Flag::Z, 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, (sp & 0xf) + (e & 0xf) > 0xf ? 1 : 0);
+  cpu.regs.set(Flag::C, (sp & 0xff) + (e & 0xff) > 0xff ? 1 : 0);
 }
 
-inline void instr_push_reg16(Registers &regs, Mmu& mmu, Reg16 r1) {
-  uint16_t val = regs.get(r1);
-  Stack::push16(mmu, regs.sp, val);
-  spdlog::info("pushed [{}:{:04x}]", magic_enum::enum_name(r1), val);
+inline void instr_push_reg16(Cpu &cpu, Reg16 r1) {
+  uint16_t val = cpu.regs.get(r1);
+  cpu.push16(val);
+  spdlog::debug("pushed [{}:{:04x}]", magic_enum::enum_name(r1), val);
 }
 
-inline void instr_pop_reg16(Registers &regs, Mmu& mmu, Reg16 r1) {
-  auto val = Stack::pop16(mmu, regs.sp);
-  regs.set(r1, val);
-  spdlog::info("popped [{}] <= {:04x}", magic_enum::enum_name(r1), val);
+inline void instr_pop_reg16(Cpu &cpu, Reg16 r1) {
+  auto val = cpu.pop16();
+  cpu.regs.set(r1, val);
+  spdlog::debug("popped [{}] <= {:04x}", magic_enum::enum_name(r1), val);
 }
 
-inline uint8_t instr_add8(Registers &regs, uint8_t a, uint8_t b, uint8_t c) {
+inline uint8_t instr_add8(Cpu &cpu, uint8_t a, uint8_t b, uint8_t c) {
   uint8_t result_half = (a & 0xf) + (b &0xf) + c;
   uint16_t result = a + b + c;
 
-  regs.set(Flag::Z, (result & 0xff) == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, (result_half >> 4) & 0x1);
-  regs.set(Flag::C, (result >> 8) & 0x1);
+  cpu.regs.set(Flag::Z, (result & 0xff) == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, (result_half >> 4) & 0x1);
+  cpu.regs.set(Flag::C, (result >> 8) & 0x1);
 
   return (uint8_t)result;
 }
 
-inline uint16_t instr_add16(Registers &regs, uint16_t a, uint16_t b) {
+inline uint16_t instr_add16(Cpu &cpu, uint16_t a, uint16_t b) {
   uint16_t result_half = (a & 0xfff) + (b & 0xfff);
   uint32_t result = a + b;
 
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, (result_half >> 12) & 0x1);
-  regs.set(Flag::C, (result >> 16) & 0x1);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, (result_half >> 12) & 0x1);
+  cpu.regs.set(Flag::C, (result >> 16) & 0x1);
 
   return result;
 }
 
-inline void instr_add_reg8(Registers &regs, Reg8 r) {
-  regs.at(Reg8::A) = instr_add8(regs, regs.get(Reg8::A), regs.get(r), 0);
+inline void instr_add_reg8(Cpu &cpu, Reg8 r) {
+  cpu.regs.at(Reg8::A) = instr_add8(cpu, cpu.regs.get(Reg8::A), cpu.regs.get(r), 0);
 }
 
-inline void instr_add_reg16_ptr(Registers &regs, const Mmu& mmu, Reg16 r) {
-  regs.at(Reg8::A) = instr_add8(regs, regs.get(Reg8::A), mmu.read8(regs.get(r)), 0);
+inline void instr_add_reg16_ptr(Cpu &cpu, Reg16 r) {
+  cpu.regs.at(Reg8::A) = instr_add8(cpu, cpu.regs.get(Reg8::A), cpu.read8(cpu.regs.get(r)), 0);
 }
 
-inline void instr_add_imm8(Registers &regs, uint8_t imm) {
-  regs.at(Reg8::A) = instr_add8(regs, regs.get(Reg8::A), imm, 0);
+inline void instr_add_imm8(Cpu &cpu, uint8_t imm) {
+  cpu.regs.at(Reg8::A) = instr_add8(cpu, cpu.regs.get(Reg8::A), imm, 0);
 }
 
-inline void instr_add_reg8_reg8(Registers &regs, Reg8 r1, Reg8 r2) {
-  regs.at(r1) = instr_add8(regs, regs.get(r1), regs.get(r2), 0);
+inline void instr_add_reg8_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+  cpu.regs.at(r1) = instr_add8(cpu, cpu.regs.get(r1), cpu.regs.get(r2), 0);
 }
 
-inline void instr_add_reg8_imm8(Registers &regs, Reg8 r, uint8_t imm) {
-  regs.at(r) = instr_add8(regs, regs.get(r), imm, 0);
+inline void instr_add_reg8_imm8(Cpu &cpu, Reg8 r, uint8_t imm) {
+  cpu.regs.at(r) = instr_add8(cpu, cpu.regs.get(r), imm, 0);
 }
 
-inline void instr_add_reg8_reg16_ptr(Registers &regs, const Mmu& mmu, Reg8 r1, Reg16 r2) {
-  regs.at(r1) = instr_add8(regs, regs.get(r1), mmu.read8(regs.get(r2)), 0);
+inline void instr_add_reg8_reg16_ptr(Cpu &cpu, Reg8 r1, Reg16 r2) {
+  cpu.regs.at(r1) = instr_add8(cpu, cpu.regs.get(r1), cpu.read8(cpu.regs.get(r2)), 0);
 }
 
-inline void instr_add_carry_reg8(Registers &regs, Reg8 r) {
-  regs.at(Reg8::A) = instr_add8(regs, regs.get(Reg8::A), regs.get(r), regs.get(Flag::C));
+inline void instr_add_carry_reg8(Cpu &cpu, Reg8 r) {
+  cpu.regs.at(Reg8::A) = instr_add8(cpu, cpu.regs.get(Reg8::A), cpu.regs.get(r), cpu.regs.get(Flag::C));
 }
 
-inline void instr_add_carry_reg8_reg8(Registers &regs, Reg8 r1, Reg8 r2) {
-  regs.at(r1) = instr_add8(regs, regs.get(r1), regs.get(r2), regs.get(Flag::C));
+inline void instr_add_carry_reg8_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+  cpu.regs.at(r1) = instr_add8(cpu, cpu.regs.get(r1), cpu.regs.get(r2), cpu.regs.get(Flag::C));
 }
 
-inline void instr_add_carry_reg8_imm8(Registers &regs, Reg8 r, uint8_t imm) {
-  regs.at(r) = instr_add8(regs, regs.get(r), imm, regs.get(Flag::C));
+inline void instr_add_carry_reg8_imm8(Cpu &cpu, Reg8 r, uint8_t imm) {
+  cpu.regs.at(r) = instr_add8(cpu, cpu.regs.get(r), imm, cpu.regs.get(Flag::C));
 }
 
-inline void instr_add_carry_reg8_reg16_ptr(Registers &regs, const Mmu& mmu, Reg8 r1, Reg16 r2) {
-  regs.at(r1) = instr_add8(regs, regs.get(r1), mmu.read8(regs.get(r2)), regs.get(Flag::C));
+inline void instr_add_carry_reg8_reg16_ptr(Cpu &cpu, Reg8 r1, Reg16 r2) {
+  cpu.regs.at(r1) = instr_add8(cpu, cpu.regs.get(r1), cpu.read8(cpu.regs.get(r2)), cpu.regs.get(Flag::C));
 }
 
-inline void instr_add_carry_reg16_ptr(Registers &regs, const Mmu& mmu, Reg16 r) {
-  regs.at(Reg8::A) = instr_add8(regs, regs.get(Reg8::A), mmu.read8(regs.get(r)), regs.get(Flag::C));
+inline void instr_add_carry_reg16_ptr(Cpu &cpu, Reg16 r) {
+  cpu.regs.at(Reg8::A) = instr_add8(cpu, cpu.regs.get(Reg8::A), cpu.read8(cpu.regs.get(r)), cpu.regs.get(Flag::C));
 }
 
-inline void instr_add_carry_imm8(Registers &regs, uint8_t imm) {
-  regs.at(Reg8::A) = instr_add8(regs, regs.get(Reg8::A), imm, regs.get(Flag::C));
+inline void instr_add_carry_imm8(Cpu &cpu, uint8_t imm) {
+  cpu.regs.at(Reg8::A) = instr_add8(cpu, cpu.regs.get(Reg8::A), imm, cpu.regs.get(Flag::C));
 }
 
-inline void instr_add_reg16_sp(Registers &regs, Reg16 r) {
-  regs.set(r, instr_add16(regs, regs.get(r), regs.sp));
+inline void instr_add_reg16_sp(Cpu &cpu, Reg16 r) {
+  cpu.regs.set(r, instr_add16(cpu, cpu.regs.get(r), cpu.regs.sp));
 }
 
-inline void instr_add_reg16_reg16(Registers &regs, Reg16 r1, Reg16 r2) {
-  regs.set(r1, instr_add16(regs, regs.get(r1), regs.get(r2)));
+inline void instr_add_reg16_reg16(Cpu &cpu, Reg16 r1, Reg16 r2) {
+  cpu.regs.set(r1, instr_add16(cpu, cpu.regs.get(r1), cpu.regs.get(r2)));
 }
 
-inline void instr_add_sp_offset(Registers &regs, int8_t e) {
-  uint32_t sp = regs.sp;
+inline void instr_add_sp_offset(Cpu &cpu, int8_t e) {
+  uint32_t sp = cpu.regs.sp;
   uint32_t result = sp + e;
 
-  regs.set(Flag::Z, 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, (sp & 0xf) + (e & 0xf) > 0xf ? 1 : 0);
-  regs.set(Flag::C, (sp & 0xff) + (e & 0xff) > 0xff ? 1 : 0);
+  cpu.regs.set(Flag::Z, 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, (sp & 0xf) + (e & 0xf) > 0xf ? 1 : 0);
+  cpu.regs.set(Flag::C, (sp & 0xff) + (e & 0xff) > 0xff ? 1 : 0);
 
-  regs.sp = result;
+  cpu.regs.sp = result;
 }
 
-inline uint8_t instr_sub8(Registers &regs, uint8_t a, uint8_t b, uint8_t c) {
+inline uint8_t instr_sub8(Cpu &cpu, uint8_t a, uint8_t b, uint8_t c) {
   auto half_result = static_cast<int16_t>(a & 0xf) - (b & 0xf) - c;
   auto result = static_cast<int16_t>(a) - b - c;
 
-  regs.set(Flag::Z, (uint8_t)result == 0 ? 1 : 0);
-  regs.set(Flag::N, 1);
-  regs.set(Flag::H, half_result < 0 ? 1 : 0);
-  regs.set(Flag::C, result < 0 ? 1 : 0);
+  cpu.regs.set(Flag::Z, (uint8_t)result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 1);
+  cpu.regs.set(Flag::H, half_result < 0 ? 1 : 0);
+  cpu.regs.set(Flag::C, result < 0 ? 1 : 0);
 
   return result;
 }
 
-inline void instr_sub_reg8(Registers &regs, Reg8 r) {
-  regs.at(Reg8::A) = instr_sub8(regs, regs.get(Reg8::A), regs.get(r), 0);
+inline void instr_sub_reg8(Cpu &cpu, Reg8 r) {
+  cpu.regs.at(Reg8::A) = instr_sub8(cpu, cpu.regs.get(Reg8::A), cpu.regs.get(r), 0);
 }
 
-inline void instr_sub_reg16_ptr(Registers &regs, const Mmu& mmu, Reg16 r) {
-  regs.at(Reg8::A) = instr_sub8(regs, regs.get(Reg8::A), mmu.read8(regs.get(r)), 0);
+inline void instr_sub_reg16_ptr(Cpu &cpu, Reg16 r) {
+  cpu.regs.at(Reg8::A) = instr_sub8(cpu, cpu.regs.get(Reg8::A), cpu.read8(cpu.regs.get(r)), 0);
 }
 
-inline void instr_sub_imm8(Registers &regs, uint8_t imm) {
-  regs.at(Reg8::A) = instr_sub8(regs, regs.get(Reg8::A), imm, 0);
+inline void instr_sub_imm8(Cpu &cpu, uint8_t imm) {
+  cpu.regs.at(Reg8::A) = instr_sub8(cpu, cpu.regs.get(Reg8::A), imm, 0);
 }
 
-inline void instr_sub_carry_reg8(Registers &regs, Reg8 r) {
-  regs.at(Reg8::A) = instr_sub8(regs, regs.get(Reg8::A), regs.get(r), 0);
+inline void instr_sub_carry_reg8(Cpu &cpu, Reg8 r) {
+  cpu.regs.at(Reg8::A) = instr_sub8(cpu, cpu.regs.get(Reg8::A), cpu.regs.get(r), 0);
 }
 
-inline void instr_sub_carry_reg16_ptr(Registers &regs, const Mmu& mmu, Reg16 r) {
-  regs.at(Reg8::A) = instr_sub8(regs, regs.get(Reg8::A), mmu.read8(regs.get(r)), regs.get(Flag::C));
+inline void instr_sub_carry_reg16_ptr(Cpu &cpu, Reg16 r) {
+  cpu.regs.at(Reg8::A) = instr_sub8(cpu, cpu.regs.get(Reg8::A), cpu.read8(cpu.regs.get(r)), cpu.regs.get(Flag::C));
 }
 
-inline void instr_sub_carry_imm8(Registers &regs, uint8_t imm) {
-  regs.at(Reg8::A) = instr_sub8(regs, regs.get(Reg8::A), imm, regs.get(Flag::C));
+inline void instr_sub_carry_imm8(Cpu &cpu, uint8_t imm) {
+  cpu.regs.at(Reg8::A) = instr_sub8(cpu, cpu.regs.get(Reg8::A), imm, cpu.regs.get(Flag::C));
 }
 
-inline void instr_sub_carry_reg8_reg8(Registers &regs, Reg8 r1, Reg8 r2) {
-  regs.at(r1) = instr_sub8(regs, regs.get(r1), regs.get(r2), regs.get(Flag::C));
+inline void instr_sub_carry_reg8_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+  cpu.regs.at(r1) = instr_sub8(cpu, cpu.regs.get(r1), cpu.regs.get(r2), cpu.regs.get(Flag::C));
 }
 
-inline void instr_sub_carry_reg8_imm8(Registers &regs, Reg8 r, uint8_t imm) {
-  regs.at(r) = instr_sub8(regs, regs.get(r), imm, regs.get(Flag::C));
+inline void instr_sub_carry_reg8_imm8(Cpu &cpu, Reg8 r, uint8_t imm) {
+  cpu.regs.at(r) = instr_sub8(cpu, cpu.regs.get(r), imm, cpu.regs.get(Flag::C));
 }
 
-inline void instr_sub_carry_reg8_reg16_ptr(Registers &regs, Mmu& mmu, Reg8 r1, Reg16 r2) {
-  regs.at(r1) = instr_sub8(regs, regs.get(r1), mmu.read8(regs.get(r2)), regs.get(Flag::C));
+inline void instr_sub_carry_reg8_reg16_ptr(Cpu &cpu, Reg8 r1, Reg16 r2) {
+  cpu.regs.at(r1) = instr_sub8(cpu, cpu.regs.get(r1), cpu.read8(cpu.regs.get(r2)), cpu.regs.get(Flag::C));
 }
 
-inline void instr_cmp_reg8(Registers &regs, Reg8 r) {
-  instr_sub8(regs, regs.get(Reg8::A), regs.get(r), 0);
+inline void instr_cmp_reg8(Cpu &cpu, Reg8 r) {
+  instr_sub8(cpu, cpu.regs.get(Reg8::A), cpu.regs.get(r), 0);
 }
 
-inline void instr_cmp_reg16_ptr(Registers &regs, const Mmu& mmu, Reg16 r) {
-  instr_sub8(regs, regs.get(Reg8::A), mmu.read8(regs.get(r)), 0);
+inline void instr_cmp_reg16_ptr(Cpu &cpu, Reg16 r) {
+  instr_sub8(cpu, cpu.regs.get(Reg8::A), cpu.read8(cpu.regs.get(r)), 0);
 }
 
-inline void instr_cmp_imm8(Registers &regs, uint8_t imm) {
-  instr_sub8(regs, regs.get(Reg8::A), imm, 0);
+inline void instr_cmp_imm8(Cpu &cpu, uint8_t imm) {
+  instr_sub8(cpu, cpu.regs.get(Reg8::A), imm, 0);
 }
 
-inline void instr_inc_reg8(Registers &regs, Reg8 r) {
-  uint8_t val = regs.get(r);
+inline void instr_inc_reg8(Cpu &cpu, Reg8 r) {
+  uint8_t val = cpu.regs.get(r);
   uint8_t result = val + 1;
-  regs.set(r, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, (val & 0xf) + 1 > 0xf ? 1 : 0);
+  cpu.regs.set(r, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, (val & 0xf) + 1 > 0xf ? 1 : 0);
 }
 
-inline void instr_inc_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  uint8_t val = mmu.read8(regs.get(r));
+inline void instr_inc_reg16_ptr(Cpu &cpu, Reg16 r) {
+  uint8_t val = cpu.read8(cpu.regs.get(r));
   uint8_t result = val + 1;
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, (val & 0xf) + 1 > 0xf ? 1 : 0);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, (val & 0xf) + 1 > 0xf ? 1 : 0);
 }
 
-inline void instr_inc_sp(Registers &regs) {
-  regs.sp += 1;
+inline void instr_inc_sp(Cpu &cpu) {
+  cpu.regs.sp += 1;
 }
 
-inline void instr_inc_reg16(Registers &regs, Reg16 r) {
-  regs.set(r, regs.get(r) + 1);
+inline void instr_inc_reg16(Cpu &cpu, Reg16 r) {
+  cpu.regs.set(r, cpu.regs.get(r) + 1);
 }
 
-inline void instr_dec_reg8(Registers &regs, Reg8 r) {
-  uint8_t val = regs.get(r);
+inline void instr_dec_reg8(Cpu &cpu, Reg8 r) {
+  uint8_t val = cpu.regs.get(r);
   uint8_t result = val - 1;
-  regs.at(r) = result;
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 1);
-  regs.set(Flag::H, (val & 0xf) == 0);
+  cpu.regs.at(r) = result;
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 1);
+  cpu.regs.set(Flag::H, (val & 0xf) == 0);
 }
 
-inline void instr_dec_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  uint8_t val = mmu.read8(regs.get(r));
+inline void instr_dec_reg16_ptr(Cpu &cpu, Reg16 r) {
+  uint8_t val = cpu.read8(cpu.regs.get(r));
   uint8_t result = val - 1;
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 1);
-  regs.set(Flag::H, (val & 0xf) == 0);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 1);
+  cpu.regs.set(Flag::H, (val & 0xf) == 0);
 }
 
-inline void instr_dec_sp(Registers &regs) {
-  regs.sp -= 1;
+inline void instr_dec_sp(Cpu &cpu) {
+  cpu.regs.sp -= 1;
 }
 
-inline void instr_dec_reg16(Registers &regs, Reg16 r) {
-  regs.set(r, regs.get(r) - 1);
+inline void instr_dec_reg16(Cpu &cpu, Reg16 r) {
+  cpu.regs.set(r, cpu.regs.get(r) - 1);
 }
 
-inline void instr_and_reg8(Registers &regs, Reg8 r) {
-  auto result = regs.at(Reg8::A) &= regs.get(r);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 1);
-  regs.set(Flag::C, 0);
+inline void instr_and_reg8(Cpu &cpu, Reg8 r) {
+  auto result = cpu.regs.at(Reg8::A) &= cpu.regs.get(r);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 1);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_and_reg16_ptr(Registers &regs, const Mmu& mmu, Reg16 r) {
-  auto result = regs.at(Reg8::A) &= mmu.read8(regs.get(r));
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 1);
-  regs.set(Flag::C, 0);
+inline void instr_and_reg16_ptr(Cpu &cpu, Reg16 r) {
+  auto result = cpu.regs.at(Reg8::A) &= cpu.read8(cpu.regs.get(r));
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 1);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_and_imm8(Registers &regs, uint8_t imm) {
-  auto result = regs.at(Reg8::A) &= imm;
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 1);
-  regs.set(Flag::C, 0);
+inline void instr_and_imm8(Cpu &cpu, uint8_t imm) {
+  auto result = cpu.regs.at(Reg8::A) &= imm;
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 1);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_or_reg8(Registers &regs, Reg8 r) {
-  auto result = regs.at(Reg8::A) |= regs.get(r);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, 0);
+inline void instr_or_reg8(Cpu &cpu, Reg8 r) {
+  auto result = cpu.regs.at(Reg8::A) |= cpu.regs.get(r);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_or_reg16_ptr(Registers &regs, const Mmu& mmu, Reg16 r) {
-  auto result = regs.at(Reg8::A) |= mmu.read8(regs.get(r));
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, 0);
+inline void instr_or_reg16_ptr(Cpu &cpu, Reg16 r) {
+  auto result = cpu.regs.at(Reg8::A) |= cpu.read8(cpu.regs.get(r));
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_or_imm8(Registers &regs, uint8_t imm) {
-  auto result = regs.at(Reg8::A) |= imm;
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, 0);
+inline void instr_or_imm8(Cpu &cpu, uint8_t imm) {
+  auto result = cpu.regs.at(Reg8::A) |= imm;
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_xor_reg8(Registers &regs, Reg8 r) {
-  auto result = regs.at(Reg8::A) ^= regs.get(r);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, 0);
+inline void instr_xor_reg8(Cpu &cpu, Reg8 r) {
+  auto result = cpu.regs.at(Reg8::A) ^= cpu.regs.get(r);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_xor_reg16_ptr(Registers &regs, const Mmu& mmu, Reg16 r) {
-  auto result = regs.at(Reg8::A) ^= mmu.read8(regs.get(r));
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, 0);
+inline void instr_xor_reg16_ptr(Cpu &cpu, Reg16 r) {
+  auto result = cpu.regs.at(Reg8::A) ^= cpu.read8(cpu.regs.get(r));
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_xor_imm8(Registers &regs, uint8_t imm) {
-  auto result = regs.at(Reg8::A) ^= imm;
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, 0);
+inline void instr_xor_imm8(Cpu &cpu, uint8_t imm) {
+  auto result = cpu.regs.at(Reg8::A) ^= imm;
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_ccf(Registers &regs) {
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, regs.get(Flag::C) ? 0 : 1);
+inline void instr_ccf(Cpu &cpu) {
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, cpu.regs.get(Flag::C) ? 0 : 1);
 }
 
-inline void instr_scf(Registers &regs) {
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, 1);
+inline void instr_scf(Cpu &cpu) {
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, 1);
 }
 
-inline void instr_daa(Registers &regs) {
-  auto a = regs.get(Reg8::A);
-  auto n = regs.get(Flag::N);
-  auto h = regs.get(Flag::H);
-  auto c = regs.get(Flag::C);
+inline void instr_daa(Cpu &cpu) {
+  auto a = cpu.regs.get(Reg8::A);
+  auto n = cpu.regs.get(Flag::N);
+  auto h = cpu.regs.get(Flag::H);
+  auto c = cpu.regs.get(Flag::C);
 
   if (n) {
     if (c) {
@@ -468,517 +443,517 @@ inline void instr_daa(Registers &regs) {
   } else {
     if (c || a > 0x99) {
       a += 0x60;
-      regs.set(Flag::C, 1);
+      cpu.regs.set(Flag::C, 1);
     }
     if (h || (a & 0x0f) > 0x09) {
       a += 0x6;
     }
   }
 
-  regs.set(Reg8::A, a);
-  regs.set(Flag::Z, a == 0 ? 1 : 0);
-  regs.set(Flag::H, 0);
+  cpu.regs.set(Reg8::A, a);
+  cpu.regs.set(Flag::Z, a == 0 ? 1 : 0);
+  cpu.regs.set(Flag::H, 0);
 }
 
-inline void instr_cpl(Registers &regs) {
-  regs.set(Reg8::A, ~regs.get(Reg8::A));
-  regs.set(Flag::N, 1);
-  regs.set(Flag::H, 1);
+inline void instr_cpl(Cpu &cpu) {
+  cpu.regs.set(Reg8::A, ~cpu.regs.get(Reg8::A));
+  cpu.regs.set(Flag::N, 1);
+  cpu.regs.set(Flag::H, 1);
 }
 
-inline void instr_rlca(Registers &regs) {
-  uint8_t val = regs.get(Reg8::A);
+inline void instr_rlca(Cpu &cpu) {
+  uint8_t val = cpu.regs.get(Reg8::A);
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | carry;
-  regs.set(Reg8::A, result);
-  regs.set(Flag::Z, 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.regs.set(Reg8::A, result);
+  cpu.regs.set(Flag::Z, 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_rrca(Registers &regs) {
-  uint8_t val = regs.get(Reg8::A);
+inline void instr_rrca(Cpu &cpu) {
+  uint8_t val = cpu.regs.get(Reg8::A);
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (carry << 7);
-  regs.set(Reg8::A, result);
-  regs.set(Flag::Z, 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.regs.set(Reg8::A, result);
+  cpu.regs.set(Flag::Z, 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_rla(Registers &regs) {
-  uint8_t val = regs.get(Reg8::A);
+inline void instr_rla(Cpu &cpu) {
+  uint8_t val = cpu.regs.get(Reg8::A);
   uint8_t carry = (val & 0x80) >> 7;
-  uint8_t result = (val << 1) | regs.get(Flag::C);
-  regs.set(Reg8::A, result);
-  regs.set(Flag::Z, 0);//result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C,  carry);
+  uint8_t result = (val << 1) | cpu.regs.get(Flag::C);
+  cpu.regs.set(Reg8::A, result);
+  cpu.regs.set(Flag::Z, 0);//result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C,  carry);
 }
 
-inline void instr_rra(Registers &regs) {
-  uint8_t val = regs.get(Reg8::A);
+inline void instr_rra(Cpu &cpu) {
+  uint8_t val = cpu.regs.get(Reg8::A);
   uint8_t carry = val & 0x1;
-  uint8_t result = (val >> 1) | (regs.get(Flag::C) << 7);
-  regs.set(Reg8::A, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  uint8_t result = (val >> 1) | (cpu.regs.get(Flag::C) << 7);
+  cpu.regs.set(Reg8::A, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_rlc_reg8(Registers &regs, Reg8 r) {
-  uint8_t val = regs.get(r);
+inline void instr_rlc_reg8(Cpu &cpu, Reg8 r) {
+  uint8_t val = cpu.regs.get(r);
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | carry;
-  regs.set(r, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.regs.set(r, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_rlc_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  uint8_t val = mmu.read8(regs.get(r));
+inline void instr_rlc_reg16_ptr(Cpu &cpu, Reg16 r) {
+  uint8_t val = cpu.read8(cpu.regs.get(r));
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | carry;
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_rrc_reg8(Registers &regs, Reg8 r) {
-  uint8_t val = regs.get(r);
+inline void instr_rrc_reg8(Cpu &cpu, Reg8 r) {
+  uint8_t val = cpu.regs.get(r);
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (carry << 7);
-  regs.set(r, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.regs.set(r, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_rrc_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  uint8_t val = mmu.read8(regs.get(r));
+inline void instr_rrc_reg16_ptr(Cpu &cpu, Reg16 r) {
+  uint8_t val = cpu.read8(cpu.regs.get(r));
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (carry << 7);
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_rl_reg8(Registers &regs, Reg8 r) {
-  uint8_t val = regs.get(r);
+inline void instr_rl_reg8(Cpu &cpu, Reg8 r) {
+  uint8_t val = cpu.regs.get(r);
   uint8_t carry = (val & 0x80) >> 7;
-  uint8_t result = (val << 1) | regs.get(Flag::C);
-  regs.set(r, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C,  carry);
+  uint8_t result = (val << 1) | cpu.regs.get(Flag::C);
+  cpu.regs.set(r, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C,  carry);
 }
 
-inline void instr_rl_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  uint8_t val = mmu.read8(regs.get(r));
+inline void instr_rl_reg16_ptr(Cpu &cpu, Reg16 r) {
+  uint8_t val = cpu.read8(cpu.regs.get(r));
   uint8_t carry = (val & 0x80) >> 7;
-  uint8_t result = (val << 1) | regs.get(Flag::C);
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C,  carry);
+  uint8_t result = (val << 1) | cpu.regs.get(Flag::C);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C,  carry);
 }
 
-inline void instr_rr_reg8(Registers &regs, Reg8 r) {
-  uint8_t val = regs.get(r);
+inline void instr_rr_reg8(Cpu &cpu, Reg8 r) {
+  uint8_t val = cpu.regs.get(r);
   uint8_t carry = val & 0x1;
-  uint8_t result = (val >> 1) | (regs.get(Flag::C) << 7);
-  regs.set(r, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  uint8_t result = (val >> 1) | (cpu.regs.get(Flag::C) << 7);
+  cpu.regs.set(r, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_rr_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  uint8_t val = mmu.read8(regs.get(r));
+inline void instr_rr_reg16_ptr(Cpu &cpu, Reg16 r) {
+  uint8_t val = cpu.read8(cpu.regs.get(r));
   uint8_t carry = val & 0x1;
-  uint8_t result = (val >> 1) | (regs.get(Flag::C) << 7);
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  uint8_t result = (val >> 1) | (cpu.regs.get(Flag::C) << 7);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_sla_reg8(Registers &regs, Reg8 r) {
-  uint8_t val = regs.get(r);
+inline void instr_sla_reg8(Cpu &cpu, Reg8 r) {
+  uint8_t val = cpu.regs.get(r);
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = val << 1;
-  regs.set(r, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.regs.set(r, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_sla_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  uint8_t val = mmu.read8(regs.get(r));
+inline void instr_sla_reg16_ptr(Cpu &cpu, Reg16 r) {
+  uint8_t val = cpu.read8(cpu.regs.get(r));
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = val << 1;
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_srl_reg8(Registers &regs, Reg8 r) {
-  uint8_t val = regs.get(r);
+inline void instr_srl_reg8(Cpu &cpu, Reg8 r) {
+  uint8_t val = cpu.regs.get(r);
   uint8_t carry = val & 0x1;
   uint8_t result = val >> 1;
-  regs.set(r, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.regs.set(r, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_srl_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  uint8_t val = mmu.read8(regs.get(r));
+inline void instr_srl_reg16_ptr(Cpu &cpu, Reg16 r) {
+  uint8_t val = cpu.read8(cpu.regs.get(r));
   uint8_t carry = val & 0x1;
   uint8_t result = val >> 1;
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_sra_reg8(Registers &regs, Reg8 r) {
-  uint8_t val = regs.get(r);
+inline void instr_sra_reg8(Cpu &cpu, Reg8 r) {
+  uint8_t val = cpu.regs.get(r);
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (val & 0x80);
-  regs.set(r, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.regs.set(r, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_sra_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  uint8_t val = mmu.read8(regs.get(r));
+inline void instr_sra_reg16_ptr(Cpu &cpu, Reg16 r) {
+  uint8_t val = cpu.read8(cpu.regs.get(r));
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (val & 0x80);
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, carry);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, carry);
 }
 
-inline void instr_swap_reg8(Registers &regs, Reg8 r) {
-  auto val = regs.get(r);
+inline void instr_swap_reg8(Cpu &cpu, Reg8 r) {
+  auto val = cpu.regs.get(r);
   uint8_t upper = (val >> 4) & 0xf;
   uint8_t lower = val & 0xf;
   uint8_t result = upper | (lower << 4);
-  regs.set(r, result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, 0);
+  cpu.regs.set(r, result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_swap_reg16_ptr(Registers &regs, Mmu& mmu, Reg16 r) {
-  auto val = mmu.read8(regs.get(r));
+inline void instr_swap_reg16_ptr(Cpu &cpu, Reg16 r) {
+  auto val = cpu.read8(cpu.regs.get(r));
   uint8_t upper = (val >> 4) & 0xf;
   uint8_t lower = val & 0xf;
   uint8_t result = upper | (lower << 4);
-  mmu.write8(regs.get(r), result);
-  regs.set(Flag::Z, result == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 0);
-  regs.set(Flag::C, 0);
+  cpu.write8(cpu.regs.get(r), result);
+  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 0);
+  cpu.regs.set(Flag::C, 0);
 }
 
-inline void instr_bit_imm8_reg8(Registers &regs, uint8_t imm, Reg8 r) {
-  auto bit = (regs.get(r) >> imm) & 0x1;
-  regs.set(Flag::Z, bit == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 1);
+inline void instr_bit_imm8_reg8(Cpu &cpu, uint8_t imm, Reg8 r) {
+  auto bit = (cpu.regs.get(r) >> imm) & 0x1;
+  cpu.regs.set(Flag::Z, bit == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 1);
 }
 
-inline void instr_bit_imm8_reg16_ptr(Registers &regs, const Mmu& mmu, uint8_t imm, Reg16 r) {
-  auto bit = (mmu.read8(regs.get(r)) >> imm) & 0x1;
-  regs.set(Flag::Z, bit == 0 ? 1 : 0);
-  regs.set(Flag::N, 0);
-  regs.set(Flag::H, 1);
+inline void instr_bit_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
+  auto bit = (cpu.read8(cpu.regs.get(r)) >> imm) & 0x1;
+  cpu.regs.set(Flag::Z, bit == 0 ? 1 : 0);
+  cpu.regs.set(Flag::N, 0);
+  cpu.regs.set(Flag::H, 1);
 }
 
-inline void instr_reset_imm8_reg8(Registers &regs, uint8_t imm, Reg8 r) {
-  uint8_t mask = regs.get(r) & (1 << imm);
-  regs.at(r) ^= mask;
+inline void instr_reset_imm8_reg8(Cpu &cpu, uint8_t imm, Reg8 r) {
+  uint8_t mask = cpu.regs.get(r) & (1 << imm);
+  cpu.regs.at(r) ^= mask;
 }
 
-inline void instr_reset_imm8_reg16_ptr(Registers &regs, Mmu& mmu, uint8_t imm, Reg16 r) {
-  uint8_t mask = mmu.read8(regs.get(r)) & (1 << imm);
-  uint16_t addr = regs.get(r);
-  uint8_t result = mmu.read8(addr) ^ mask;
-  mmu.write8(addr, result);
+inline void instr_reset_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
+  uint8_t mask = cpu.read8(cpu.regs.get(r)) & (1 << imm);
+  uint16_t addr = cpu.regs.get(r);
+  uint8_t result = cpu.read8(addr) ^ mask;
+  cpu.write8(addr, result);
 }
 
-inline void instr_set_imm8_reg8(Registers &regs, uint8_t imm, Reg8 r) {
+inline void instr_set_imm8_reg8(Cpu &cpu, uint8_t imm, Reg8 r) {
   uint8_t mask = 1 << imm;
-  regs.at(r) |= mask;
+  cpu.regs.at(r) |= mask;
 }
 
-inline void instr_set_imm8_reg16_ptr(Registers &regs, Mmu& mmu, uint8_t imm, Reg16 r) {
+inline void instr_set_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
   uint8_t mask = 1 << imm;
-  uint16_t addr = regs.get(r);
-  uint8_t result = mmu.read8(addr) | mask;
-  mmu.write8(addr, result);
+  uint16_t addr = cpu.regs.get(r);
+  uint8_t result = cpu.read8(addr) | mask;
+  cpu.write8(addr, result);
 }
 
-inline bool instr_jump_imm16(Registers &regs, uint16_t imm) {
-  regs.pc = imm;
+inline bool instr_jump_imm16(Cpu &cpu, uint16_t imm) {
+  cpu.regs.pc = imm;
   return true;
 }
 
-inline bool instr_jump_reg16(Registers &regs, Reg16 r) {
-  regs.pc = regs.get(r);
+inline bool instr_jump_reg16(Cpu &cpu, Reg16 r) {
+  cpu.regs.pc = cpu.regs.get(r);
   return true;
 }
 
-inline bool instr_jump_cond_imm16(Registers &regs, Cond cond, uint16_t nn) {
-  if (check_cond(regs, cond)) {
-    regs.pc = nn;
+inline bool instr_jump_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
+  if (check_cond(cpu, cond)) {
+    cpu.regs.pc = nn;
     return true;
   }
   return false;
 }
 
-inline bool instr_jump_rel(Registers &regs, int8_t e) {
-  regs.pc += e;
+inline bool instr_jump_rel(Cpu &cpu, int8_t e) {
+  cpu.regs.pc += e;
   return true;
 }
 
-inline bool instr_jump_rel_cond(Registers &regs, Cond cond, int8_t e) {
-  if (check_cond(regs, cond)) {
-    regs.pc += e;
+inline bool instr_jump_rel_cond(Cpu &cpu, Cond cond, int8_t e) {
+  if (check_cond(cpu, cond)) {
+    cpu.regs.pc += e;
     return true;
   }
   return false;
 }
 
-inline bool instr_call_imm16(Registers &regs, Mmu& mmu, uint16_t nn) {
-  Stack::push16(mmu, regs.sp, regs.pc);
-  regs.pc = nn;
+inline bool instr_call_imm16(Cpu &cpu, uint16_t nn) {
+  cpu.push16(cpu.regs.pc);
+  cpu.regs.pc = nn;
   return true;
 }
 
-inline bool instr_call_cond_imm16(Registers &regs, Mmu& mmu, Cond cond, uint16_t nn) {
-  if (check_cond(regs, cond)) {
-    Stack::push16(mmu, regs.sp, regs.pc);
-    regs.pc = nn;
+inline bool instr_call_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
+  if (check_cond(cpu, cond)) {
+    cpu.push16(cpu.regs.pc);
+    cpu.regs.pc = nn;
     return true;
   }
   return false;
 }
 
-inline bool instr_ret(Registers &regs, Mmu& mmu) {
-  regs.pc = Stack::pop16(mmu, regs.sp);
+inline bool instr_ret(Cpu &cpu) {
+  cpu.regs.pc = cpu.pop16();
   return true;
 }
 
-inline bool instr_ret_cond(Registers &regs, Mmu& mmu, Cond cond) {
-  if (check_cond(regs, cond)) {
-    regs.pc = Stack::pop16(mmu, regs.sp);
+inline bool instr_ret_cond(Cpu &cpu, Cond cond) {
+  if (check_cond(cpu, cond)) {
+    cpu.regs.pc = cpu.pop16();
     return true;
   }
   return false;
 }
 
-inline void instr_reti(Registers &regs, State &state, Mmu& mmu) {
-  regs.pc = Stack::pop16(mmu, regs.sp);
-  state.ime = true;
+inline void instr_reti(Cpu &cpu) {
+  cpu.regs.pc = cpu.pop16();
+  cpu.state.ime = true;
 }
 
-inline void instr_restart(Registers &regs, Mmu& mmu, uint8_t n) {
-  Stack::push16(mmu, regs.sp, regs.pc);
-  regs.pc = n;
+inline void instr_restart(Cpu &cpu, uint8_t n) {
+  cpu.push16(cpu.regs.pc);
+  cpu.regs.pc = n;
 }
 
 inline void execute_ld(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_SP_Reg16 &operands) { instr_load_sp_reg16(cpu.regs, operands.reg); },
-     [&](Operands_SP_Imm16 &operands) { instr_load_sp_imm16(cpu.regs, operands.imm); },
-     [&](Operands_Reg8_Reg8 &operands) { instr_load_reg8_reg8(cpu.regs, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm8 &operands) { instr_load_reg8_imm8(cpu.regs, operands.reg, operands.imm); },
-     [&](Operands_Reg16_Reg16 &operands) { instr_load_reg16_reg16(cpu.regs, operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Imm16 &operands) { instr_load_reg16_imm16(cpu.regs, operands.reg, operands.imm); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu.regs, mmu, operands.addr, operands.reg); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_load_reg8_reg16_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Reg16_Ptr_Inc &operands) { instr_load_reg8_reg16_ptr_inc(cpu.regs, mmu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Reg16_Ptr_Dec &operands) { instr_load_reg8_reg16_ptr_dec(cpu.regs, mmu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm16_Ptr &operands) { instr_load_reg8_imm16_ptr(cpu.regs, mmu, operands.reg, operands.addr); },
-     [&](Operands_Reg16_SP_Offset &operands) { instr_load_reg16_sp_offset(cpu.regs, operands.reg, operands.offset); },
-     [&](Operands_Reg16_Ptr_Reg8 &operands) { instr_load_reg16_ptr_reg8(cpu.regs, mmu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Ptr_Inc_Reg8 &operands) { instr_load_reg16_ptr_inc_reg8(cpu.regs, mmu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Ptr_Imm8 &operands) { instr_load_reg16_ptr_imm8(cpu.regs, mmu, operands.reg, operands.imm); },
-     [&](Operands_Reg16_Ptr_Dec_Reg8 &operands) { instr_load_reg16_ptr_dec_reg8(cpu.regs, mmu, operands.reg1, operands.reg2); },
-     [&](Operands_Imm16_Ptr_Reg8 &operands) { instr_load_imm16_ptr_reg8(cpu.regs, mmu, operands.addr, operands.reg); },
-     [&](Operands_Imm16_Ptr_SP &operands) { instr_load_imm16_ptr_sp(cpu.regs, mmu, operands.addr); },
+     [&](Operands_SP_Reg16 &operands) { instr_load_sp_reg16(cpu, operands.reg); },
+     [&](Operands_SP_Imm16 &operands) { instr_load_sp_imm16(cpu, operands.imm); },
+     [&](Operands_Reg8_Reg8 &operands) { instr_load_reg8_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8 &operands) { instr_load_reg8_imm8(cpu, operands.reg, operands.imm); },
+     [&](Operands_Reg16_Reg16 &operands) { instr_load_reg16_reg16(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Imm16 &operands) { instr_load_reg16_imm16(cpu, operands.reg, operands.imm); },
+     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu, operands.addr, operands.reg); },
+     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_load_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Reg16_Ptr_Inc &operands) { instr_load_reg8_reg16_ptr_inc(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Reg16_Ptr_Dec &operands) { instr_load_reg8_reg16_ptr_dec(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm16_Ptr &operands) { instr_load_reg8_imm16_ptr(cpu, operands.reg, operands.addr); },
+     [&](Operands_Reg16_SP_Offset &operands) { instr_load_reg16_sp_offset(cpu, operands.reg, operands.offset); },
+     [&](Operands_Reg16_Ptr_Reg8 &operands) { instr_load_reg16_ptr_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Ptr_Inc_Reg8 &operands) { instr_load_reg16_ptr_inc_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Ptr_Imm8 &operands) { instr_load_reg16_ptr_imm8(cpu, operands.reg, operands.imm); },
+     [&](Operands_Reg16_Ptr_Dec_Reg8 &operands) { instr_load_reg16_ptr_dec_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Imm16_Ptr_Reg8 &operands) { instr_load_imm16_ptr_reg8(cpu, operands.addr, operands.reg); },
+     [&](Operands_Imm16_Ptr_SP &operands) { instr_load_imm16_ptr_sp(cpu, operands.addr); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 inline void execute_inc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_inc_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Reg16 &operands) { instr_inc_reg16(cpu.regs, operands.reg); },
-     [&](Operands_Reg16_Ptr &operands) { instr_inc_reg16_ptr(cpu.regs, mmu, operands.reg); },
-     [&](Operands_SP &operands) { instr_inc_sp(cpu.regs); },
+     [&](Operands_Reg8 &operands) { instr_inc_reg8(cpu, operands.reg); },
+     [&](Operands_Reg16 &operands) { instr_inc_reg16(cpu, operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_inc_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_SP &operands) { instr_inc_sp(cpu); },
      [&](auto&) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_dec(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_dec_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Reg16 &operands) { instr_dec_reg16(cpu.regs, operands.reg); },
-     [&](Operands_Reg16_Ptr &operands) { instr_dec_reg16_ptr(cpu.regs, mmu, operands.reg); },
-     [&](Operands_SP &operands) { instr_dec_sp(cpu.regs); },
+     [&](Operands_Reg8 &operands) { instr_dec_reg8(cpu, operands.reg); },
+     [&](Operands_Reg16 &operands) { instr_dec_reg16(cpu, operands.reg); },
+     [&](Operands_Reg16_Ptr &operands) { instr_dec_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_SP &operands) { instr_dec_sp(cpu); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_add(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_add_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_add_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg8_Reg8 &operands) { instr_add_reg8_reg8(cpu.regs, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm8& operands) { instr_add_reg8_imm8(cpu.regs, operands.reg, operands.imm); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_reg8_reg16_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Reg16 &operands) { instr_add_reg16_reg16(cpu.regs, operands.reg1, operands.reg2); },
-     [&](Operands_SP_Offset &operands) { instr_add_sp_offset(cpu.regs, operands.offset); },
-     [&](Operands_Reg16_Ptr &operands) { instr_add_reg16_ptr(cpu.regs, mmu, operands.reg); },
-     [&](Operands_Reg16_SP &operands) { instr_add_reg16_sp(cpu.regs, operands.reg); },
+     [&](Operands_Reg8 &operands) { instr_add_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8 &operands) { instr_add_imm8(cpu, operands.imm); },
+     [&](Operands_Reg8_Reg8 &operands) { instr_add_reg8_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8& operands) { instr_add_reg8_imm8(cpu, operands.reg, operands.imm); },
+     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Reg16 &operands) { instr_add_reg16_reg16(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_SP_Offset &operands) { instr_add_sp_offset(cpu, operands.offset); },
+     [&](Operands_Reg16_Ptr &operands) { instr_add_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg16_SP &operands) { instr_add_reg16_sp(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_adc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_add_carry_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_add_carry_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_add_carry_reg16_ptr(cpu.regs, mmu, operands.reg); },
-     [&](Operands_Reg8_Reg8 &operands) { instr_add_carry_reg8_reg8(cpu.regs, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm8 &operands) { instr_add_carry_reg8_imm8(cpu.regs, operands.reg, operands.imm); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_carry_reg8_reg16_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8 &operands) { instr_add_carry_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8 &operands) { instr_add_carry_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr &operands) { instr_add_carry_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg8_Reg8 &operands) { instr_add_carry_reg8_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8 &operands) { instr_add_carry_reg8_imm8(cpu, operands.reg, operands.imm); },
+     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_carry_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_sub(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_sub_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_sub_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_sub_reg16_ptr(cpu.regs, mmu, operands.reg); },
+     [&](Operands_Reg8 &operands) { instr_sub_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8 &operands) { instr_sub_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr &operands) { instr_sub_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_sbc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_sub_carry_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_sub_carry_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_sub_carry_reg16_ptr(cpu.regs, mmu, operands.reg); },
-     [&](Operands_Reg8_Reg8 &operands) { instr_sub_carry_reg8_reg8(cpu.regs, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm8 &operands) { instr_sub_carry_reg8_imm8(cpu.regs, operands.reg, operands.imm); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_sub_carry_reg8_reg16_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8 &operands) { instr_sub_carry_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8 &operands) { instr_sub_carry_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr &operands) { instr_sub_carry_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg8_Reg8 &operands) { instr_sub_carry_reg8_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8 &operands) { instr_sub_carry_reg8_imm8(cpu, operands.reg, operands.imm); },
+     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_sub_carry_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_and(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_and_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_and_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_and_reg16_ptr(cpu.regs, mmu, operands.reg); },
+     [&](Operands_Reg8 &operands) { instr_and_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8 &operands) { instr_and_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr &operands) { instr_and_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_xor(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_xor_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_xor_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_xor_reg16_ptr(cpu.regs, mmu, operands.reg); },
+     [&](Operands_Reg8 &operands) { instr_xor_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8 &operands) { instr_xor_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr &operands) { instr_xor_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_or(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_or_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_or_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_or_reg16_ptr(cpu.regs, mmu, operands.reg); },
+     [&](Operands_Reg8 &operands) { instr_or_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8 &operands) { instr_or_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr &operands) { instr_or_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_cp(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_cmp_reg8(cpu.regs, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_cmp_imm8(cpu.regs, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_cmp_reg16_ptr(cpu.regs, mmu, operands.reg); },
+     [&](Operands_Reg8 &operands) { instr_cmp_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8 &operands) { instr_cmp_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr &operands) { instr_cmp_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_rlca(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  instr_rlca(cpu.regs);
+  instr_rlca(cpu);
 }
 
 void execute_rrca(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  instr_rrca(cpu.regs);
+  instr_rrca(cpu);
 }
 
 void execute_rla(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  instr_rla(cpu.regs);
+  instr_rla(cpu);
 }
 
 void execute_rra(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  instr_rra(cpu.regs);
+  instr_rra(cpu);
 }
 
 void execute_daa(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  instr_daa(cpu.regs);
+  instr_daa(cpu);
 }
 
 void execute_cpl(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  instr_cpl(cpu.regs);
+  instr_cpl(cpu);
 }
 
 void execute_scf(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  instr_scf(cpu.regs);
+  instr_scf(cpu);
 }
 
 void execute_ccf(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  instr_ccf(cpu.regs);
+  instr_ccf(cpu);
 }
 
 void execute_jr(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Offset &operands) { instr_jump_rel(cpu.regs, operands.offset); },
-     [&](Operands_Cond_Offset &operands) { instr_jump_rel_cond(cpu.regs, operands.cond, operands.offset); },
+     [&](Operands_Offset &operands) { instr_jump_rel(cpu, operands.offset); },
+     [&](Operands_Cond_Offset &operands) { instr_jump_rel_cond(cpu, operands.cond, operands.offset); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
@@ -989,161 +964,161 @@ void execute_halt(Cpu &cpu, Mmu& mmu, Instruction &instr) {
 
 void execute_ldh(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8_Imm8_Ptr &operands) { instr_load_hi_reg8_imm8_ptr(cpu.regs, mmu, operands.reg, operands.addr); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu.regs, mmu, operands.addr, operands.reg); },
-     [&](Operands_Reg8_Reg8_Ptr &operands) { instr_load_hi_reg8_reg8_ptr(cpu.regs, mmu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Ptr_Reg8 &operands) { instr_load_hi_reg8_ptr_reg8(cpu.regs, mmu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8_Ptr &operands) { instr_load_hi_reg8_imm8_ptr(cpu, operands.reg, operands.addr); },
+     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu, operands.addr, operands.reg); },
+     [&](Operands_Reg8_Reg8_Ptr &operands) { instr_load_hi_reg8_reg8_ptr(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Ptr_Reg8 &operands) { instr_load_hi_reg8_ptr_reg8(cpu, operands.reg1, operands.reg2); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
 void execute_pop(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   auto operands = std::get<Operands_Reg16>(instr.operands);
-  instr_pop_reg16(cpu.regs, mmu, operands.reg);
+  instr_pop_reg16(cpu, operands.reg);
 }
 
 void execute_push(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   auto operands = std::get<Operands_Reg16>(instr.operands);
-  instr_push_reg16(cpu.regs, mmu, operands.reg);
+  instr_push_reg16(cpu, operands.reg);
 }
 
 void execute_rst(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   auto operands = std::get<Operands_Imm8_Literal>(instr.operands);
-  instr_restart(cpu.regs, mmu, operands.imm);
+  instr_restart(cpu, operands.imm);
 }
 
 bool execute_call(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm16>(&instr.operands)) {
-    return instr_call_imm16(cpu.regs,  mmu, ops->imm);
+    return instr_call_imm16(cpu, ops->imm);
   } else if (const auto *ops = std::get_if<Operands_Cond_Imm16>(&instr.operands)) {
-    return instr_call_cond_imm16(cpu.regs, mmu, ops->cond, ops->imm);
+    return instr_call_cond_imm16(cpu, ops->cond, ops->imm);
   }
   std::unreachable();
 }
 
 bool execute_jp(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   return std::visit(overloaded{
-    [&](Operands_Reg16 &operands) { return instr_jump_reg16(cpu.regs, operands.reg); },
-    [&](Operands_Imm16 &operands) { return instr_jump_imm16(cpu.regs, operands.imm); },
-    [&](Operands_Cond_Imm16 &operands) { return instr_jump_cond_imm16(cpu.regs, operands.cond, operands.imm); },
+    [&](Operands_Reg16 &operands) { return instr_jump_reg16(cpu, operands.reg); },
+    [&](Operands_Imm16 &operands) { return instr_jump_imm16(cpu, operands.imm); },
+    [&](Operands_Cond_Imm16 &operands) { return instr_jump_cond_imm16(cpu, operands.cond, operands.imm); },
     [&](auto &) { std::unreachable(); return false; },
   }, instr.operands);
 }
 
 bool execute_ret(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (std::get_if<Operands_None>(&instr.operands)) {
-    return instr_ret(cpu.regs,  mmu);
+    return instr_ret(cpu);
   } else if (const auto *ops = std::get_if<Operands_Cond>(&instr.operands)) {
-    return instr_ret_cond(cpu.regs, mmu, ops->cond);
+    return instr_ret_cond(cpu, ops->cond);
   }
   std::unreachable();
 }
 
 void execute_reti(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  instr_reti(cpu.regs, cpu.state, mmu);
+  instr_reti(cpu);
 }
 
 void execute_rlc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
-    instr_rlc_reg8(cpu.regs,  ops->reg);
+    instr_rlc_reg8(cpu,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_rlc_reg16_ptr(cpu.regs, mmu, ops->reg);
+    instr_rlc_reg16_ptr(cpu, ops->reg);
   }
 }
 
 void execute_rrc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
-    instr_rrc_reg8(cpu.regs,  ops->reg);
+    instr_rrc_reg8(cpu,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_rrc_reg16_ptr(cpu.regs, mmu, ops->reg);
+    instr_rrc_reg16_ptr(cpu, ops->reg);
   }
 }
 
 void execute_rl(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
-    instr_rl_reg8(cpu.regs,  ops->reg);
+    instr_rl_reg8(cpu,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_rl_reg16_ptr(cpu.regs, mmu, ops->reg);
+    instr_rl_reg16_ptr(cpu, ops->reg);
   }
 }
 
 void execute_rr(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
-    instr_rr_reg8(cpu.regs,  ops->reg);
+    instr_rr_reg8(cpu,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_rr_reg16_ptr(cpu.regs, mmu, ops->reg);
+    instr_rr_reg16_ptr(cpu, ops->reg);
   }
 }
 
 void execute_sla(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
-    instr_sla_reg8(cpu.regs,  ops->reg);
+    instr_sla_reg8(cpu,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_sla_reg16_ptr(cpu.regs, mmu, ops->reg);
+    instr_sla_reg16_ptr(cpu, ops->reg);
   }
 }
 
 void execute_sra(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
-    instr_sra_reg8(cpu.regs,  ops->reg);
+    instr_sra_reg8(cpu,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_sra_reg16_ptr(cpu.regs, mmu, ops->reg);
+    instr_sra_reg16_ptr(cpu, ops->reg);
   }
 }
 
 void execute_srl(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
-    instr_srl_reg8(cpu.regs,  ops->reg);
+    instr_srl_reg8(cpu,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_srl_reg16_ptr(cpu.regs, mmu, ops->reg);
+    instr_srl_reg16_ptr(cpu, ops->reg);
   }
 }
 
 void execute_swap(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
-    instr_swap_reg8(cpu.regs,  ops->reg);
+    instr_swap_reg8(cpu,  ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
-    instr_swap_reg16_ptr(cpu.regs, mmu, ops->reg);
+    instr_swap_reg16_ptr(cpu, ops->reg);
   }
 }
 
 void execute_bit(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
-    instr_bit_imm8_reg8(cpu.regs, ops->imm, ops->reg);
+    instr_bit_imm8_reg8(cpu, ops->imm, ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
-    instr_bit_imm8_reg16_ptr(cpu.regs, mmu, ops->imm, ops->reg);
+    instr_bit_imm8_reg16_ptr(cpu, ops->imm, ops->reg);
   }
 }
 
 void execute_res(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
-    instr_reset_imm8_reg8(cpu.regs, ops->imm, ops->reg);
+    instr_reset_imm8_reg8(cpu, ops->imm, ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
-    instr_reset_imm8_reg16_ptr(cpu.regs, mmu, ops->imm, ops->reg);
+    instr_reset_imm8_reg16_ptr(cpu, ops->imm, ops->reg);
   }
 }
 
 void execute_set(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
-    instr_set_imm8_reg8(cpu.regs, ops->imm, ops->reg);
+    instr_set_imm8_reg8(cpu, ops->imm, ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
-    instr_set_imm8_reg16_ptr(cpu.regs, mmu, ops->imm, ops->reg);
+    instr_set_imm8_reg16_ptr(cpu, ops->imm, ops->reg);
   }
 }
 
 void execute_di(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  spdlog::info("execute_di");
+  spdlog::debug("execute_di");
   cpu.state.ime = false;
 }
 
 void execute_ei(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  spdlog::info("execute_ei");
+  spdlog::debug("execute_ei");
   cpu.state.ime = true;
 }
 
 void execute_stop(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   cpu.state.stop = true;
-  mmu.write8(std::to_underlying(IO::DIV), 0);
+  cpu.write8(std::to_underlying(IO::DIV), 0);
 }
 
 uint8_t Cpu::execute() {
@@ -1273,7 +1248,7 @@ uint8_t Cpu::execute_interrupts() {
       interrupts.clear_interrupt(interrupt);
 
       auto handler_addr = interrupt_handler(interrupt);
-      instr_call_imm16(regs, mmu, handler_addr);
+      instr_call_imm16(*this, handler_addr);
 
       return 20;
     }
@@ -1300,3 +1275,30 @@ void Cpu::reset() {
 }
 
 Cpu::Cpu(Mmu &mmu_, InterruptDevice &interrupts_):mmu{mmu_}, interrupts{interrupts_} {}
+
+uint8_t Cpu::read8(uint16_t addr) {
+  return mmu.read8(addr);
+}
+
+void Cpu::write8(uint16_t addr, uint8_t val) {
+  mmu.write8(addr, val);
+}
+
+uint16_t Cpu::read16(uint16_t addr) {
+  return mmu.read16(addr);
+}
+
+void Cpu::write16(uint16_t addr, uint16_t val) {
+  return mmu.write16(addr, val);
+}
+
+void Cpu::push16(uint16_t val) {
+  regs.sp -= 2;
+  write16(regs.sp, val);
+}
+
+uint16_t Cpu::pop16() {
+  auto result = mmu.read16(regs.sp);
+  regs.sp += 2;
+  return result;
+}
