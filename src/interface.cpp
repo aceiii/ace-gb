@@ -76,6 +76,7 @@ void Interface::run() {
   static bool show_tilemap1 = true;
   static bool show_tilemap2 = true;
   static bool show_sprites = true;
+  static bool show_cpu_registers = true;
 
   auto &io = ImGui::GetIO();
 
@@ -103,8 +104,6 @@ void Interface::run() {
     BeginDrawing();
     ClearBackground(DARKGRAY);
 
-    DrawFPS(10, GetScreenHeight() - 24);
-
     render_info();
 
     rlImGuiBegin();
@@ -129,6 +128,10 @@ void Interface::run() {
 
     if (show_sprites) {
       render_sprites(show_sprites);
+    }
+
+    if (show_cpu_registers) {
+      render_registers(show_cpu_registers);
     }
 
     ImGui::BeginMainMenuBar();
@@ -181,6 +184,8 @@ void Interface::run() {
     rlImGuiEnd();
 
     render_error();
+
+    DrawFPS(10, GetScreenHeight() - 24);
 
     EndDrawing();
   }
@@ -245,23 +250,23 @@ void Interface::load_cart_rom(const std::string &file_path) {
 }
 
 void Interface::render_info() {
-  DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 32, 12, RAYWHITE);
-  DrawText(fmt::format("cycles={}", emulator.cycles()).c_str(), 20, 48, 12, RAYWHITE);
-  DrawText(fmt::format("mode={}", magic_enum::enum_name(emulator.mode())).c_str(), 20, 64, 12, RAYWHITE);
+//  DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 32, 12, RAYWHITE);
+//  DrawText(fmt::format("cycles={}", emulator.cycles()).c_str(), 20, 48, 12, RAYWHITE);
+//  DrawText(fmt::format("mode={}", magic_enum::enum_name(emulator.mode())).c_str(), 20, 64, 12, RAYWHITE);
 //    DrawText(fmt::format("stat={}", emulator.read8(std::to_underlying(IO::STAT))).c_str(), 20, 80, 12, RAYWHITE);
 
-  Instruction instr = emulator.instr();
-  DrawText(fmt::format("opcode={}, bytes={}, cycles={}/{}", magic_enum::enum_name(instr.opcode), instr.bytes, instr.cycles, instr.cycles_cond).c_str() , 20, 96, 12, RAYWHITE);
+//  Instruction instr = emulator.instr();
+//  DrawText(fmt::format("opcode={}, bytes={}, cycles={}/{}", magic_enum::enum_name(instr.opcode), instr.bytes, instr.cycles, instr.cycles_cond).c_str() , 20, 96, 12, RAYWHITE);
 
-  uint8_t pc = emulator.registers().pc;
-  DrawText(fmt::format("PC=0x{:02x}", pc).c_str() , 20, 128, 12, RAYWHITE);
-  DrawText(fmt::format("@PC+0={:02x}", emulator.read8(pc)).c_str() , 20, 144, 12, RAYWHITE);
-  DrawText(fmt::format("@PC+1={:02x}", emulator.read8(pc+1)).c_str() , 20, 160, 12, RAYWHITE);
-  DrawText(fmt::format("@PC+2={:02x}", emulator.read8(pc+2)).c_str() , 20, 176, 12, RAYWHITE);
-  DrawText(fmt::format("@PC+4={:02x}", emulator.read8(pc+3)).c_str() , 20, 192, 12, RAYWHITE);
+//  uint8_t pc = emulator.registers().pc;
+//  DrawText(fmt::format("PC=0x{:02x}", pc).c_str() , 20, 128, 12, RAYWHITE);
+//  DrawText(fmt::format("@PC+0={:02x}", emulator.read8(pc)).c_str() , 20, 144, 12, RAYWHITE);
+//  DrawText(fmt::format("@PC+1={:02x}", emulator.read8(pc+1)).c_str() , 20, 160, 12, RAYWHITE);
+//  DrawText(fmt::format("@PC+2={:02x}", emulator.read8(pc+2)).c_str() , 20, 176, 12, RAYWHITE);
+//  DrawText(fmt::format("@PC+4={:02x}", emulator.read8(pc+3)).c_str() , 20, 192, 12, RAYWHITE);
 
-  const auto &state = emulator.state();
-  DrawText(fmt::format("CPU State ime={}, halt={}, stop={}, hard_lock={}", state.ime, state.halt, state.stop, state.hard_lock).c_str(), 20, 224, 12, RAYWHITE);
+//  const auto &state = emulator.state();
+//  DrawText(fmt::format("CPU State ime={}, halt={}, stop={}, hard_lock={}", state.ime, state.halt, state.stop, state.hard_lock).c_str(), 20, 224, 12, RAYWHITE);
 }
 
 void Interface::render_tiles(bool &show_window) {
@@ -324,6 +329,41 @@ void Interface::render_sprites(bool &show_window) {
     auto height = target.texture.height;
     auto scale = 2;
     rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle{ 0,0, static_cast<float>(width), -static_cast<float>(height) });
+  }
+  ImGui::End();
+}
+
+void Interface::render_registers(bool &show_window) {
+  if (!show_window) {
+    return;
+  }
+
+  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Registers", &show_window)) {
+    const auto &regs = emulator.registers();
+
+    auto a = regs.get(Reg8::A);
+    auto f = regs.get(Reg8::F);
+    auto b = regs.get(Reg8::B);
+    auto c = regs.get(Reg8::C);
+    auto d = regs.get(Reg8::D);
+    auto e = regs.get(Reg8::E);
+    auto h = regs.get(Reg8::H);
+    auto l = regs.get(Reg8::L);
+    auto af = regs.get(Reg16::AF);
+    auto bc = regs.get(Reg16::BC);
+    auto de = regs.get(Reg16::DE);
+    auto hl = regs.get(Reg16::HL);
+    auto zero = regs.get(Flag::Z);
+    auto neg = regs.get(Flag::N);
+    auto half_carry = regs.get(Flag::H);
+    auto carry = regs.get(Flag::C);
+
+    ImGui::Text("PC=%04X (%d)", regs.pc, regs.pc);
+    ImGui::Text("SP=%04X (%d)", regs.sp, regs.sp);
+    ImGui::Text("A=%02X F=%02X B=%02X C=%02X D=%02X E=%02X H=%02X L=%02X", a, f, b, c, d, e, h, l);
+    ImGui::Text("AF=%04X BC=%04X DE=%04X HL=%04X", af, bc, de,hl);
+    ImGui::Text("Flags Z=%d N=%d H=%d C=%d", zero, neg, half_carry, carry);
   }
   ImGui::End();
 }
