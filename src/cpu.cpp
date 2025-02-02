@@ -1258,14 +1258,13 @@ uint8_t Cpu::execute_interrupts() {
 }
 
 uint8_t Cpu::read_next8() {
-  auto result = mmu.read8(regs.pc);
-  regs.pc += 1;
-  return result;
+  return read8(regs.pc++);
 }
 
 uint16_t Cpu::read_next16() {
-  auto result = mmu.read16(regs.pc);
-  regs.pc += 2;
+  auto lo = read8(regs.pc++);
+  auto hi = read8(regs.pc++);
+  auto result = lo | (hi << 8);
   return result;
 }
 
@@ -1276,7 +1275,7 @@ void Cpu::reset() {
 
 Cpu::Cpu(Mmu &mmu_, InterruptDevice &interrupts_):mmu{mmu_}, interrupts{interrupts_} {}
 
-uint8_t Cpu::read8(uint16_t addr) {
+uint8_t Cpu::read8(uint16_t addr) const {
   return mmu.read8(addr);
 }
 
