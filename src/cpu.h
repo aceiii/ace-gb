@@ -38,18 +38,22 @@ public:
   uint8_t read_next8();
   uint16_t read_next16();
 
-  uint8_t read8(uint16_t addr) const;
+  uint8_t read8(uint16_t addr);
   void write8(uint16_t addr, uint8_t val);
   uint16_t read16(uint16_t addr);
   void write16(uint16_t addr, uint16_t val);
   void push16(uint16_t val);
   uint16_t pop16();
 
+  void tick();
+
 public:
   Mmu &mmu;
   InterruptDevice &interrupts;
   Registers regs;
   State state;
+
+
 
 private:
   uint8_t execute_interrupts();

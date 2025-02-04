@@ -1128,6 +1128,7 @@ uint8_t Cpu::execute() {
   }
 
   if (state.halt) {
+    tick();
     return 4;
   }
 
@@ -1275,29 +1276,48 @@ void Cpu::reset() {
 
 Cpu::Cpu(Mmu &mmu_, InterruptDevice &interrupts_):mmu{mmu_}, interrupts{interrupts_} {}
 
-uint8_t Cpu::read8(uint16_t addr) const {
-  return mmu.read8(addr);
+uint8_t Cpu::read8(uint16_t addr) {
+  auto result = mmu.read8(addr);
+  tick();
+  return result;
 }
 
 void Cpu::write8(uint16_t addr, uint8_t val) {
   mmu.write8(addr, val);
+  tick();
 }
+
 
 uint16_t Cpu::read16(uint16_t addr) {
-  return mmu.read16(addr);
+  uint8_t lo = mmu.read8(addr);
+  tick();
+  uint8_t hi = mmu.read8(addr + 1);
+  tick();
+  return lo | (hi << 8);
 }
 
-void Cpu::write16(uint16_t addr, uint16_t val) {
-  return mmu.write16(addr, val);
+void Cpu::write16(uint16_t addr, uint16_t word) {
+  mmu.write8(addr, word & 0xff);
+  tick();
+  mmu.write8(addr + 1, word >> 8);
+  tick();
 }
 
-void Cpu::push16(uint16_t val) {
-  regs.sp -= 2;
-  write16(regs.sp, val);
+
+void Cpu::push16(uint16_t word) {
+  write8(--regs.sp, word >> 8);
+  tick();
+  write8(--regs.sp, word & 0xff);
+  tick();
 }
 
 uint16_t Cpu::pop16() {
-  auto result = mmu.read16(regs.sp);
-  regs.sp += 2;
-  return result;
+  uint8_t lo = mmu.read8(regs.sp++);
+  tick();
+  uint8_t hi = mmu.read8(regs.sp++);
+  tick();
+  return lo | (hi << 8);
+}
+
+void Cpu::tick() {
 }

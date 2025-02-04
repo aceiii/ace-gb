@@ -80,11 +80,11 @@ void Emulator::update() {
   int current_cycles = 0;
 
   do {
-    auto cycles = cpu.execute();
-    timer.execute(cycles);
-    ppu.execute(cycles);
-    serial_device.execute(cycles);
-    current_cycles += cycles;
+    current_cycles += cpu.execute();
+//    timer.execute(cycles);
+//    ppu.execute(cycles);
+//    serial_device.execute(cycles);
+//    current_cycles += cycles;
 
     if (breakpoints.contains(cpu.regs.pc)) {
       running = false;
