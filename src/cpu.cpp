@@ -128,6 +128,7 @@ inline void instr_load_reg16_sp_offset(Cpu &cpu, Reg16 r1, int8_t e) {
   cpu.regs.set(Flag::N, 0);
   cpu.regs.set(Flag::H, (sp & 0xf) + (e & 0xf) > 0xf ? 1 : 0);
   cpu.regs.set(Flag::C, (sp & 0xff) + (e & 0xff) > 0xff ? 1 : 0);
+  cpu.tick();
 }
 
 inline void instr_push_reg16(Cpu &cpu, Reg16 r1) {
@@ -213,6 +214,7 @@ inline void instr_add_carry_imm8(Cpu &cpu, uint8_t imm) {
 
 inline void instr_add_reg16_sp(Cpu &cpu, Reg16 r) {
   cpu.regs.set(r, instr_add16(cpu, cpu.regs.get(r), cpu.regs.sp));
+  cpu.tick();
 }
 
 inline void instr_add_reg16_reg16(Cpu &cpu, Reg16 r1, Reg16 r2) {
@@ -230,6 +232,8 @@ inline void instr_add_sp_offset(Cpu &cpu, int8_t e) {
   cpu.regs.set(Flag::C, (sp & 0xff) + (e & 0xff) > 0xff ? 1 : 0);
 
   cpu.regs.sp = result;
+  cpu.tick();
+  cpu.tick();
 }
 
 inline uint8_t instr_sub8(Cpu &cpu, uint8_t a, uint8_t b, uint8_t c) {
@@ -312,6 +316,7 @@ inline void instr_inc_reg16_ptr(Cpu &cpu, Reg16 r) {
 
 inline void instr_inc_sp(Cpu &cpu) {
   cpu.regs.sp += 1;
+  cpu.tick();
 }
 
 inline void instr_inc_reg16(Cpu &cpu, Reg16 r) {
@@ -707,9 +712,10 @@ inline void instr_reset_imm8_reg8(Cpu &cpu, uint8_t imm, Reg8 r) {
 }
 
 inline void instr_reset_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
-  uint8_t mask = cpu.read8(cpu.regs.get(r)) & (1 << imm);
   uint16_t addr = cpu.regs.get(r);
-  uint8_t result = cpu.read8(addr) ^ mask;
+  uint8_t val = cpu.read8(addr);
+  uint8_t mask = val & (1 << imm);
+  uint8_t result = val ^ mask;
   cpu.write8(addr, result);
 }
 
@@ -797,11 +803,13 @@ inline bool instr_ret_cond(Cpu &cpu, Cond cond) {
 inline void instr_reti(Cpu &cpu) {
   cpu.regs.pc = cpu.pop16();
   cpu.state.ime = true;
+  cpu.tick();
 }
 
 inline void instr_restart(Cpu &cpu, uint8_t n) {
   cpu.push16(cpu.regs.pc);
   cpu.regs.pc = n;
+  cpu.tick();
 }
 
 inline void execute_ld(Cpu &cpu, Mmu& mmu, Instruction &instr) {
@@ -1122,12 +1130,10 @@ void execute_set(Cpu &cpu, Mmu& mmu, Instruction &instr) {
 }
 
 void execute_di(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  spdlog::debug("execute_di");
   cpu.state.ime = false;
 }
 
 void execute_ei(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  spdlog::debug("execute_ei");
   cpu.state.ime = true;
 }
 
@@ -1223,7 +1229,6 @@ uint8_t Cpu::execute() {
     }
     break;
   case Opcode::RET:
-//    spdlog::info("RET: current_tick: {}", tick_counter);
     if (!execute_ret(*this, mmu, instr)) {
       cycles = instr.cycles_cond;
     }
@@ -1244,10 +1249,6 @@ uint8_t Cpu::execute() {
   case Opcode::EI: execute_ei(*this, mmu, instr); break;
   case Opcode::STOP: execute_stop(*this, mmu, instr); break;
   case Opcode::PREFIX: break;
-  }
-
-  if (cycles != tick_counter) {
-    spdlog::warn("{}({:02x}) timing incorrect: {} != {}", magic_enum::enum_name(instr.opcode), byte_code, cycles, tick_counter);
   }
 
   return cycles;

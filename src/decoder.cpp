@@ -41,6 +41,7 @@ Instruction decode_prefixed(uint8_t op) {
 
     switch ((op & 0xC0) >> 6) {
     case 1: {
+      cycles = r8 == 6 ? 12 : 8;
       return {Opcode::BIT, bytes, cycles, cycles, operands};
     }
     case 2:
