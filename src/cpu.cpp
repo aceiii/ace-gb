@@ -99,6 +99,7 @@ inline void instr_load_reg16_ptr_inc_reg8(Cpu &cpu, Reg16 r1, Reg8 r2) {
 
 inline void instr_load_reg16_reg16(Cpu &cpu, Reg16 r1, Reg16 r2) {
   cpu.regs.set(r1, cpu.regs.get(r2));
+  cpu.tick();
 }
 
 inline void instr_load_reg16_imm16(Cpu &cpu, Reg16 r1, uint16_t val) {
@@ -111,6 +112,7 @@ inline void instr_load_imm16_ptr_sp(Cpu &cpu, uint16_t val) {
 
 inline void instr_load_sp_reg16(Cpu &cpu, Reg16 r1) {
   cpu.regs.sp = cpu.regs.get(r1);
+  cpu.tick();
 }
 
 inline void instr_load_sp_imm16(Cpu &cpu, uint16_t imm) {
@@ -131,13 +133,11 @@ inline void instr_load_reg16_sp_offset(Cpu &cpu, Reg16 r1, int8_t e) {
 inline void instr_push_reg16(Cpu &cpu, Reg16 r1) {
   uint16_t val = cpu.regs.get(r1);
   cpu.push16(val);
-  spdlog::debug("pushed [{}:{:04x}]", magic_enum::enum_name(r1), val);
 }
 
 inline void instr_pop_reg16(Cpu &cpu, Reg16 r1) {
   auto val = cpu.pop16();
   cpu.regs.set(r1, val);
-  spdlog::debug("popped [{}] <= {:04x}", magic_enum::enum_name(r1), val);
 }
 
 inline uint8_t instr_add8(Cpu &cpu, uint8_t a, uint8_t b, uint8_t c) {
@@ -217,6 +217,7 @@ inline void instr_add_reg16_sp(Cpu &cpu, Reg16 r) {
 
 inline void instr_add_reg16_reg16(Cpu &cpu, Reg16 r1, Reg16 r2) {
   cpu.regs.set(r1, instr_add16(cpu, cpu.regs.get(r1), cpu.regs.get(r2)));
+  cpu.tick();
 }
 
 inline void instr_add_sp_offset(Cpu &cpu, int8_t e) {
@@ -315,6 +316,7 @@ inline void instr_inc_sp(Cpu &cpu) {
 
 inline void instr_inc_reg16(Cpu &cpu, Reg16 r) {
   cpu.regs.set(r, cpu.regs.get(r) + 1);
+  cpu.tick();
 }
 
 inline void instr_dec_reg8(Cpu &cpu, Reg8 r) {
@@ -337,10 +339,12 @@ inline void instr_dec_reg16_ptr(Cpu &cpu, Reg16 r) {
 
 inline void instr_dec_sp(Cpu &cpu) {
   cpu.regs.sp -= 1;
+  cpu.tick();
 }
 
 inline void instr_dec_reg16(Cpu &cpu, Reg16 r) {
   cpu.regs.set(r, cpu.regs.get(r) - 1);
+  cpu.tick();
 }
 
 inline void instr_and_reg8(Cpu &cpu, Reg8 r) {
@@ -723,6 +727,7 @@ inline void instr_set_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
 
 inline bool instr_jump_imm16(Cpu &cpu, uint16_t imm) {
   cpu.regs.pc = imm;
+  cpu.tick();
   return true;
 }
 
@@ -734,6 +739,7 @@ inline bool instr_jump_reg16(Cpu &cpu, Reg16 r) {
 inline bool instr_jump_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
   if (check_cond(cpu, cond)) {
     cpu.regs.pc = nn;
+    cpu.tick();
     return true;
   }
   return false;
@@ -741,12 +747,14 @@ inline bool instr_jump_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
 
 inline bool instr_jump_rel(Cpu &cpu, int8_t e) {
   cpu.regs.pc += e;
+  cpu.tick();
   return true;
 }
 
 inline bool instr_jump_rel_cond(Cpu &cpu, Cond cond, int8_t e) {
   if (check_cond(cpu, cond)) {
     cpu.regs.pc += e;
+    cpu.tick();
     return true;
   }
   return false;
@@ -755,6 +763,7 @@ inline bool instr_jump_rel_cond(Cpu &cpu, Cond cond, int8_t e) {
 inline bool instr_call_imm16(Cpu &cpu, uint16_t nn) {
   cpu.push16(cpu.regs.pc);
   cpu.regs.pc = nn;
+  cpu.tick();
   return true;
 }
 
@@ -762,6 +771,7 @@ inline bool instr_call_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
   if (check_cond(cpu, cond)) {
     cpu.push16(cpu.regs.pc);
     cpu.regs.pc = nn;
+    cpu.tick();
     return true;
   }
   return false;
@@ -769,12 +779,16 @@ inline bool instr_call_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
 
 inline bool instr_ret(Cpu &cpu) {
   cpu.regs.pc = cpu.pop16();
+  cpu.tick();
   return true;
 }
 
 inline bool instr_ret_cond(Cpu &cpu, Cond cond) {
-  if (check_cond(cpu, cond)) {
+  auto jump = check_cond(cpu, cond);
+  cpu.tick();
+  if (jump) {
     cpu.regs.pc = cpu.pop16();
+    cpu.tick();
     return true;
   }
   return false;
@@ -950,11 +964,11 @@ void execute_ccf(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   instr_ccf(cpu);
 }
 
-void execute_jr(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  std::visit(overloaded{
-     [&](Operands_Offset &operands) { instr_jump_rel(cpu, operands.offset); },
-     [&](Operands_Cond_Offset &operands) { instr_jump_rel_cond(cpu, operands.cond, operands.offset); },
-     [&](auto &) { std::unreachable(); },
+bool execute_jr(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+  return std::visit(overloaded{
+     [&](Operands_Offset &operands) { return instr_jump_rel(cpu, operands.offset); },
+     [&](Operands_Cond_Offset &operands) { return instr_jump_rel_cond(cpu, operands.cond, operands.offset); },
+     [&](auto &) { std::unreachable(); return false; },
   }, instr.operands);
 }
 
@@ -978,6 +992,7 @@ void execute_pop(Cpu &cpu, Mmu& mmu, Instruction &instr) {
 }
 
 void execute_push(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+  cpu.tick();
   auto operands = std::get<Operands_Reg16>(instr.operands);
   instr_push_reg16(cpu, operands.reg);
 }
@@ -1122,6 +1137,8 @@ void execute_stop(Cpu &cpu, Mmu& mmu, Instruction &instr) {
 }
 
 uint8_t Cpu::execute() {
+  tick_counter = 0;
+
   auto interrupt_cycles = execute_interrupts();
   if (interrupt_cycles) {
     return interrupt_cycles;
@@ -1132,10 +1149,12 @@ uint8_t Cpu::execute() {
     return 4;
   }
 
-  Instruction instr = Decoder::decode(read_next8());
+  uint8_t byte_code = read_next8();
+  Instruction instr = Decoder::decode(byte_code);
 
   if (instr.opcode == Opcode::PREFIX) {
-    instr = Decoder::decode_prefixed(read_next8());
+    byte_code = read_next8();
+    instr = Decoder::decode_prefixed(byte_code);
   }
 
   std::visit(overloaded{
@@ -1182,7 +1201,12 @@ uint8_t Cpu::execute() {
   case Opcode::CPL: execute_cpl(*this, mmu, instr); break;
   case Opcode::SCF: execute_scf(*this, mmu,instr); break;
   case Opcode::CCF: execute_ccf(*this, mmu, instr); break;
-  case Opcode::JR: execute_jr(*this, mmu, instr); break;
+  case Opcode::JR: {
+    if (!execute_jr(*this, mmu, instr)) {
+      cycles = instr.cycles_cond;
+    }
+    break;
+  }
   case Opcode::HALT: execute_halt(*this, mmu, instr); break;
   case Opcode::LDH: execute_ldh(*this, mmu, instr); break;
   case Opcode::POP: execute_pop(*this, mmu, instr); break;
@@ -1199,6 +1223,7 @@ uint8_t Cpu::execute() {
     }
     break;
   case Opcode::RET:
+//    spdlog::info("RET: current_tick: {}", tick_counter);
     if (!execute_ret(*this, mmu, instr)) {
       cycles = instr.cycles_cond;
     }
@@ -1219,6 +1244,10 @@ uint8_t Cpu::execute() {
   case Opcode::EI: execute_ei(*this, mmu, instr); break;
   case Opcode::STOP: execute_stop(*this, mmu, instr); break;
   case Opcode::PREFIX: break;
+  }
+
+  if (cycles != tick_counter) {
+    spdlog::warn("{}({:02x}) timing incorrect: {} != {}", magic_enum::enum_name(instr.opcode), byte_code, cycles, tick_counter);
   }
 
   return cycles;
@@ -1247,6 +1276,9 @@ uint8_t Cpu::execute_interrupts() {
       spdlog::debug("Handling interrupt: {}", magic_enum::enum_name(interrupt));
       state.ime = false;
       interrupts.clear_interrupt(interrupt);
+
+      tick();
+      tick();
 
       auto handler_addr = interrupt_handler(interrupt);
       instr_call_imm16(*this, handler_addr);
@@ -1305,9 +1337,9 @@ void Cpu::write16(uint16_t addr, uint16_t word) {
 
 
 void Cpu::push16(uint16_t word) {
-  write8(--regs.sp, word >> 8);
+  mmu.write8(--regs.sp, word >> 8);
   tick();
-  write8(--regs.sp, word & 0xff);
+  mmu.write8(--regs.sp, word & 0xff);
   tick();
 }
 
@@ -1327,4 +1359,5 @@ void Cpu::tick() {
   for (auto &device : synced_devices) {
     device->on_tick();
   }
+  tick_counter += 4;
 }

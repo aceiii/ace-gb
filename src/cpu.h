@@ -56,6 +56,7 @@ public:
   State state;
 
   std::vector<SyncedDevice*> synced_devices;
+  int tick_counter = 0;
 
 private:
   uint8_t execute_interrupts();
