@@ -65,6 +65,10 @@ void SerialDevice::execute(uint8_t cycles) {
   }
 }
 
+void SerialDevice::on_tick() {
+
+}
+
 std::string_view SerialDevice::line_buffer() const {
   return str_buffer;
 }

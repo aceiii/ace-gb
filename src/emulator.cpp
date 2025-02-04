@@ -58,6 +58,10 @@ tl::expected<bool, std::string> Emulator::init() {
   mmu.add_device(&interrupts);
   mmu.add_device(&null_device);
 
+  cpu.add_synced(&timer);
+  cpu.add_synced(&ppu);
+  cpu.add_synced(&serial_device);
+
   auto result = load_bin("./boot.bin");
   if (!result) {
     return tl::unexpected(fmt::format("Failed to load boot rom: {}", result.error()));

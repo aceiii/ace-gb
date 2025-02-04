@@ -2,6 +2,7 @@
 
 #include "mmu_device.h"
 #include "interrupt_device.h"
+#include "synced_device.h"
 
 struct timer_registers {
   uint16_t div;
@@ -17,7 +18,7 @@ struct timer_registers {
   };
 };
 
-class Timer : public MmuDevice {
+class Timer : public MmuDevice, public SyncedDevice {
 public:
   explicit Timer(InterruptDevice &interrupts);
 
@@ -27,6 +28,7 @@ public:
   void reset() override;
 
   void execute(uint8_t cycles);
+  void on_tick() override;
 
 private:
   InterruptDevice &interrupts;

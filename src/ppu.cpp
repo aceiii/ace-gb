@@ -91,7 +91,12 @@ void Ppu::cleanup() {
 void Ppu::execute(uint8_t cycles) {
   do {
     step();
-  } while(--cycles);
+    cycles -= 4;
+  } while(cycles);
+}
+
+void Ppu::on_tick() {
+  step();
 }
 
 inline void Ppu::step() {

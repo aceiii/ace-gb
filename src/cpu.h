@@ -7,6 +7,7 @@
 #include "io.h"
 #include "interrupt.h"
 #include "interrupt_device.h"
+#include "synced_device.h"
 
 #include <memory>
 #include <valarray>
@@ -45,6 +46,7 @@ public:
   void push16(uint16_t val);
   uint16_t pop16();
 
+  void add_synced(SyncedDevice *device);
   void tick();
 
 public:
@@ -53,7 +55,7 @@ public:
   Registers regs;
   State state;
 
-
+  std::vector<SyncedDevice*> synced_devices;
 
 private:
   uint8_t execute_interrupts();

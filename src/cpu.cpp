@@ -1319,5 +1319,12 @@ uint16_t Cpu::pop16() {
   return lo | (hi << 8);
 }
 
+void Cpu::add_synced(SyncedDevice *device) {
+  synced_devices.push_back(device);
+}
+
 void Cpu::tick() {
+  for (auto &device : synced_devices) {
+    device->on_tick();
+  }
 }

@@ -5,10 +5,11 @@
 
 #include "mmu_device.h"
 #include "interrupt_device.h"
+#include "synced_device.h"
 
 using LineCallback = std::function<void(const std::string &str)>;
 
-class SerialDevice : public MmuDevice {
+class SerialDevice : public MmuDevice, public SyncedDevice {
 public:
   explicit SerialDevice(InterruptDevice &interrupts);
 
@@ -18,6 +19,8 @@ public:
   void reset() override;
 
   void execute(uint8_t cycles);
+  void on_tick() override;
+
   std::string_view line_buffer() const;
   void on_line(const LineCallback& callback);
 

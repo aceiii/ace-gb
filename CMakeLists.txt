@@ -57,6 +57,7 @@ set(SOURCE_FILES
         src/input_device.h
         src/serial_device.cpp
         src/serial_device.h
+        src/synced_device.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
@@ -106,6 +107,7 @@ if(BUILD_TESTS)
             src/interrupt.h
             src/interrupt_device.h
             src/interrupt_device.cpp
+            src/synced_device.h
     )
 
     add_executable(${TEST_NAME} ${TEST_FILES})

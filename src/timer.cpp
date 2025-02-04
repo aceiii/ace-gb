@@ -91,3 +91,7 @@ void Timer::execute(uint8_t cycles) {
   }
 }
 
+void Timer::on_tick() {
+  execute(4);
+}
+

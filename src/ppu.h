@@ -5,6 +5,7 @@
 
 #include "mmu.h"
 #include "interrupt_device.h"
+#include "synced_device.h"
 
 constexpr int kNumTiles = 384;
 
@@ -119,7 +120,7 @@ struct vram_memory {
   }
 };
 
-class Ppu : public MmuDevice {
+class Ppu : public MmuDevice, public SyncedDevice {
 public:
   explicit Ppu(Mmu &mmu, InterruptDevice &interrupts);
 
@@ -127,6 +128,8 @@ public:
   void cleanup();
   void execute(uint8_t cycles);
   void step();
+
+  void on_tick() override;
 
   [[nodiscard]] bool valid_for(uint16_t addr) const override;
   void write8(uint16_t addr, uint8_t byte) override;
