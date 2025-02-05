@@ -3,17 +3,23 @@
 #include "serial_device.h"
 #include "io.h"
 
-SerialDevice::SerialDevice(InterruptDevice &interrupts):interrupts{interrupts} {}
+SerialDevice::SerialDevice(InterruptDevice &interrupts):interrupts{interrupts} {
+  sb = 0;
+  sc.val = 0;
+  sc.unused = 0x1f;
+}
 
-[[nodiscard]] bool SerialDevice::valid_for(uint16_t addr) const {
+bool SerialDevice::valid_for(uint16_t addr) const {
   return addr == std::to_underlying(IO::SB) || addr == std::to_underlying(IO::SC);
 }
 
 void SerialDevice::write8(uint16_t addr, uint8_t byte) {
+  spdlog::info("serial write: {} -> {}", addr, byte);
   switch (addr) {
     case std::to_underlying(IO::SB): sb = byte; return;
     case std::to_underlying(IO::SC): {
       sc.val = byte;
+      sc.unused = 0x1f;
       if (sc.transfer_enable) {
         transfer_bytes = 8;
       }
@@ -23,7 +29,7 @@ void SerialDevice::write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-[[nodiscard]] uint8_t SerialDevice::read8(uint16_t addr) const {
+uint8_t SerialDevice::read8(uint16_t addr) const {
   switch (addr) {
     case std::to_underlying(IO::SB): return sb;
     case std::to_underlying(IO::SC): return sc.val;
@@ -34,6 +40,7 @@ void SerialDevice::write8(uint16_t addr, uint8_t byte) {
 void SerialDevice::reset() {
   sb = 0;
   sc.val = 0;
+  sc.unused = 0x1f;
 }
 
 void SerialDevice::execute(uint8_t cycles) {
@@ -66,7 +73,7 @@ void SerialDevice::execute(uint8_t cycles) {
 }
 
 void SerialDevice::on_tick() {
-
+  execute(4);
 }
 
 std::string_view SerialDevice::line_buffer() const {

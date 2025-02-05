@@ -16,6 +16,10 @@ constexpr uint16_t kVRAMRelStart = 0x9000;
 constexpr uint16_t kOAMAddrStart = 0xFE00;
 constexpr uint16_t kOAMAddrEnd = 0xFE9F;
 
+constexpr uint16_t kExtRamBusStart = 0xA000;
+constexpr uint16_t kExtRamBusEnd = 0xDFFF;
+constexpr uint16_t kExtRamBusMask = kExtRamBusEnd - kExtRamBusStart;
+
 constexpr size_t kDotsPerOAM = 80;
 constexpr size_t kDotsPerDraw = 172;
 constexpr size_t kDotsPerRow = 456;
@@ -496,12 +500,12 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-[[nodiscard]] uint8_t Ppu::read8(uint16_t addr) const {
+uint8_t Ppu::read8(uint16_t addr) const {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     return vram.bytes[addr - kVRAMAddrStart];
   }
 
-  if (addr >= kOAMAddrStart && addr < kOAMAddrEnd) {
+  if (addr >= kOAMAddrStart && addr <= kOAMAddrEnd) {
     return oam.bytes[addr - kOAMAddrStart];
   }
 
@@ -549,6 +553,22 @@ void Ppu::set_mode(PPUMode mode) {
 
 void Ppu::start_dma() {
   auto source = regs.dma << 8;
+
+  if (source >= kVRAMAddrStart && source <= kVRAMAddrEnd) {
+    spdlog::info("Start dma: {}", source);
+    auto base = source - kVRAMAddrStart;
+    for (auto i = 0; i < oam.bytes.size(); i += 1) {
+      oam.bytes[i] = vram.bytes[base + i];
+    }
+    return;
+  }
+
+  auto orig_source = source;
+  if (source >= kExtRamBusEnd) {
+    source = kExtRamBusStart + (source & kExtRamBusMask);
+  }
+
+  spdlog::info("Start dma: {:02x} -> ({:02x})", orig_source, source);
   for (auto i = 0; i < oam.bytes.size(); i += 1) {
     oam.bytes[i] = mmu.read8(source + i);
   }

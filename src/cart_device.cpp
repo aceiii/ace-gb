@@ -18,7 +18,7 @@ bool CartDevice::valid_for(uint16_t addr) const {
 }
 
 void CartDevice::write8(uint16_t addr, uint8_t byte) {
-  if (addr >= kExtRamEnd && addr <= kExtRamEnd) {
+  if (addr >= kExtRamStart && addr <= kExtRamEnd) {
     ext_ram[addr - kExtRamStart] = byte;
   }
 }

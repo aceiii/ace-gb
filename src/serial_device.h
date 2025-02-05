@@ -38,7 +38,7 @@ private:
     struct {
       uint8_t clock_select    : 1;
       uint8_t clock_speed     : 1;
-      uint8_t                 : 5;
+      uint8_t unused          : 5;
       uint8_t transfer_enable : 1;
     };
     uint8_t val;
