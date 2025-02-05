@@ -12,7 +12,7 @@ void NullDevice::write8(uint16_t addr, uint8_t byte) {
 
 [[nodiscard]] uint8_t NullDevice::read8(uint16_t addr) const {
   spdlog::warn("Read from 0x{:02x}", addr);
-  return 0;
+  return 0xff;
 }
 
 void NullDevice::reset() {

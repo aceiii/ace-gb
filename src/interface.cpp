@@ -99,6 +99,19 @@ void Interface::run() {
       UnloadDroppedFiles(dropped_files);
     }
 
+    while (auto key = GetKeyPressed()) {
+      spdlog::debug("Pressed: {}", key);
+    }
+
+    emulator.update_input(JoypadButton::Up, IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
+    emulator.update_input(JoypadButton::Down, IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
+    emulator.update_input(JoypadButton::Left, IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
+    emulator.update_input(JoypadButton::Right, IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
+    emulator.update_input(JoypadButton::Select, IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
+    emulator.update_input(JoypadButton::Start, IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
+    emulator.update_input(JoypadButton::A, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
+    emulator.update_input(JoypadButton::B, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
+
     emulator.update();
 
     BeginDrawing();

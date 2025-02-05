@@ -51,6 +51,8 @@ public:
   void remove_breakpoint(uint16_t addr);
   void clear_breakpoints();
 
+  void update_input(JoypadButton btn, bool pressed);
+
 private:
   Mmu mmu;
   Cpu cpu;

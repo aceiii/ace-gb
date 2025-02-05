@@ -85,10 +85,6 @@ void Emulator::update() {
 
   do {
     current_cycles += cpu.execute();
-//    timer.execute(cycles);
-//    ppu.execute(cycles);
-//    serial_device.execute(cycles);
-//    current_cycles += cycles;
 
     if (breakpoints.contains(cpu.regs.pc)) {
       running = false;
@@ -211,4 +207,8 @@ void Emulator::remove_breakpoint(uint16_t addr) {
 
 void Emulator::clear_breakpoints() {
   breakpoints.clear();
+}
+
+void Emulator::update_input(JoypadButton btn, bool pressed) {
+  input_device.update(btn, pressed);
 }

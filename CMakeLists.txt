@@ -58,6 +58,7 @@ set(SOURCE_FILES
         src/serial_device.cpp
         src/serial_device.h
         src/synced_device.h
+        src/joypad.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
