@@ -52,15 +52,7 @@ struct ppu_regs {
       uint8_t ly;
       uint8_t lyc;
       uint8_t dma;
-      union {
-        struct {
-          uint8_t id0 : 2;
-          uint8_t id1 : 2;
-          uint8_t id2 : 2;
-          uint8_t id3 : 2;
-        };
-        uint8_t val;
-      } bgp;
+      uint8_t bgp;
       uint8_t obp0;
       uint8_t obp1;
       uint8_t wy;
@@ -84,7 +76,7 @@ struct sprite {
   uint8_t tile;
   union {
     struct {
-      uint8_t cgb_palette : 1;
+      uint8_t cgb_palette : 3;
       uint8_t cgb_bank    : 1;
       uint8_t dmg_palette : 1;
       uint8_t x_flip      : 1;

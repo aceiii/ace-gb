@@ -14,7 +14,6 @@ bool SerialDevice::valid_for(uint16_t addr) const {
 }
 
 void SerialDevice::write8(uint16_t addr, uint8_t byte) {
-  spdlog::info("serial write: {} -> {}", addr, byte);
   switch (addr) {
     case std::to_underlying(IO::SB): sb = byte; return;
     case std::to_underlying(IO::SC): {
@@ -73,7 +72,7 @@ void SerialDevice::execute(uint8_t cycles) {
 }
 
 void SerialDevice::on_tick() {
-  execute(4);
+//  execute(4);
 }
 
 std::string_view SerialDevice::line_buffer() const {

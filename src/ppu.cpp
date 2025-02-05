@@ -33,14 +33,8 @@ constexpr std::array<Color, 4> kLCDPalette {
 
 }
 
-inline uint8_t get_palette_index(uint8_t id, ppu_regs &regs) {
-  switch (id) {
-    case 0: return regs.bgp.id0;
-    case 1: return regs.bgp.id1;
-    case 2: return regs.bgp.id2;
-    case 3: return regs.bgp.id3;
-    default: std::unreachable();
-  }
+inline uint8_t get_palette_index(uint8_t id, uint8_t palette) {
+  return (palette >> (2 * id)) & 0b11;
 }
 
 inline uint16_t addr_mode_8000(uint8_t addr) {
@@ -196,7 +190,7 @@ void Ppu::draw_lcd_row() {
       uint8_t lo = tile[row] >> (7 - sub_x);
       uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
-      auto cid = get_palette_index(bits, regs);
+      auto cid = get_palette_index(bits, regs.bgp);
       auto color = kLCDPalette[cid];
       ImageDrawPixel(&target_lcd_back, x, y, color);
     }
@@ -225,17 +219,27 @@ void Ppu::draw_lcd_row() {
 
     for (const auto sprite : valid_sprites) {
       auto top = sprite->y - 16;
+      auto row = sprite->attrs.y_flip ? height - (y - top)  : y - top;
+      auto tile_id = sprite->tile + (row / 8);
+      auto tile_idx = (addr_with_mode(regs.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+      auto tile = vram.tile_data[tile_idx];
+      auto palette = sprite->attrs.dmg_palette ? regs.obp1: regs.obp0;
       auto left = sprite->x - 8;
-      auto right = left + 8;
 
-      for (auto x = left; x < right; x += 1) {
+      for (auto x = sprite->x - 8; x < sprite->x; x += 1) {
         if (x < 0 || x >= kLCDWidth) {
           continue;
         }
 
-        auto palette = sprite->attrs.dmg_palette ? regs.obp0: regs.obp1;
-        auto color = RED;
-        ImageDrawPixel(&target_lcd_back, x, top + y, color);
+        auto xi = sprite->attrs.x_flip ? x - left : 7 - (x - left);
+        uint16_t hi = (tile[row % 8] >> 8) >> xi;
+        uint8_t lo = tile[row % 8] >> xi;
+        uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
+
+        if (bits) {
+          auto cid = get_palette_index(bits, palette);
+          ImageDrawPixel(&target_lcd_back, x, y, kLCDPalette[cid]);
+        }
       }
     }
   }
@@ -412,32 +416,35 @@ void Ppu::update_render_targets() {
   {
     ClearBackground(BLANK);
 
-    int sprite_tile_height = regs.lcdc.sprite_size ? 2 : 1;
-    int row = 0;
-    int col = 0;
+    auto sprite_tile_height = regs.lcdc.sprite_size ? 2 : 1;
+    auto row = 0;
+    auto col = 0;
 
     for (auto &sprite : oam.sprites) {
-      auto tile_idx = (addr_with_mode(1, sprite.tile) - kVRAMAddrStart) / 16;
-      auto left = col * 8;
+      for (auto ti = 0; ti < sprite_tile_height; ti += 1) {
+        auto tile_idx = ((addr_with_mode(1, sprite.tile) - kVRAMAddrStart) / 16) + ti;
+        auto dst_y = tile_idx / 16;
+        auto dst_x = tile_idx % 16;
 
-      for (auto ty = 0; ty < sprite_tile_height; ty += 1) {
-        auto tile = vram.tile_data[tile_idx + ty];
-        auto top = (row * 16) + (ty * 8);
-        for (auto y = 0; y < tile.size(); y += 1) {
-          uint16_t hi = (tile[y] >> 8) << 1;
-          uint8_t lo = tile[y];
-          for (auto x = 0; x < 8; x += 1) {
-            uint8_t bits = (hi & 0b10) | (lo & 0b1);
-            auto color = kLCDPalette[bits];
-            DrawPixel(left + 7 - x, top + y, color);
-          }
+        Rectangle rect {
+          static_cast<float>(dst_x * 8),
+          static_cast<float>(target_tiles.texture.height - (dst_y * 8) - 8),
+          8.f,
+          -8.f,
+        };
+
+        Vector2 pos {
+          static_cast<float>(col * 8),
+          static_cast<float>((row * sprite_tile_height * 8) + (ti * 8))
+        };
+
+        DrawTextureRec(target_tiles.texture, rect, pos, WHITE);
+
+        col += 1;
+        if (col >= 8) {
+          col = 0;
+          row += 1;
         }
-      }
-
-      col += 1;
-      if (col >= 8) {
-        col = 0;
-        row += 1;
       }
     }
   }
@@ -555,7 +562,6 @@ void Ppu::start_dma() {
   auto source = regs.dma << 8;
 
   if (source >= kVRAMAddrStart && source <= kVRAMAddrEnd) {
-    spdlog::info("Start dma: {}", source);
     auto base = source - kVRAMAddrStart;
     for (auto i = 0; i < oam.bytes.size(); i += 1) {
       oam.bytes[i] = vram.bytes[base + i];
@@ -563,12 +569,10 @@ void Ppu::start_dma() {
     return;
   }
 
-  auto orig_source = source;
   if (source >= kExtRamBusEnd) {
     source = kExtRamBusStart + (source & kExtRamBusMask);
   }
 
-  spdlog::info("Start dma: {:02x} -> ({:02x})", orig_source, source);
   for (auto i = 0; i < oam.bytes.size(); i += 1) {
     oam.bytes[i] = mmu.read8(source + i);
   }
