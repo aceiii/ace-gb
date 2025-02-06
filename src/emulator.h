@@ -30,7 +30,6 @@ public:
   void step();
   void play();
   void stop();
-  void render(bool& show_window);
 
   void load_cartridge(std::vector<uint8_t> &&bytes);
 
@@ -43,6 +42,7 @@ public:
   [[nodiscard]] Instruction instr() const;
   [[nodiscard]] uint8_t read8(uint16_t addr) const;
 
+  [[nodiscard]] const Texture2D& target_lcd() const;
   [[nodiscard]] const RenderTexture2D& target_tiles() const;
   [[nodiscard]] const RenderTexture2D& target_tilemap(uint8_t id) const;
   [[nodiscard]] const RenderTexture2D& target_sprites() const;

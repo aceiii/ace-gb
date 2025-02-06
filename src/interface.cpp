@@ -12,12 +12,41 @@
 #include "emulator.h"
 #include "file.h"
 
+
 namespace fs = std::filesystem;
 
 namespace {
   constexpr int kDefaulWindowWidth = 800;
   constexpr int kDefaultWindowHeight = 600;
   constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
+}
+
+void rlImGuiImageTextureFit(const Texture2D *image, bool center)
+{
+  if (!image)
+    return;
+
+  ImVec2 area = ImGui::GetContentRegionAvail();
+
+  float scale =  area.x / image->width;
+
+  float y = image->height * scale;
+  if (y > area.y)
+  {
+    scale = area.y / image->height;
+  }
+
+  int sizeX = image->width * scale;
+  int sizeY = image->height * scale;
+
+  if (center)
+  {
+    ImGui::SetCursorPosX(0);
+    ImGui::SetCursorPosX(area.x/2 - sizeX/2);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (area.y / 2 - sizeY / 2));
+  }
+
+  rlImGuiImageRect(image, sizeX, sizeY, Rectangle{ 0,0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
 Interface::Interface() {
@@ -124,7 +153,7 @@ void Interface::run() {
     ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
     if (show_lcd) {
-      emulator.render(show_lcd);
+      render_lcd(show_lcd);
     }
 
     if (show_tiles) {
@@ -280,6 +309,15 @@ void Interface::render_info() {
 
 //  const auto &state = emulator.state();
 //  DrawText(fmt::format("CPU State ime={}, halt={}, stop={}, hard_lock={}", state.ime, state.halt, state.stop, state.hard_lock).c_str(), 20, 224, 12, RAYWHITE);
+}
+
+void Interface::render_lcd(bool &show_window) {
+  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  ImGui::Begin("GameBoy", &show_window);
+  {
+    rlImGuiImageTextureFit(&emulator.target_lcd(), true);
+  }
+  ImGui::End();
 }
 
 void Interface::render_tiles(bool &show_window) {

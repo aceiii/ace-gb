@@ -8,33 +8,6 @@
 #include "file.h"
 #include "mmu.h"
 
-void rlImGuiImageTextureFit(const Texture2D *image, bool center)
-{
-  if (!image)
-    return;
-
-  ImVec2 area = ImGui::GetContentRegionAvail();
-
-  float scale =  area.x / image->width;
-
-  float y = image->height * scale;
-  if (y > area.y)
-  {
-    scale = area.y / image->height;
-  }
-
-  int sizeX = image->width * scale;
-  int sizeY = image->height * scale;
-
-  if (center)
-  {
-    ImGui::SetCursorPosX(0);
-    ImGui::SetCursorPosX(area.x/2 - sizeX/2);
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (area.y / 2 - sizeY / 2));
-  }
-
-  rlImGuiImageRect(image, sizeX, sizeY, Rectangle{ 0,0, static_cast<float>(image->width), static_cast<float>(image->height) });
-}
 
 Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts} {
   serial_device.on_line([] (const std::string &str) {
@@ -153,15 +126,6 @@ size_t Emulator::cycles() const {
   return num_cycles;
 }
 
-void Emulator::render(bool &show_window) {
-  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  ImGui::Begin("GameBoy", &show_window);
-  {
-    rlImGuiImageTextureFit(&ppu.lcd(), true);
-  }
-  ImGui::End();
-}
-
 PPUMode Emulator::mode() const {
   return ppu.mode();
 }
@@ -180,11 +144,15 @@ uint8_t Emulator::read8(uint16_t addr) const {
   return mmu.read8(addr);
 }
 
-const RenderTexture2D &Emulator::target_tiles() const {
+const Texture2D& Emulator::target_lcd() const {
+  return ppu.lcd();
+}
+
+const RenderTexture2D& Emulator::target_tiles() const {
   return ppu.tiles();
 }
 
-const RenderTexture2D &Emulator::target_tilemap(uint8_t idx) const {
+const RenderTexture2D& Emulator::target_tilemap(uint8_t idx) const {
   if (idx == 0) {
     return ppu.tilemap1();
   } else if (idx == 1) {
@@ -193,7 +161,7 @@ const RenderTexture2D &Emulator::target_tilemap(uint8_t idx) const {
   std::unreachable();
 }
 
-const RenderTexture2D &Emulator::target_sprites() const {
+const RenderTexture2D& Emulator::target_sprites() const {
   return ppu.sprites();
 }
 
