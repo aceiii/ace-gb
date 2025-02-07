@@ -1,6 +1,7 @@
 #include <spdlog/spdlog.h>
 
 #include "cart_device.h"
+#include "cart_header.h"
 
 namespace {
 
@@ -42,4 +43,5 @@ void CartDevice::reset() {
 
 void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
   cart_rom = bytes;
+  cart_header *header = reinterpret_cast<cart_header *>(&*cart_rom.begin() + 0x100);
 }

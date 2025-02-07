@@ -24,7 +24,6 @@ set(SOURCE_FILES
         src/decoder.h
         src/decoder.cpp
         src/instructions.h
-        src/memory.h
         src/opcodes.h
         src/overloaded.h
         src/registers.h
@@ -60,6 +59,8 @@ set(SOURCE_FILES
         src/synced_device.h
         src/joypad.h
         src/cart_header.h
+        src/mbc1.cpp
+        src/mbc1.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
@@ -98,7 +99,6 @@ if(BUILD_TESTS)
             src/decoder.h
             src/decoder.cpp
             src/instructions.h
-            src/memory.h
             src/opcodes.h
             src/overloaded.h
             src/registers.h
