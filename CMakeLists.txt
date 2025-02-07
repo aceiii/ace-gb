@@ -59,6 +59,7 @@ set(SOURCE_FILES
         src/serial_device.h
         src/synced_device.h
         src/joypad.h
+        src/cart_header.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
