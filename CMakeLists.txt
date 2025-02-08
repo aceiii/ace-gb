@@ -61,6 +61,8 @@ set(SOURCE_FILES
         src/cart_header.h
         src/mbc1.cpp
         src/mbc1.h
+        src/memory_bank_controller.h
+        src/cart_info.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)

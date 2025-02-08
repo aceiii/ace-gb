@@ -21,7 +21,8 @@
 
 class Emulator {
 public:
-  Emulator();
+  explicit Emulator();
+  ~Emulator() = default;
 
   tl::expected<bool, std::string> init();
   void cleanup();
