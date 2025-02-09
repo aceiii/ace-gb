@@ -9,7 +9,7 @@ enum class IO {
   TMA = 0xff06,
   TAC = 0xff07,
   IF = 0xff0f,
-  NR10 = 0xff10,
+  NR10 = 0xff10, // AUDIO
   NR11 = 0xff11,
   NR12 = 0xff12,
   NR13 = 0xff13,

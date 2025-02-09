@@ -4,15 +4,7 @@
 #include "io.h"
 
 bool BootRomDevice::valid_for(uint16_t addr) const {
-  if (addr == std::to_underlying(IO::BOOT)) {
-    return true;
-  }
-
-  if (addr < rom.size() && !disable) {
-    return true;
-  }
-
-  return false;
+  return addr == std::to_underlying(IO::BOOT) || (!disable && addr < rom.size());
 }
 
 void BootRomDevice::write8(uint16_t addr, uint8_t byte) {
@@ -26,10 +18,8 @@ void BootRomDevice::write8(uint16_t addr, uint8_t byte) {
   if (addr < rom.size()) {
     return rom[addr];
   }
-  if (addr == std::to_underlying(IO::BOOT)) {
-    return disable;
-  }
-  std::unreachable();
+
+  return 0xff;
 }
 
 void BootRomDevice::reset() {

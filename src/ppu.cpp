@@ -516,6 +516,10 @@ uint8_t Ppu::read8(uint16_t addr) const {
     return oam.bytes[addr - kOAMAddrStart];
   }
 
+  if (addr == std::to_underlying(IO::STAT)) {
+    return regs.stat.val | 0b10000000;
+  }
+
   return regs.bytes[addr - std::to_underlying(IO::LCDC)];
 }
 

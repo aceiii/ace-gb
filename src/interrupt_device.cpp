@@ -28,7 +28,7 @@ void InterruptDevice::write8(uint16_t addr, uint8_t byte) {
 uint8_t InterruptDevice::read8(uint16_t addr) const {
   switch (addr) {
     case std::to_underlying(IO::IF):
-      return flag.val;
+      return flag.val | 0b11100000;
     case std::to_underlying(IO::IE):
       return enable.val;
     default: std::unreachable();
