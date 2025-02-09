@@ -20,8 +20,8 @@ public:
   const cart_info& cartridge_info() const;
 
 private:
-  std::vector<uint8_t> cart_rom;
+  std::array<uint8_t, 32768> cart_rom;
   std::array<uint8_t, 8192> ext_ram;
-  cart_info info;
   std::unique_ptr<MemoryBankController> mbc;
+  cart_info info;
 };

@@ -8,20 +8,27 @@
 
 class Mbc1 : public MemoryBankController {
 public:
-  explicit Mbc1(std::vector<uint8_t> &bytes, cart_info info, bool has_ram, bool has_battery);
+  explicit Mbc1(const std::vector<uint8_t> &bytes, cart_info info, bool has_ram, bool has_battery);
 
-  [[nodiscard]] uint8_t read8(uint16_t addr) const override;
-  void write8(uint16_t addr, uint8_t byte) override;
+  [[nodiscard]] uint8_t read_rom0(uint16_t addr) const override;
+  [[nodiscard]] uint8_t read_rom1(uint16_t addr) const override;
+  [[nodiscard]] uint8_t read_ram(uint16_t addr) const override;
+
+  void write_reg(uint16_t addr, uint8_t byte) override;
+  void write_ram(uint16_t addr, uint8_t byte) override;
 
 private:
-  std::vector<uint8_t> &rom;
+  [[nodiscard]] uint16_t ram_bank_addr(uint16_t addr) const;
+
+private:
+  std::array<uint8_t, 2097152> rom {};
+  std::array<uint8_t, 1024 * 32> ram {};
   cart_info info;
-  std::array<uint8_t, 1024 * 4> ram;
 
   bool ram_enable = false;
   struct {
     uint8_t rom_bank_number: 5 = 0;
-    uint8_t ram_bank_number : 2 = 0;
+    uint8_t ram_bank_number: 2 = 0;
   };
   uint8_t banking_mode = 0;
 };

@@ -11,6 +11,10 @@ class MemoryBankController {
 public:
   virtual ~MemoryBankController() = default;
 
-  [[nodiscard]] virtual uint8_t read8(uint16_t addr) const = 0;
-  virtual void write8(uint16_t addr, uint8_t byte) = 0;
+  [[nodiscard]] virtual uint8_t read_rom0(uint16_t addr) const = 0;
+  [[nodiscard]] virtual uint8_t read_rom1(uint16_t addr) const = 0;
+  [[nodiscard]] virtual uint8_t read_ram(uint16_t addr) const = 0;
+
+  virtual void write_reg(uint16_t addr, uint8_t byte) = 0;
+  virtual void write_ram(uint16_t addr, uint8_t byte) = 0;
 };

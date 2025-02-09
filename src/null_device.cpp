@@ -7,11 +7,11 @@
 }
 
 void NullDevice::write8(uint16_t addr, uint8_t byte) {
-  spdlog::warn("Write to 0x{:02x} = {:02x}", addr, byte);
+  spdlog::warn("NullDevice: Write to 0x{:02x} = {:02x}", addr, byte);
 }
 
 [[nodiscard]] uint8_t NullDevice::read8(uint16_t addr) const {
-  spdlog::warn("Read from 0x{:02x}", addr);
+  spdlog::warn("NullDevice: Read from 0x{:02x}", addr);
   return 0xff;
 }
 

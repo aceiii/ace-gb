@@ -415,6 +415,9 @@ void Interface::render_registers(bool &show_window) {
     ImGui::Text("A=%02X F=%02X B=%02X C=%02X D=%02X E=%02X H=%02X L=%02X", a, f, b, c, d, e, h, l);
     ImGui::Text("AF=%04X BC=%04X DE=%04X HL=%04X", af, bc, de,hl);
     ImGui::Text("Flags Z=%d N=%d H=%d C=%d", zero, neg, half_carry, carry);
+
+    const auto &state = emulator.state();
+    ImGui::Text("State IME=%d HALT=%d STOP=%d HARD_LOCK=%d", state.ime, state.halt, state.stop, state.hard_lock);
   }
   ImGui::End();
 }

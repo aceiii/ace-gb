@@ -48,6 +48,7 @@ struct cart_info {
   size_t rom_size_bytes;
   size_t rom_num_banks;
   RamType ram_type;
+  size_t ram_num_banks;
 
   inline void reset() {
     title = "";
@@ -55,5 +56,6 @@ struct cart_info {
     rom_size_bytes = 0;
     rom_num_banks = 0;
     ram_type = RamType::NO_RAM;
+    ram_num_banks = 0;
   }
 };

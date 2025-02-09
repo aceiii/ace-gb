@@ -767,6 +767,7 @@ inline bool instr_jump_rel_cond(Cpu &cpu, Cond cond, int8_t e) {
 }
 
 inline bool instr_call_imm16(Cpu &cpu, uint16_t nn) {
+//  spdlog::info("Call: {:02x}", nn);
   cpu.push16(cpu.regs.pc);
   cpu.regs.pc = nn;
   cpu.tick();
