@@ -41,7 +41,7 @@ void Timer::write8(uint16_t addr, uint8_t byte) {
       tima_counter = 0;
       return;
     case std::to_underlying(IO::TAC):
-      regs.tac = byte;
+      regs.tac = (byte & 0b111) | (0b11111000);
       return;
     default: std::unreachable();
   }

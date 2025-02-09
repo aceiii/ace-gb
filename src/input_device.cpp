@@ -20,7 +20,7 @@ void InputDevice::write8(uint16_t addr, uint8_t byte) {
     buttons |= ~reg_dpad.buttons;
   }
 
-  return (reg_buttons.select << 4) | ~buttons & 0b1111;
+  return (reg_buttons.select << 4) | (~buttons & 0b1111) | (0b11000000);
 }
 
 void InputDevice::reset() {

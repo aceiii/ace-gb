@@ -8,6 +8,7 @@
 #include "cart_info.h"
 #include "mmu_device.h"
 #include "memory_bank_controller.h"
+#include "no_mbc.h"
 
 class CartDevice : public MmuDevice {
 public:
@@ -20,8 +21,6 @@ public:
   const cart_info& cartridge_info() const;
 
 private:
-  std::array<uint8_t, 32768> cart_rom;
-  std::array<uint8_t, 8192> ext_ram;
-  std::unique_ptr<MemoryBankController> mbc;
+  std::unique_ptr<MemoryBankController> mbc = std::make_unique<NoMbc>();
   cart_info info;
 };

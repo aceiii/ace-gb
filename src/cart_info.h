@@ -45,17 +45,19 @@ enum class RamType : uint8_t {
 struct cart_info {
   std::string title;
   CartType type;
+  RamType ram_type;
   size_t rom_size_bytes;
   size_t rom_num_banks;
-  RamType ram_type;
+  size_t ram_size_bytes;
   size_t ram_num_banks;
 
   inline void reset() {
     title = "";
     type = CartType::ROM_ONLY;
+    ram_type = RamType::NO_RAM;
     rom_size_bytes = 0;
     rom_num_banks = 0;
-    ram_type = RamType::NO_RAM;
+    ram_size_bytes = 0;
     ram_num_banks = 0;
   }
 };

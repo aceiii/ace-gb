@@ -18,7 +18,8 @@ void SerialDevice::write8(uint16_t addr, uint8_t byte) {
     case std::to_underlying(IO::SB): sb = byte; return;
     case std::to_underlying(IO::SC): {
       sc.val = byte;
-      sc.unused = 0x1f;
+      sc.clock_speed = 0b1;
+      sc.unused = 0b11111;
       if (sc.transfer_enable) {
         transfer_bytes = 8;
       }

@@ -22,13 +22,12 @@ private:
 
 private:
   std::array<uint8_t, 2097152> rom {};
-  std::array<uint8_t, 1024 * 32> ram {};
+  std::array<uint8_t, 32768> ram {};
   cart_info info;
-
+  bool mbc1m = false;
   bool ram_enable = false;
-  struct {
-    uint8_t rom_bank_number: 5 = 0;
-    uint8_t ram_bank_number: 2 = 0;
-  };
+
+  uint8_t rom_bank_number = 0;
+  uint8_t ram_bank_number = 0;
   uint8_t banking_mode = 0;
 };
