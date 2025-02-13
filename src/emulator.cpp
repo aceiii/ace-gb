@@ -87,6 +87,19 @@ void Emulator::reset() {
   mmu.reset_devices();
   boot.load_bytes(boot_rom);
   cart.load_cartridge(cart_bytes);
+
+  if (_skip_bootrom) {
+    cpu.regs.set(Reg8::A, 0x01);
+    cpu.regs.set(Reg8::F, 0xb0);
+    cpu.regs.set(Reg8::B, 0x00);
+    cpu.regs.set(Reg8::C, 0x13);
+    cpu.regs.set(Reg8::D, 0x00);
+    cpu.regs.set(Reg8::E, 0xd8);
+    cpu.regs.set(Reg8::H, 0x01);
+    cpu.regs.set(Reg8::L, 0x4d);
+    cpu.regs.sp = 0xfffe;
+    cpu.regs.pc = 0x0100;
+  }
 }
 
 void Emulator::step() {
@@ -178,4 +191,12 @@ void Emulator::clear_breakpoints() {
 
 void Emulator::update_input(JoypadButton btn, bool pressed) {
   input_device.update(btn, pressed);
+}
+
+void Emulator::set_skip_bootrom(bool skip) {
+  _skip_bootrom = skip;
+}
+
+bool Emulator::skip_bootrom() const {
+  return _skip_bootrom;
 }

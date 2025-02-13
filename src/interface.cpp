@@ -191,6 +191,9 @@ void Interface::run() {
     }
     if (ImGui::BeginMenu("Emulator")) {
       ImGui::MenuItem("Auto-Start", nullptr, &auto_start);
+      if (ImGui::MenuItem("Skip Boot ROM", nullptr, emulator.skip_bootrom())) {
+        emulator.set_skip_bootrom(!emulator.skip_bootrom());
+      }
       ImGui::Separator();
       if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator.is_playing())) {
         emulator.play();

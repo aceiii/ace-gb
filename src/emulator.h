@@ -33,8 +33,9 @@ public:
   void stop();
 
   void load_cartridge(std::vector<uint8_t> &&bytes);
-
   [[nodiscard]] bool is_playing() const;
+  void set_skip_bootrom(bool skip);
+  [[nodiscard]] bool skip_bootrom() const;
 
   [[nodiscard]] const Registers& registers() const;
   [[nodiscard]] const State& state() const;
@@ -75,4 +76,5 @@ private:
 
   size_t num_cycles = 0;
   bool running = false;
+  bool _skip_bootrom = true;
 };

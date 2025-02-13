@@ -578,7 +578,7 @@ void Ppu::start_dma() {
     source = kExtRamBusStart + (source & kExtRamBusMask);
   }
 
-  spdlog::info("Starting dma: source={:04x}", source);
+//  spdlog::info("Starting dma: source={:04x}", source);
 
   for (auto i = 0; i < oam.bytes.size(); i += 1) {
     oam.bytes[i] = mmu.read8(source + i);
