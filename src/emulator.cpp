@@ -97,7 +97,6 @@ void Emulator::step() {
   auto cycles = cpu.execute();
   timer.execute(cycles);
   ppu.execute(cycles);
-  serial_device.execute(cycles);
 
   num_cycles += cycles;
 }

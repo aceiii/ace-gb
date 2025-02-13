@@ -13,7 +13,7 @@ bool CartDevice::valid_for(uint16_t addr) const {
 }
 
 void CartDevice::write8(uint16_t addr, uint8_t byte) {
-  if ((addr & 0xe000) == 0xa000) {
+  if (addr >= kExtRamStart && addr <= kExtRamEnd) {
     return mbc->write_ram(addr, byte);
   }
   return mbc->write_reg(addr, byte);

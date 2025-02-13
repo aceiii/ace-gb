@@ -18,17 +18,17 @@ public:
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
   void reset() override;
 
-  void execute(uint8_t cycles);
+  void step();
   void on_tick() override;
+  void trigger_callbacks();
 
   std::string_view line_buffer() const;
   void on_line(const LineCallback& callback);
 
 private:
-  void trigger_callbacks();
-
   InterruptDevice &interrupts;
-  uint8_t transfer_bytes = 0;
+  uint16_t clock = 0;
+  uint16_t transfer_bytes = 0;
   uint8_t byte_buffer;
   std::string str_buffer;
   std::vector<LineCallback> callbacks;

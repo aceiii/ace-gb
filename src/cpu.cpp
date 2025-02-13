@@ -1164,6 +1164,8 @@ uint8_t Cpu::execute() {
     instr = Decoder::decode_prefixed(byte_code);
   }
 
+//  spdlog::info("Instr: {}", magic_enum::enum_name(instr.opcode));
+
   std::visit(overloaded{
      [&](Operands_Imm8 &operands) { operands.imm = read_next8(); },
      [&](Operands_Imm16 &operands) { operands.imm = read_next16(); },

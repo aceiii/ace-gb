@@ -469,6 +469,7 @@ bool Ppu::valid_for(uint16_t addr) const {
 
 void Ppu::write8(uint16_t addr, uint8_t byte) {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
+//    spdlog::info("Writing to vam: [{:04x}] = {:02x}", addr, byte);
     vram.bytes[addr - kVRAMAddrStart] = byte;
     return;
   }
@@ -576,6 +577,8 @@ void Ppu::start_dma() {
   if (source >= kExtRamBusEnd) {
     source = kExtRamBusStart + (source & kExtRamBusMask);
   }
+
+  spdlog::info("Starting dma: source={:04x}", source);
 
   for (auto i = 0; i < oam.bytes.size(); i += 1) {
     oam.bytes[i] = mmu.read8(source + i);
