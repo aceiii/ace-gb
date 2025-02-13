@@ -208,17 +208,18 @@ void Interface::run() {
       ImGui::Separator();
       if (ImGui::MenuItem("Reset")) {
         emulator.reset();
+        if (auto_start) {
+          emulator.play();
+        }
       }
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Hardware")) {
       if (ImGui::BeginMenu("PPU")) {
-        ImGui::MenuItem("Stat", nullptr, &show_lcd);
-        ImGui::MenuItem("VRAM");
-        ImGui::MenuItem("OAM");
+        ImGui::MenuItem("LCD", nullptr, &show_lcd);
         ImGui::MenuItem("TileMap 1", nullptr, &show_tilemap1);
         ImGui::MenuItem("TileMap 2", nullptr, &show_tilemap2);
-        ImGui::MenuItem("Sprites");
+        ImGui::MenuItem("Sprites", nullptr, &show_sprites);
         ImGui::MenuItem("Tiles", nullptr, &show_tiles);
         ImGui::EndMenu();
       }
