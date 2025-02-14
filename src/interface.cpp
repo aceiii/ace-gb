@@ -49,7 +49,7 @@ void rlImGuiImageTextureFit(const Texture2D *image, bool center)
   rlImGuiImageRect(image, sizeX, sizeY, Rectangle{ 0,0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
-Interface::Interface(bool doctor_log): emulator{doctor_log} {
+Interface::Interface() {
   spdlog::info("Initializing interface");
 
   NFD_Init();

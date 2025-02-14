@@ -1156,6 +1156,30 @@ uint8_t Cpu::execute() {
     return 4;
   }
 
+  auto logger = spdlog::get("doctor_logger");
+  if (logger) {
+    auto a = regs.get(Reg8::A);
+    auto f = regs.get(Reg8::F);
+    auto b = regs.get(Reg8::B);
+    auto c = regs.get(Reg8::C);
+    auto d = regs.get(Reg8::D);
+    auto e = regs.get(Reg8::E);
+    auto h = regs.get(Reg8::H);
+    auto l = regs.get(Reg8::L);
+    auto pc = regs.pc;
+    auto sp = regs.sp;
+
+    auto mem = std::to_array<uint8_t>({
+      mmu.read8(pc),
+      mmu.read8(pc + 1),
+      mmu.read8(pc + 2),
+      mmu.read8(pc + 3),
+    });
+
+    logger->info("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
+      a, f, b, c, d, e, h, l, sp, pc, mem[0], mem[1], mem[2], mem[3]);
+  }
+
   uint8_t byte_code = read_next8();
   Instruction instr = Decoder::decode(byte_code);
 

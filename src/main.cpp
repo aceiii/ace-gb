@@ -68,7 +68,7 @@ auto main(int argc, char *argv[]) -> int {
     }
   }
 
-  Interface interface { doctor_log };
+  Interface interface;
   interface.run();
 
   return 0;
