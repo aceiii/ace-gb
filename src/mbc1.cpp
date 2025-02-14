@@ -62,5 +62,5 @@ uint16_t Mbc1::ram_bank_addr(uint16_t addr) const {
   if (!banking_mode) {
     return addr & 0x1fff;
   }
-  return ((addr & 0x1fff) | (ram_bank_number << 13)) & (info.ram_num_banks - 1);
+  return (addr & 0x1fff) | (ram_bank_number << 13) & ((info.ram_num_banks << 13) - 1);
 }
