@@ -18,6 +18,8 @@ public:
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
   void reset() override;
 
+  void set_disable(uint8_t byte);
+
 private:
   rom_buffer rom;
   uint8_t disable = 0;

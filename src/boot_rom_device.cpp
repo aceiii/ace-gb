@@ -30,3 +30,7 @@ void BootRomDevice::reset() {
 void BootRomDevice::load_bytes(const rom_buffer &bytes) {
   rom = bytes;
 }
+
+void BootRomDevice::set_disable(uint8_t byte) {
+  disable = byte;
+}
