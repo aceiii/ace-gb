@@ -143,3 +143,80 @@ cmake --build build
 - [ ] boot_regs-cgb.gb
 - [ ] ppu/vblank_stat_intr-C.gb
 
+
+### Blargg Test ROMs
+
+#### cgb_sound
+
+- [ ] 01-registers.gb
+- [ ] 02-len ctr.gb
+- [ ] 03-trigger.gb
+- [ ] 04-sweep.gb
+- [ ] 05-sweep details.gb
+- [ ] 06-overflow on trigger.gb
+- [ ] 07-len sweep period sync.gb
+- [ ] 08-len ctr during power.gb
+- [ ] 09-wave read while on.gb
+- [ ] 10-wave trigger while on.gb
+- [ ] 11-regs after power.gb
+- [ ] 12-wave.gb
+
+#### cpu_instrs
+
+- [x] 01-special.gb
+- [x] 02-interrupts.gb
+- [x] 03-op sp,hl.gb
+- [x] 04-op r,imm.gb
+- [x] 05-op rp.gb
+- [x] 06-ld r,r.gb
+- [x] 07-jr,jp,call,ret,rst.gb
+- [x] 08-misc instrs.gb
+- [x] 09-op r,r.gb
+- [x] 10-bit ops.gb
+- [x] 11-op a,(hl).gb
+
+#### dmg_sound
+
+- [ ] 01-registers.gb
+- [ ] 02-len ctr.gb
+- [ ] 03-trigger.gb
+- [ ] 04-sweep.gb
+- [ ] 05-sweep details.gb
+- [ ] 06-overflow on trigger.gb
+- [ ] 07-len sweep period sync.gb
+- [ ] 08-len ctr during power.gb
+- [ ] 09-wave read while on.gb
+- [ ] 10-wave trigger while on.gb
+- [ ] 11-regs after power.gb
+- [ ] 12-wave write while on.gb
+
+#### instr_timing
+
+- [x] instr_timing.gb
+
+#### interrupt_time
+
+- [ ] interrupt_time.gb
+
+#### mem_timing
+
+- [x] 01-read_timing.gb
+- [x] 02-write_timing.gb
+- [x] 03-modify_timing.gb
+
+#### mem_timing-2
+
+- [x] 01-read_timing.gb
+- [x] 02-write_timing.gb
+- [x] 03-modify_timing.gb
+
+#### oam_bug
+
+- [ ] 1-lcd_sync.gb
+- [ ] 2-causes.gb
+- [x] 3-non_causes.gb
+- [ ] 4-scanline_timing.gb
+- [ ] 5-timing_bug.gb
+- [x] 6-timing_no_bug.gb
+- [ ] 7-timing_effect.gb
+- [ ] 8-instr_effect.gb
