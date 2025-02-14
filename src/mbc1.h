@@ -27,7 +27,9 @@ private:
   bool mbc1m = false;
   bool ram_enable = false;
 
-  uint8_t rom_bank_number = 0;
-  uint8_t ram_bank_number = 0;
+  struct {
+    uint8_t rom_bank_number : 5 = 0;
+    uint8_t ram_bank_number : 2 = 0;
+  };
   uint8_t banking_mode = 0;
 };

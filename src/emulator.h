@@ -21,7 +21,7 @@
 
 class Emulator {
 public:
-  explicit Emulator();
+  explicit Emulator(bool doctor_log);
   ~Emulator() = default;
 
   tl::expected<bool, std::string> init();
@@ -55,6 +55,8 @@ public:
 
   void update_input(JoypadButton btn, bool pressed);
 
+  void log_doctor() const;
+
 private:
   Mmu mmu;
   Cpu cpu;
@@ -77,4 +79,5 @@ private:
   size_t num_cycles = 0;
   bool running = false;
   bool _skip_bootrom = true;
+  bool _doctor_log = false;
 };

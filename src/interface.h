@@ -6,7 +6,7 @@
 
 class Interface {
 public:
-  explicit Interface();
+  explicit Interface(bool doctor_log);
   ~Interface();
 
   void run();

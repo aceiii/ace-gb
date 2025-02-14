@@ -9,7 +9,7 @@
 #include "mmu.h"
 
 
-Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts} {
+Emulator::Emulator(bool doctor_log):_doctor_log{doctor_log}, cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts} {
   serial_device.on_line([] (const std::string &str) {
     spdlog::info("Serial: {}", str);
   });
@@ -57,6 +57,7 @@ void Emulator::update() {
   int current_cycles = 0;
 
   do {
+    log_doctor();
     current_cycles += cpu.execute();
 
     if (breakpoints.contains(cpu.regs.pc)) {
@@ -107,11 +108,8 @@ void Emulator::step() {
     return;
   }
 
-  auto cycles = cpu.execute();
-  timer.execute(cycles);
-  ppu.execute(cycles);
-
-  num_cycles += cycles;
+  log_doctor();
+  num_cycles += cpu.execute();
 }
 
 void Emulator::play() {
@@ -199,4 +197,31 @@ void Emulator::set_skip_bootrom(bool skip) {
 
 bool Emulator::skip_bootrom() const {
   return _skip_bootrom;
+}
+
+void Emulator::log_doctor() const {
+  auto logger = spdlog::get("doctor_logger");
+  if (!logger) {
+    return;
+  }
+
+  auto a = cpu.regs.get(Reg8::A);
+  auto f = cpu.regs.get(Reg8::F);
+  auto b = cpu.regs.get(Reg8::B);
+  auto c = cpu.regs.get(Reg8::C);
+  auto d = cpu.regs.get(Reg8::D);
+  auto e = cpu.regs.get(Reg8::E);
+  auto h = cpu.regs.get(Reg8::H);
+  auto l = cpu.regs.get(Reg8::L);
+  auto pc = cpu.regs.pc;
+  auto sp = cpu.regs.sp;
+
+  auto mem = std::to_array<uint8_t>({
+    cpu.mmu.read8(pc),
+    cpu.mmu.read8(pc + 1),
+    cpu.mmu.read8(pc + 2),
+    cpu.mmu.read8(pc + 3),
+  });
+
+  logger->info("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}", a, f, b, c, d, e, h, l, sp, pc, mem[0], mem[1], mem[2], mem[3]);
 }

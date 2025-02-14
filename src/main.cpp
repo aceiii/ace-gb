@@ -5,6 +5,7 @@
 #include <argparse/argparse.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 #include "cpu.h"
 #include "interface.h"
@@ -32,6 +33,11 @@ auto main(int argc, char *argv[]) -> int {
       .default_value(std::string("info"))
       .nargs(1);
 
+  program.add_argument("--doctor-log")
+    .help("Outputs log file for gameboy-doctor")
+    .implicit_value(true)
+    .default_value(false);
+
   try {
     program.parse_args(argc, argv);
   } catch (const std::exception &err) {
@@ -50,7 +56,19 @@ auto main(int argc, char *argv[]) -> int {
     return 1;
   }
 
-  Interface interface;
+  auto doctor_log = program.get<bool>("--doctor-log");
+  if (doctor_log) {
+    try {
+      auto logger = spdlog::basic_logger_mt("doctor_logger", "doctor.log");
+      logger->set_pattern("%v");
+    }
+    catch (const spdlog::spdlog_ex &ex) {
+      std::cerr << "Doctor logger failed to initialize: " << ex.what() << std::endl;
+      return 1;
+    }
+  }
+
+  Interface interface { doctor_log };
   interface.run();
 
   return 0;
