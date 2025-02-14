@@ -497,7 +497,7 @@ inline void instr_rla(Cpu &cpu) {
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | cpu.regs.get(Flag::C);
   cpu.regs.set(Reg8::A, result);
-  cpu.regs.set(Flag::Z, 0);//result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::Z, 0);
   cpu.regs.set(Flag::N, 0);
   cpu.regs.set(Flag::H, 0);
   cpu.regs.set(Flag::C,  carry);
@@ -508,7 +508,7 @@ inline void instr_rra(Cpu &cpu) {
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (cpu.regs.get(Flag::C) << 7);
   cpu.regs.set(Reg8::A, result);
-  cpu.regs.set(Flag::Z, result == 0 ? 1 : 0);
+  cpu.regs.set(Flag::Z, 0);
   cpu.regs.set(Flag::N, 0);
   cpu.regs.set(Flag::H, 0);
   cpu.regs.set(Flag::C, carry);
