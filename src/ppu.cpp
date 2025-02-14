@@ -51,7 +51,10 @@ inline uint16_t addr_with_mode(uint8_t mode, uint8_t addr) {
 
 Ppu::Ppu(Mmu &mmu, InterruptDevice &interrupts)
 :interrupts{interrupts}, mmu{mmu}
-{}
+{
+  auto logger = spdlog::get("doctor_logger");
+  log_doctor = logger != nullptr;
+}
 
 void Ppu::init() {
   target_lcd_back = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
@@ -519,6 +522,10 @@ uint8_t Ppu::read8(uint16_t addr) const {
 
   if (addr == std::to_underlying(IO::STAT)) {
     return regs.stat.val | 0b10000000;
+  }
+
+  if (log_doctor && addr == std::to_underlying(IO::LY)) {
+    return 0x90;
   }
 
   return regs.bytes[addr - std::to_underlying(IO::LCDC)];

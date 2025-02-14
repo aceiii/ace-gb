@@ -156,6 +156,8 @@ private:
   uint8_t num_sprites = 0;
   uint16_t cycle_counter = 0;
 
+  bool log_doctor = false;
+
 private:
   void set_mode(PPUMode mode);
   void draw_lcd_row();
