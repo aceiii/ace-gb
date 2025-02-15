@@ -6,6 +6,9 @@
 #include "cart_info.h"
 #include "memory_bank_controller.h"
 
+using rom_bank = std::array<uint8_t, 16384>;
+using ram_bank = std::array<uint8_t, 8192>;
+
 class Mbc1 : public MemoryBankController {
 public:
   explicit Mbc1(const std::vector<uint8_t> &bytes, cart_info info, bool has_ram, bool has_battery);
@@ -18,11 +21,8 @@ public:
   void write_ram(uint16_t addr, uint8_t byte) override;
 
 private:
-  [[nodiscard]] uint16_t ram_bank_addr(uint16_t addr) const;
-
-private:
-  std::array<uint8_t, 2097152> rom {};
-  std::array<uint8_t, 32768> ram {};
+  std::array<rom_bank, 128> rom {};
+  std::array<ram_bank, 4> ram {};
   cart_info info;
   bool mbc1m = false;
   bool ram_enable = false;
