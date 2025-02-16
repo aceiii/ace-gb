@@ -3,6 +3,9 @@
 
 #include "mbc1.h"
 
+constexpr uint16_t kLogoStart = 0x0104;
+constexpr uint16_t kLogoEnd = 0x0133;
+
 Mbc1::Mbc1(const std::vector<uint8_t> &bytes, cart_info info, bool has_ram, bool has_battery): info {std::move(info)} {
   size_t size_left = bytes.size();
   auto byte_it = bytes.begin();
@@ -13,13 +16,23 @@ Mbc1::Mbc1(const std::vector<uint8_t> &bytes, cart_info info, bool has_ram, bool
     size_left -= size;
     byte_it += static_cast<int>(size);
   }
+
+  if (info.rom_num_banks >= 16 && std::equal(rom[0].begin() + kLogoStart, rom[0].begin() + kLogoEnd + 1, rom[15].begin() + kLogoStart)) {
+    mbc1m = true;
+    spdlog::info("Multi-Cart detected");
+  }
 }
 
 uint8_t Mbc1::read_rom0(uint16_t addr) const {
+  if (mbc1m && banking_mode) {
+      return rom[(ram_bank_number << 4) % info.rom_num_banks][addr];
+  }
+
   if (!banking_mode || info.rom_num_banks <= 32) {
     return rom[0][addr];
   }
-  return rom[(ram_bank_number << 5) % info.rom_num_banks][addr & 0x3fff];
+
+  return rom[(ram_bank_number << 5) % info.rom_num_banks][addr];
 }
 
 uint8_t Mbc1::read_rom1(uint16_t addr) const {
@@ -28,8 +41,12 @@ uint8_t Mbc1::read_rom1(uint16_t addr) const {
     bank = 1;
   }
 
+  if (mbc1m) {
+    return rom[((bank & 0b1111) | (ram_bank_number << 4))][addr & 0x3fff];
+  }
+
   if (info.rom_num_banks > 32) {
-    return rom[((ram_bank_number << 5) + bank) % info.rom_num_banks][addr & 0x3fff];
+    return rom[(bank | (ram_bank_number << 5)) % info.rom_num_banks][addr & 0x3fff];
   }
 
   return rom[bank % info.rom_num_banks][addr & 0x3fff];
