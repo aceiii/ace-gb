@@ -63,7 +63,7 @@ uint8_t Mbc1::read_ram(uint16_t addr) const {
 
 void Mbc1::write_reg(uint16_t addr, uint8_t byte) {
   if (addr <= 0x1fff) {
-    ram_enable = (byte & 0b1111) == 0xa;
+    ram_enable = (byte & 0b1111) == 0x0a;
     return;
   }
 

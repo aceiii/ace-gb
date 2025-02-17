@@ -24,7 +24,7 @@ uint8_t Mbc2::read_rom1(uint16_t addr) const {
 }
 
 uint8_t Mbc2::read_ram(uint16_t addr) const {
-  if (!enable_ram) {
+  if (!ram_enable) {
     return 0xff;
   }
   return ram[addr & 0x1ff] | 0b11110000;
@@ -43,13 +43,13 @@ void Mbc2::write_reg(uint16_t addr, uint8_t byte) {
       rom_bank_number = 1;
     }
   } else {
-    enable_ram = (byte & 0b1111) == 0x0a;
+    ram_enable = (byte & 0b1111) == 0x0a;
   }
 }
 
 void Mbc2::write_ram(uint16_t addr, uint8_t byte) {
   spdlog::info("write_ram: [{:04x}] = {:02x}", addr, byte);
-  if (!enable_ram || addr > 0xa1ff) {
+  if (!ram_enable || addr > 0xa1ff) {
     return;
   }
   ram[addr & 0x1ff] = byte;

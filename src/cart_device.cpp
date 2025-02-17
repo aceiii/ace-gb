@@ -8,6 +8,7 @@
 #include "no_mbc.h"
 #include "mbc1.h"
 #include "mbc2.h"
+#include "mbc3.h"
 
 bool CartDevice::valid_for(uint16_t addr) const {
   return addr <= kRomBank01End || (addr >= kExtRamStart && addr <= kExtRamEnd);
@@ -98,6 +99,8 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
 
   switch (cart_type) {
     case CartType::ROM_ONLY:
+    case CartType::ROM_RAM:
+    case CartType::ROM_RAM_BATTERY:
       mbc = std::make_unique<NoMbc>(bytes);
       break;
     case CartType::MBC1_RAM_BATTERY:
@@ -113,16 +116,16 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
     case CartType::MBC2_BATTERY:
       mbc = std::make_unique<Mbc2>(bytes, info, has_ram, has_battery);
       break;
-    case CartType::ROM_RAM:
-    case CartType::ROM_RAM_BATTERY:
-    case CartType::MMM01:
-    case CartType::MMM01_RAM:
-    case CartType::MMM01_RAM_BATTERY:
-    case CartType::MBC3_TIMER_BATTERY:
-    case CartType::MBC3_TIMER_RAM_BATTERY:
     case CartType::MBC3:
     case CartType::MBC3_RAM:
     case CartType::MBC3_RAM_BATTERY:
+    case CartType::MBC3_TIMER_BATTERY:
+    case CartType::MBC3_TIMER_RAM_BATTERY:
+      mbc = std::make_unique<Mbc3>(bytes, info, has_ram, has_battery);
+      break;
+    case CartType::MMM01:
+    case CartType::MMM01_RAM:
+    case CartType::MMM01_RAM_BATTERY:
     case CartType::MBC5:
     case CartType::MBC5_RAM:
     case CartType::MBC5_RAM_BATTERY:
