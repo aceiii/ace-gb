@@ -59,12 +59,14 @@ set(SOURCE_FILES
         src/synced_device.h
         src/joypad.h
         src/cart_header.h
-        src/mbc1.cpp
-        src/mbc1.h
         src/memory_bank_controller.h
         src/cart_info.h
         src/no_mbc.cpp
         src/no_mbc.h
+        src/mbc1.cpp
+        src/mbc1.h
+        src/mbc2.cpp
+        src/mbc2.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)

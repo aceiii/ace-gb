@@ -7,6 +7,7 @@
 #include "cart_header.h"
 #include "no_mbc.h"
 #include "mbc1.h"
+#include "mbc2.h"
 
 bool CartDevice::valid_for(uint16_t addr) const {
   return addr <= kRomBank01End || (addr >= kExtRamStart && addr <= kExtRamEnd);
@@ -110,6 +111,8 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
       break;
     case CartType::MBC2:
     case CartType::MBC2_BATTERY:
+      mbc = std::make_unique<Mbc2>(bytes, info, has_ram, has_battery);
+      break;
     case CartType::ROM_RAM:
     case CartType::ROM_RAM_BATTERY:
     case CartType::MMM01:
