@@ -108,7 +108,7 @@ cmake --build build
 - [x] mbc1/rom_8Mb.gb
 - [x] mbc1/rom_16Mb.gb
 - [x] mbc1/multicart_rom_8Mb.gb
-- [ ] mbc2/bits_ramg.gb
+- [x] mbc2/bits_ramg.gb
 - [x] mbc2/bits_romb.gb
 - [x] mbc2/bits_unused.gb
 - [x] mbc2/ram.gb

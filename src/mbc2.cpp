@@ -43,13 +43,13 @@ void Mbc2::write_reg(uint16_t addr, uint8_t byte) {
       rom_bank_number = 1;
     }
   } else {
-    enable_ram = byte == 0x0a;
+    enable_ram = (byte & 0b1111) == 0x0a;
   }
 }
 
 void Mbc2::write_ram(uint16_t addr, uint8_t byte) {
   spdlog::info("write_ram: [{:04x}] = {:02x}", addr, byte);
-  if (!enable_ram) {
+  if (!enable_ram || addr > 0xa1ff) {
     return;
   }
   ram[addr & 0x1ff] = byte;
