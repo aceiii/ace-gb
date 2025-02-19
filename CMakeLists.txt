@@ -69,6 +69,8 @@ set(SOURCE_FILES
         src/mbc2.h
         src/mbc3.cpp
         src/mbc3.h
+        src/mbc5.cpp
+        src/mbc5.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)

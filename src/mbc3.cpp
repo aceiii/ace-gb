@@ -3,7 +3,7 @@
 
 #include "mbc3.h"
 
-Mbc3::Mbc3(const std::vector<uint8_t> &bytes, cart_info info, bool has_ram, bool has_battery): info {std::move(info)} {
+Mbc3::Mbc3(const std::vector<uint8_t> &bytes, cart_info info, bool has_ram, bool has_battery, bool has_timer): info {std::move(info)} {
   size_t size_left = bytes.size();
   auto byte_it = bytes.begin();
 

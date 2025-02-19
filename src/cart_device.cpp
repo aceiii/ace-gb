@@ -9,6 +9,7 @@
 #include "mbc1.h"
 #include "mbc2.h"
 #include "mbc3.h"
+#include "mbc5.h"
 
 bool CartDevice::valid_for(uint16_t addr) const {
   return addr <= kRomBank01End || (addr >= kExtRamStart && addr <= kExtRamEnd);
@@ -94,8 +95,6 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
 
   bool has_ram = false;
   bool has_battery = false;
-  bool has_timer = false;
-  bool has_rumble = false;
 
   switch (cart_type) {
     case CartType::ROM_ONLY:
@@ -112,26 +111,48 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
     case CartType::MBC1:
       mbc = std::make_unique<Mbc1>(bytes, info, has_ram, has_battery);
       break;
-    case CartType::MBC2:
     case CartType::MBC2_BATTERY:
+      has_battery = true;
+      [[fallthrough]];
+    case CartType::MBC2:
       mbc = std::make_unique<Mbc2>(bytes, info, has_ram, has_battery);
       break;
-    case CartType::MBC3:
-    case CartType::MBC3_RAM:
-    case CartType::MBC3_RAM_BATTERY:
-    case CartType::MBC3_TIMER_BATTERY:
     case CartType::MBC3_TIMER_RAM_BATTERY:
-      mbc = std::make_unique<Mbc3>(bytes, info, has_ram, has_battery);
+      has_ram = true;
+      [[fallthrough]];
+    case CartType::MBC3_TIMER_BATTERY:
+      mbc = std::make_unique<Mbc3>(bytes, info, has_ram, true, true);
+      break;
+    case CartType::MBC3_RAM_BATTERY:
+      has_battery = true;
+      [[fallthrough]];
+    case CartType::MBC3_RAM:
+      has_ram = true;
+      [[fallthrough]];
+    case CartType::MBC3:
+      mbc = std::make_unique<Mbc3>(bytes, info, has_ram, has_battery, false);
+      break;
+    case CartType::MBC5_RUMBLE_RAM_BATTERY:
+      has_battery = true;
+      [[fallthrough]];
+    case CartType::MBC5_RUMBLE_RAM:
+      has_ram = true;
+      [[fallthrough]];
+    case CartType::MBC5_RUMBLE:
+      mbc = std::make_unique<Mbc5>(bytes, info, has_ram, has_battery, true);
+      break;
+    case CartType::MBC5_RAM_BATTERY:
+      has_battery = true;
+      [[fallthrough]];
+    case CartType::MBC5_RAM:
+      has_ram = true;
+      [[fallthrough]];
+    case CartType::MBC5:
+      mbc = std::make_unique<Mbc5>(bytes, info, has_ram, has_battery, false);
       break;
     case CartType::MMM01:
     case CartType::MMM01_RAM:
     case CartType::MMM01_RAM_BATTERY:
-    case CartType::MBC5:
-    case CartType::MBC5_RAM:
-    case CartType::MBC5_RAM_BATTERY:
-    case CartType::MBC5_RUMBLE:
-    case CartType::MBC5_RUMBLE_RAM:
-    case CartType::MBC5_RUMBLE_RAM_BATTERY:
     case CartType::MBC6:
     case CartType::MBC7_SENSOR_RUMBLE_RAM_BATTERY:
     case CartType::POCKET_CAMERA:

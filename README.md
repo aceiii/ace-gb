@@ -115,14 +115,14 @@ cmake --build build
 - [x] mbc2/rom_1Mb.gb
 - [x] mbc2/rom_2Mb.gb
 - [x] mbc2/rom_512kb.gb
-- [ ] mbc5/rom_16Mb.gb
-- [ ] mbc5/rom_1Mb.gb
-- [ ] mbc5/rom_2Mb.gb
-- [ ] mbc5/rom_32Mb.gb
-- [ ] mbc5/rom_4Mb.gb
-- [ ] mbc5/rom_512kb.gb
-- [ ] mbc5/rom_64Mb.gb
-- [ ] mbc5/rom_8Mb.gb
+- [x] mbc5/rom_16Mb.gb
+- [x] mbc5/rom_1Mb.gb
+- [x] mbc5/rom_2Mb.gb
+- [x] mbc5/rom_32Mb.gb
+- [x] mbc5/rom_4Mb.gb
+- [x] mbc5/rom_512kb.gb
+- [x] mbc5/rom_64Mb.gb
+- [x] mbc5/rom_8Mb.gb
 
 #### Madness
 
