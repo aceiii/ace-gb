@@ -109,9 +109,8 @@ inline void Ppu::step() {
 
   if (++cycle_counter >= kDotsPerRow) {
     regs.ly = (regs.ly + 1) % (kLCDHeight + 10);
-
-    if (regs.ly == regs.lyc && regs.stat.stat_interrupt_lyc) {
-      spdlog::info("stat interrupt: lyc:{} == ly:{}", regs.lyc, regs.ly);
+    regs.stat.coincidence_flag = regs.ly == regs.lyc;
+    if (regs.stat.coincidence_flag && regs.stat.stat_interrupt_lyc) {
       interrupts.request_interrupt(Interrupt::Stat);
     }
 
@@ -499,16 +498,11 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
 
   regs.bytes[addr - std::to_underlying(IO::LCDC)] = byte;
 
-  if (addr == std::to_underlying(IO::SCX)) {
-    spdlog::info("scx:{}, ly:{}", byte, regs.ly);
-  }
-
   if (addr == std::to_underlying(IO::LYC)) {
-    spdlog::info("lyc:{}, ly:{}", byte, regs.ly);
-  }
-
-  if (addr == std::to_underlying(IO::LYC) && byte == regs.ly) {
-    interrupts.request_interrupt(Interrupt::Stat);
+    regs.stat.coincidence_flag = regs.lyc == regs.ly;
+    if (regs.stat.coincidence_flag && regs.stat.stat_interrupt_lyc) {
+      interrupts.request_interrupt(Interrupt::Stat);
+    }
   } else if (addr == std::to_underlying(IO::DMA)) {
     start_dma();
   }
@@ -587,8 +581,6 @@ void Ppu::start_dma() {
   if (source >= kExtRamBusEnd) {
     source = kExtRamBusStart + (source & kExtRamBusMask);
   }
-
-//  spdlog::info("Starting dma: source={:04x}", source);
 
   for (auto i = 0; i < oam.bytes.size(); i += 1) {
     oam.bytes[i] = mmu.read8(source + i);
