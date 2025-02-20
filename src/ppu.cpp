@@ -107,51 +107,45 @@ inline void Ppu::step() {
 
   auto mode = this->mode();
 
-  cycle_counter += 1;
+  if (++cycle_counter >= kDotsPerRow) {
+    regs.ly = (regs.ly + 1) % (kLCDHeight + 10);
 
-  if (cycle_counter >= kDotsPerRow) {
-    regs.ly += 1;
+    if (regs.ly == regs.lyc && regs.stat.stat_interrupt_lyc) {
+      spdlog::info("stat interrupt: lyc:{} == ly:{}", regs.lyc, regs.ly);
+      interrupts.request_interrupt(Interrupt::Stat);
+    }
+
     cycle_counter = 0;
-  }
-
-  if (regs.ly >= kLCDHeight + 10) {
-    regs.ly = 0;
   }
 
   if (regs.ly >= kLCDHeight) {
     if (mode != PPUMode::VBlank) {
       regs.stat.ppu_mode = std::to_underlying(PPUMode::VBlank);
       interrupts.request_interrupt(Interrupt::VBlank);
-      if (regs.stat.stat_interrupt_mode1) {
+      if (regs.stat.stat_interrupt_mode0) {
         interrupts.request_interrupt(Interrupt::Stat);
       }
       swap_lcd_targets();
     }
-  } else {
-    if (cycle_counter < kDotsPerOAM) {
-      if (mode != PPUMode::OAM) {
-        regs.stat.ppu_mode = std::to_underlying(PPUMode::OAM);
-        if (regs.stat.stat_interrupt_mode2) {
-          interrupts.request_interrupt(Interrupt::Stat);
-        }
-      }
-    } else if (cycle_counter <= (kDotsPerOAM + kDotsPerDraw)) {
-      if (mode != PPUMode::Draw) {
-        regs.stat.ppu_mode = std::to_underlying(PPUMode::Draw);
-      }
-    } else {
-      if (mode != PPUMode::HBlank) {
-        regs.stat.ppu_mode = std::to_underlying(PPUMode::HBlank);
-        if (regs.stat.stat_interrupt_mode0) {
-          interrupts.request_interrupt(Interrupt::Stat);
-        }
-        draw_lcd_row();
+  } else if (cycle_counter < kDotsPerOAM) {
+    if (mode != PPUMode::OAM) {
+      regs.stat.ppu_mode = std::to_underlying(PPUMode::OAM);
+      if (regs.stat.stat_interrupt_mode2) {
+        interrupts.request_interrupt(Interrupt::Stat);
       }
     }
-  }
-
-  if (regs.ly == regs.lyc && regs.stat.stat_interrupt_lyc) {
-    interrupts.request_interrupt(Interrupt::Stat);
+  } else if (cycle_counter <= (kDotsPerOAM + kDotsPerDraw)) {
+    if (mode != PPUMode::Draw) {
+      regs.stat.ppu_mode = std::to_underlying(PPUMode::Draw);
+    }
+  } else {
+    if (mode != PPUMode::HBlank) {
+      regs.stat.ppu_mode = std::to_underlying(PPUMode::HBlank);
+      if (regs.stat.stat_interrupt_mode0) {
+        interrupts.request_interrupt(Interrupt::Stat);
+      }
+      draw_lcd_row();
+    }
   }
 }
 
@@ -198,7 +192,9 @@ void Ppu::draw_lcd_row() {
       ImageDrawPixel(&target_lcd_back, x, y, color);
     }
   } else {
-    ImageDrawLine(&target_lcd_back, 0, regs.ly, kLCDWidth -1, regs.ly, kLCDPalette[0]);
+    auto cid = get_palette_index(0, regs.bgp);
+    auto color = kLCDPalette[cid];
+    ImageDrawLine(&target_lcd_back, 0, regs.ly, kLCDWidth -1, regs.ly,  color);
   }
 
   if (regs.lcdc.sprite_enable) {
@@ -472,7 +468,6 @@ bool Ppu::valid_for(uint16_t addr) const {
 
 void Ppu::write8(uint16_t addr, uint8_t byte) {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
-//    spdlog::info("Writing to vam: [{:04x}] = {:02x}", addr, byte);
     vram.bytes[addr - kVRAMAddrStart] = byte;
     return;
   }
@@ -503,6 +498,14 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
   }
 
   regs.bytes[addr - std::to_underlying(IO::LCDC)] = byte;
+
+  if (addr == std::to_underlying(IO::SCX)) {
+    spdlog::info("scx:{}, ly:{}", byte, regs.ly);
+  }
+
+  if (addr == std::to_underlying(IO::LYC)) {
+    spdlog::info("lyc:{}, ly:{}", byte, regs.ly);
+  }
 
   if (addr == std::to_underlying(IO::LYC) && byte == regs.ly) {
     interrupts.request_interrupt(Interrupt::Stat);
