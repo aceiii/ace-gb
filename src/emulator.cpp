@@ -35,6 +35,13 @@ tl::expected<bool, std::string> Emulator::init() {
   cpu.add_synced(&ppu);
   cpu.add_synced(&serial_device);
 
+  null_device.add_override(0xff72, 0x00, true);
+  null_device.add_override(0xff73, 0x00, true);
+  null_device.add_override(0xff74, 0xff, false);
+  null_device.add_override(0xff75, 0x00, true, 0x8f);
+  null_device.add_override(0xff76, 0x00, false);
+  null_device.add_override(0xff77, 0x00, false);
+
   auto result = load_bin("./boot.bin");
   if (!result) {
     return tl::unexpected(fmt::format("Failed to load boot rom: {}", result.error()));

@@ -41,9 +41,7 @@ void Mbc5::write_reg(uint16_t addr, uint8_t byte) {
   } else if (addr <= 0x3fff) {
     rom_bank_number = (rom_bank_number & 0x00ff) | ((byte & 0b1) << 8);
   } else if (addr <= 0x5fff) {
-    if (byte <= 0x0f) {
-      ram_bank_number = byte;
-    }
+    ram_bank_number = byte;
   }
 }
 
@@ -51,5 +49,5 @@ void Mbc5::write_ram(uint16_t addr, uint8_t byte) {
   if (!ram_enable) {
     return;
   }
-  ram[ram_bank_number % info.ram_num_banks][addr & 0x1fff];
+  ram[ram_bank_number % info.ram_num_banks][addr & 0x1fff] = byte;
 }

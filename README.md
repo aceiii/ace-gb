@@ -24,7 +24,7 @@ cmake --build build
 - [ ] interrupts/ie_push.gb
 - [x] oam_dma/basic.gb
 - [x] oam_dma/reg_read.gb
-- [ ] oam_dma/sources-GS.gb
+- [x] oam_dma/sources-GS.gb
 - [ ] ppu/hblank_ly_scx_timing-GS.gb
 - [ ] ppu/intr_1_2_timing-GS.gb
 - [ ] ppu/intr_2_0_timing.gb
@@ -134,7 +134,7 @@ cmake --build build
 
 #### Misc
 
-- [ ] bits/unused_hwio-C.gb
+- [x] bits/unused_hwio-C.gb
 - [ ] boot_div-A.gb
 - [ ] boot_div-cgb0.gb
 - [ ] boot_div-cgbABCDE.gb

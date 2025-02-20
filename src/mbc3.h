@@ -23,8 +23,8 @@ private:
   using rom_bank = std::array<uint8_t, 16384>;
   using ram_bank = std::array<uint8_t, kRamBankSize>;
 
-  std::array<rom_bank, 128> rom {};
-  std::array<ram_bank, 4> ram {};
+  std::array<rom_bank, 256> rom {};
+  std::array<ram_bank, 8> ram {};
   cart_info info;
 
   bool ram_enable = false;

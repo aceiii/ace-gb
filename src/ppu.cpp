@@ -513,21 +513,14 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
     return;
   }
 
-  if (addr == std::to_underlying(IO::LCDC)) {
-    auto enable_before = regs.lcdc.lcd_enable;
-    regs.lcdc.val = byte;
-    if (enable_before && !regs.lcdc.lcd_enable) {
-      regs.ly = 0;
-      cycle_counter = 0;
-      window_line_counter = 0;
-      clear_target_buffers();
-    }
-    return;
-  }
-
   regs.bytes[addr - std::to_underlying(IO::LCDC)] = byte;
 
-  if (addr == std::to_underlying(IO::LYC)) {
+  if (addr == std::to_underlying(IO::LCDC) && !regs.lcdc.lcd_enable) {
+    regs.ly = 0;
+    cycle_counter = 0;
+    window_line_counter = 0;
+    clear_target_buffers();
+  } else if (addr == std::to_underlying(IO::LYC)) {
     regs.stat.coincidence_flag = regs.lyc == regs.ly;
     if (regs.stat.coincidence_flag && regs.stat.stat_interrupt_lyc) {
       interrupts.request_interrupt(Interrupt::Stat);
@@ -599,8 +592,11 @@ void Ppu::set_mode(PPUMode mode) {
 void Ppu::start_dma() {
   auto source = regs.dma << 8;
 
+  spdlog::info("start dma: {:04x}", source);
+
   if (source >= kVRAMAddrStart && source <= kVRAMAddrEnd) {
     auto base = source - kVRAMAddrStart;
+    spdlog::info("dma from vram: {:04x}", base);
     for (auto i = 0; i < oam.bytes.size(); i += 1) {
       oam.bytes[i] = vram.bytes[base + i];
     }
@@ -609,8 +605,10 @@ void Ppu::start_dma() {
 
   if (source >= kExtRamBusEnd) {
     source = kExtRamBusStart + (source & kExtRamBusMask);
+    spdlog::info("dma >= ext ram bus: {:04x}", source);
   }
 
+  spdlog::info("dma starting: {:04x}", source);
   for (auto i = 0; i < oam.bytes.size(); i += 1) {
     oam.bytes[i] = mmu.read8(source + i);
   }

@@ -30,7 +30,7 @@ void SerialDevice::write8(uint16_t addr, uint8_t byte) {
 uint8_t SerialDevice::read8(uint16_t addr) const {
   switch (addr) {
     case std::to_underlying(IO::SB): return sb;
-    case std::to_underlying(IO::SC): return sc.val & 0b01111110;
+    case std::to_underlying(IO::SC): return sc.val | 0b01111110;
     default: std::unreachable();
   }
 }

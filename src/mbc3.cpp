@@ -31,13 +31,13 @@ void Mbc3::write_reg(uint16_t addr, uint8_t byte) {
   if (addr <= 0x1fff) {
     ram_enable = (byte & 0b1111) == 0x0a;
   } else if (addr <= 0x3fff) {
-    rom_bank_number = byte & 0b01111111;
+    rom_bank_number = byte;
     if (rom_bank_number == 0) {
       rom_bank_number = 1;
     }
 
   } else if (addr <= 0x5fff) {
-    if (byte <= 0x03) {
+    if (byte < 0x08) {
       auto &bank = ram[byte];
       ram_or_clock = bank.begin();
       ram_or_clock_mod = bank.size();
