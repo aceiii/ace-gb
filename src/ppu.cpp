@@ -218,7 +218,14 @@ void Ppu::draw_lcd_row() {
     for (const auto sprite : valid_sprites) {
       auto top = sprite->y - 16;
       auto row = sprite->attrs.y_flip ? height - (y - top) - 1  : y - top;
-      auto tile_id = sprite->tile + (row / 8);
+      uint8_t tile_id = sprite->tile;// + (row / 8);
+      if (regs.lcdc.sprite_size) {
+        if (row < 8) {
+          tile_id &= 0xfe;
+        } else {
+          tile_id |= 0x01;
+        }
+      }
       auto tile_idx = (addr_with_mode(regs.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
       auto tile = vram.tile_data[tile_idx];
       auto palette = sprite->attrs.dmg_palette ? regs.obp1: regs.obp0;
