@@ -220,3 +220,8 @@ cmake --build build
 - [x] 6-timing_no_bug.gb
 - [ ] 7-timing_effect.gb
 - [ ] 8-instr_effect.gb
+
+
+### DMG Acid2
+
+- [x] dmg-acid2
