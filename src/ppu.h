@@ -153,8 +153,8 @@ private:
   oam_memory oam;
   ppu_regs regs;
 
-  uint8_t num_sprites = 0;
   uint16_t cycle_counter = 0;
+  uint8_t window_line_counter = 0;
 
   bool log_doctor = false;
 

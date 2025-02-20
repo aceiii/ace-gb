@@ -119,6 +119,7 @@ inline void Ppu::step() {
 
   if (regs.ly >= kLCDHeight) {
     if (mode != PPUMode::VBlank) {
+      window_line_counter = 0;
       regs.stat.ppu_mode = std::to_underlying(PPUMode::VBlank);
       interrupts.request_interrupt(Interrupt::VBlank);
       if (regs.stat.stat_interrupt_mode0) {
@@ -169,7 +170,7 @@ void Ppu::draw_lcd_row() {
     for (auto x = 0; x < kLCDWidth; x += 1) {
       if (!enable_window && enable_window_flag && x >= regs.wx - 7 && y >= regs.wy) {
         enable_window = true;
-        py = y - regs.wy;
+        py = window_line_counter;// y - regs.wy;
         ty = (py >> 3 ) & 31;
         row = py % 8;
       }
@@ -193,6 +194,10 @@ void Ppu::draw_lcd_row() {
       auto color = kLCDPalette[cid];
       ImageDrawPixel(&target_lcd_back, x, y, color);
       bg_win_pixels[x] = bits; // NOTE: might be cid...
+    }
+
+    if (enable_window) {
+      window_line_counter++;
     }
   } else {
     auto cid = get_palette_index(0, regs.bgp);
@@ -514,6 +519,7 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
     if (enable_before && !regs.lcdc.lcd_enable) {
       regs.ly = 0;
       cycle_counter = 0;
+      window_line_counter = 0;
       clear_target_buffers();
     }
     return;
@@ -555,8 +561,8 @@ void Ppu::reset() {
   vram.reset();
   oam.reset();
   regs.reset();
-  num_sprites = 0;
   cycle_counter = 0;
+  window_line_counter = 0;
 
   BeginTextureMode(target_tiles);
   ClearBackground(BLACK);
