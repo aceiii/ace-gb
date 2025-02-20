@@ -153,6 +153,9 @@ void Ppu::swap_lcd_targets() {
 }
 
 void Ppu::draw_lcd_row() {
+  static std::array<uint8_t, kLCDWidth> bg_win_pixels;
+  bg_win_pixels.fill(0);
+
   if (regs.lcdc.bg_window_enable) {
     const bool enable_window_flag = regs.lcdc.window_enable &&
       regs.wx >= 0 && regs.wx <= 166 && regs.wy >= 0 && regs.wy <= 143;
@@ -189,6 +192,7 @@ void Ppu::draw_lcd_row() {
       auto cid = get_palette_index(bits, regs.bgp);
       auto color = kLCDPalette[cid];
       ImageDrawPixel(&target_lcd_back, x, y, color);
+      bg_win_pixels[x] = bits; // NOTE: might be cid...
     }
   } else {
     auto cid = get_palette_index(0, regs.bgp);
@@ -215,10 +219,13 @@ void Ppu::draw_lcd_row() {
       }
     }
 
+    static std::array<uint8_t, kLCDWidth> sprite_prio;
+    sprite_prio.fill(0xff);
+
     for (const auto sprite : valid_sprites) {
       auto top = sprite->y - 16;
       auto row = sprite->attrs.y_flip ? height - (y - top) - 1  : y - top;
-      uint8_t tile_id = sprite->tile;// + (row / 8);
+      uint8_t tile_id = sprite->tile;
       if (regs.lcdc.sprite_size) {
         if (row < 8) {
           tile_id &= 0xfe;
@@ -236,6 +243,14 @@ void Ppu::draw_lcd_row() {
           continue;
         }
 
+        if (sprite->attrs.priority && bg_win_pixels[x] != 0) {
+          continue;
+        }
+
+        if (sprite_prio[x] <= sprite->x) {
+          continue;
+        }
+
         auto xi = sprite->attrs.x_flip ? x - left : 7 - (x - left);
         uint16_t hi = (tile[row % 8] >> 8) >> xi;
         uint8_t lo = tile[row % 8] >> xi;
@@ -244,6 +259,7 @@ void Ppu::draw_lcd_row() {
         if (bits) {
           auto cid = get_palette_index(bits, palette);
           ImageDrawPixel(&target_lcd_back, x, y, kLCDPalette[cid]);
+          sprite_prio[x] = sprite->x;
         }
       }
     }
