@@ -217,7 +217,7 @@ void Ppu::draw_lcd_row() {
 
     for (const auto sprite : valid_sprites) {
       auto top = sprite->y - 16;
-      auto row = sprite->attrs.y_flip ? height - (y - top)  : y - top;
+      auto row = sprite->attrs.y_flip ? height - (y - top) - 1  : y - top;
       auto tile_id = sprite->tile + (row / 8);
       auto tile_idx = (addr_with_mode(regs.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
       auto tile = vram.tile_data[tile_idx];
