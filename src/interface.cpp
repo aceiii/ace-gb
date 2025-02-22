@@ -128,10 +128,6 @@ void Interface::run() {
       UnloadDroppedFiles(dropped_files);
     }
 
-    while (auto key = GetKeyPressed()) {
-      spdlog::debug("Pressed: {}", key);
-    }
-
     emulator.update_input(JoypadButton::Up, IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
     emulator.update_input(JoypadButton::Down, IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
     emulator.update_input(JoypadButton::Left, IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));

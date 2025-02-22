@@ -1,7 +1,12 @@
 #include <utility>
+#include <spdlog/spdlog.h>
+#include <magic_enum/magic_enum.hpp>
 
 #include "io.h"
 #include "input_device.h"
+
+InputDevice::InputDevice(InterruptDevice &interrupts): interrupts{interrupts} {
+}
 
 [[nodiscard]] bool InputDevice::valid_for(uint16_t addr) const {
   return addr == std::to_underlying(IO::P1);
@@ -29,16 +34,49 @@ void InputDevice::reset() {
 }
 
 void InputDevice::update(JoypadButton button, bool pressed) {
+  if (pressed) {
+    spdlog::info("InputDevice: update:{}, pressed:{}", magic_enum::enum_name(button), pressed);
+  }
   uint8_t on_off = pressed ? 0 : 1;
+  bool flipped;
+
   switch (button) {
-    case JoypadButton::Start: reg_buttons.start_down = on_off; break;
-    case JoypadButton::Select: reg_buttons.select_up = on_off; break;
-    case JoypadButton::Up: reg_dpad.select_up = on_off; break;
-    case JoypadButton::Down: reg_dpad.start_down = on_off; break;
-    case JoypadButton::Left: reg_dpad.b_left = on_off; break;
-    case JoypadButton::Right: reg_dpad.a_right = on_off; break;
-    case JoypadButton::A: reg_buttons.a_right = on_off; break;
-    case JoypadButton::B: reg_buttons.b_left = on_off; break;
+    case JoypadButton::Start:
+      flipped = !on_off && reg_buttons.start_down;
+      reg_buttons.start_down = on_off;
+      break;
+    case JoypadButton::Select:
+      flipped = !on_off && reg_buttons.select_up;
+      reg_buttons.select_up = on_off;
+      break;
+    case JoypadButton::Up:
+      flipped = !on_off && reg_dpad.select_up;
+      reg_dpad.select_up = on_off;
+      break;
+    case JoypadButton::Down:
+      flipped = !on_off && reg_dpad.start_down;
+      reg_dpad.start_down = on_off;
+      break;
+    case JoypadButton::Left:
+      flipped = !on_off && reg_dpad.b_left;
+      reg_dpad.b_left = on_off;
+      break;
+    case JoypadButton::Right:
+      flipped = !on_off && reg_dpad.a_right;
+      reg_dpad.a_right = on_off;
+      break;
+    case JoypadButton::A:
+      flipped = !on_off && reg_buttons.a_right;
+      reg_buttons.a_right = on_off;
+      break;
+    case JoypadButton::B:
+      flipped = !on_off && reg_buttons.b_left;
+      reg_buttons.b_left = on_off;
+      break;
     default: std::unreachable();
+  }
+
+  if (flipped) {
+    interrupts.request_interrupt(Interrupt::Joypad);
   }
 }

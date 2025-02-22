@@ -767,7 +767,6 @@ inline bool instr_jump_rel_cond(Cpu &cpu, Cond cond, int8_t e) {
 }
 
 inline bool instr_call_imm16(Cpu &cpu, uint16_t nn) {
-//  spdlog::info("Call: {:02x}", nn);
   cpu.push16(cpu.regs.pc);
   cpu.regs.pc = nn;
   cpu.tick();
@@ -1188,8 +1187,6 @@ uint8_t Cpu::execute() {
     instr = Decoder::decode_prefixed(byte_code);
   }
 
-//  spdlog::info("Instr: {}", magic_enum::enum_name(instr.opcode));
-
   std::visit(overloaded{
      [&](Operands_Imm8 &operands) { operands.imm = read_next8(); },
      [&](Operands_Imm16 &operands) { operands.imm = read_next16(); },
@@ -1301,7 +1298,6 @@ uint8_t Cpu::execute_interrupts() {
   for (int i = 0; i < std::to_underlying(Interrupt::Count); i++) {
     Interrupt interrupt { i };
     if (interrupts.is_requested(interrupt)) {
-      spdlog::debug("Handling interrupt: {}", magic_enum::enum_name(interrupt));
       state.ime = false;
       interrupts.clear_interrupt(interrupt);
 

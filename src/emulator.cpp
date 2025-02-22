@@ -9,7 +9,7 @@
 #include "mmu.h"
 
 
-Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts} {
+Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts}, input_device{interrupts} {
   serial_device.on_line([] (const std::string &str) {
     spdlog::info("Serial: {}", str);
   });

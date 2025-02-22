@@ -2,6 +2,7 @@
 
 #include "mmu_device.h"
 #include "joypad.h"
+#include "interrupt_device.h"
 
 struct input_register {
   union {
@@ -34,6 +35,8 @@ struct input_register {
 
 class InputDevice : public MmuDevice {
 public:
+  explicit InputDevice(InterruptDevice &interrupts);
+
   [[nodiscard]] bool valid_for(uint16_t addr) const override;
   void write8(uint16_t addr, uint8_t byte) override;
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
@@ -42,6 +45,8 @@ public:
   void update(JoypadButton button, bool pressed);
 
 private:
+  InterruptDevice &interrupts;
+
   input_register reg_buttons;
   input_register reg_dpad;
 };

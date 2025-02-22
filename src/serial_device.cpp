@@ -4,7 +4,7 @@
 #include "io.h"
 
 SerialDevice::SerialDevice(InterruptDevice &interrupts):interrupts{interrupts} {
-  sb = 0;
+  sb = 0xff;
   sc.val = 0;
   sc.unused = 0x1f;
 }
@@ -36,7 +36,7 @@ uint8_t SerialDevice::read8(uint16_t addr) const {
 }
 
 void SerialDevice::reset() {
-  sb = 0;
+  sb = 0xff;
   sc.val = 0;
   sc.unused = 0x1f;
 }

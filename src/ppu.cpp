@@ -592,11 +592,8 @@ void Ppu::set_mode(PPUMode mode) {
 void Ppu::start_dma() {
   auto source = regs.dma << 8;
 
-  spdlog::info("start dma: {:04x}", source);
-
   if (source >= kVRAMAddrStart && source <= kVRAMAddrEnd) {
     auto base = source - kVRAMAddrStart;
-    spdlog::info("dma from vram: {:04x}", base);
     for (auto i = 0; i < oam.bytes.size(); i += 1) {
       oam.bytes[i] = vram.bytes[base + i];
     }
@@ -605,10 +602,8 @@ void Ppu::start_dma() {
 
   if (source >= kExtRamBusEnd) {
     source = kExtRamBusStart + (source & kExtRamBusMask);
-    spdlog::info("dma >= ext ram bus: {:04x}", source);
   }
 
-  spdlog::info("dma starting: {:04x}", source);
   for (auto i = 0; i < oam.bytes.size(); i += 1) {
     oam.bytes[i] = mmu.read8(source + i);
   }
