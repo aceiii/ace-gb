@@ -238,7 +238,7 @@ void Ppu::draw_lcd_row() {
           tile_id |= 0x01;
         }
       }
-      auto tile_idx = (addr_with_mode(regs.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+      auto tile_idx = (addr_with_mode(1, tile_id) - kVRAMAddrStart) / 16;
       auto tile = vram.tile_data[tile_idx];
       auto palette = sprite->attrs.dmg_palette ? regs.obp1: regs.obp0;
       auto left = sprite->x - 8;
@@ -262,7 +262,7 @@ void Ppu::draw_lcd_row() {
         uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
         if (bits) {
-          auto cid = get_palette_index(bits, palette);
+        auto cid = get_palette_index(bits, palette);
           ImageDrawPixel(&target_lcd_back, x, y, kLCDPalette[cid]);
           sprite_prio[x] = sprite->x;
         }
