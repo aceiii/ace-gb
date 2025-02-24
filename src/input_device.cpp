@@ -34,9 +34,6 @@ void InputDevice::reset() {
 }
 
 void InputDevice::update(JoypadButton button, bool pressed) {
-  if (pressed) {
-    spdlog::info("InputDevice: update:{}, pressed:{}", magic_enum::enum_name(button), pressed);
-  }
   uint8_t on_off = pressed ? 0 : 1;
   bool flipped;
 
