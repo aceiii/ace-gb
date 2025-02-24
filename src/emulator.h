@@ -26,7 +26,7 @@ public:
 
   tl::expected<bool, std::string> init();
   void cleanup();
-  void update();
+  void update(float dt);
   void reset();
   void step();
   void play();

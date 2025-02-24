@@ -8,6 +8,8 @@
 #include "file.h"
 #include "mmu.h"
 
+// NOTE: not sure why, but my emulator seems to be 4x slower than it should be...
+constexpr auto kStaticSpeedMultiplier = 4;
 
 Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts}, input_device{interrupts} {
   serial_device.on_line([] (const std::string &str) {
@@ -33,7 +35,7 @@ tl::expected<bool, std::string> Emulator::init() {
 
   cpu.add_synced(&timer);
   cpu.add_synced(&ppu);
-  cpu.add_synced(&serial_device);
+//  cpu.add_synced(&serial_device);
 
   null_device.add_override(0xff72, 0x00, true);
   null_device.add_override(0xff73, 0x00, true);
@@ -54,25 +56,25 @@ tl::expected<bool, std::string> Emulator::init() {
   return true;
 }
 
-void Emulator::update() {
+void Emulator::update(float dt) {
   if (!running && !cpu.state.halt) {
     return;
   }
 
-  const auto fps = 60;
-  const auto cycles_per_frame = kClockSpeed / fps;
-  int current_cycles = 0;
+  const auto target_cycles_per_frame = static_cast<int>(kClockSpeed * dt) * kStaticSpeedMultiplier;
+  static int current_cycles = 0;
 
   do {
-    current_cycles += cpu.execute();
+    auto cycles = cpu.execute();
+    current_cycles += cycles;
+    num_cycles += cycles;
 
     if (breakpoints.contains(cpu.regs.pc)) {
       running = false;
       break;
     }
-  } while (current_cycles < cycles_per_frame);
-
-  num_cycles += current_cycles;
+  } while (current_cycles < target_cycles_per_frame);
+  current_cycles -= target_cycles_per_frame;
 
   ppu.update_render_targets();
 }

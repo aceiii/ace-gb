@@ -48,6 +48,7 @@ public:
 
   void add_synced(SyncedDevice *device);
   void tick();
+  uint64_t ticks() const;
 
 public:
   Mmu &mmu;
@@ -56,7 +57,7 @@ public:
   State state;
 
   std::vector<SyncedDevice*> synced_devices;
-  int tick_counter = 0;
+  uint64_t tick_counter = 0;
 
 private:
   uint8_t execute_interrupts();

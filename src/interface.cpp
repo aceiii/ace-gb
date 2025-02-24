@@ -109,7 +109,11 @@ void Interface::run() {
 
   auto &io = ImGui::GetIO();
 
+  SetTargetFPS(60);
+
   while (!should_close) {
+    const auto frame_time = GetFrameTime();
+
     if (WindowShouldClose()) {
       should_close = true;
     }
@@ -137,7 +141,7 @@ void Interface::run() {
     emulator.update_input(JoypadButton::A, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
     emulator.update_input(JoypadButton::B, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
 
-    emulator.update();
+    emulator.update(frame_time);
 
     BeginDrawing();
     ClearBackground(DARKGRAY);

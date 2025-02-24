@@ -1385,3 +1385,7 @@ void Cpu::tick() {
   }
   tick_counter += 4;
 }
+
+uint64_t Cpu::ticks() const {
+  return tick_counter;
+}
