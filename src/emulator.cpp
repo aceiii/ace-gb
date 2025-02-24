@@ -108,6 +108,45 @@ void Emulator::reset() {
     cpu.regs.set(Reg8::L, 0x4d);
     cpu.regs.sp = 0xfffe;
     cpu.regs.pc = 0x0100;
+
+    mmu.write8(std::to_underlying(IO::P1), 0xcf);
+    mmu.write8(std::to_underlying(IO::SB), 0x00);
+    mmu.write8(std::to_underlying(IO::SC), 0x7e);
+    mmu.write8(std::to_underlying(IO::DIV), 0xab);
+    mmu.write8(std::to_underlying(IO::TIMA), 0x00);
+    mmu.write8(std::to_underlying(IO::TMA), 0x00);
+    mmu.write8(std::to_underlying(IO::TAC), 0xf8);
+    mmu.write8(std::to_underlying(IO::IF), 0xE1);
+    mmu.write8(std::to_underlying(IO::NR10), 0x80);
+    mmu.write8(std::to_underlying(IO::NR11), 0xbf);
+    mmu.write8(std::to_underlying(IO::NR12), 0xf3);
+    mmu.write8(std::to_underlying(IO::NR13), 0xff);
+    mmu.write8(std::to_underlying(IO::NR14), 0xbf);
+    mmu.write8(std::to_underlying(IO::NR21), 0x3f);
+    mmu.write8(std::to_underlying(IO::NR22), 0x00);
+    mmu.write8(std::to_underlying(IO::NR23), 0xff);
+    mmu.write8(std::to_underlying(IO::NR24), 0xbf);
+    mmu.write8(std::to_underlying(IO::NR30), 0x7f);
+    mmu.write8(std::to_underlying(IO::NR31), 0xff);
+    mmu.write8(std::to_underlying(IO::NR32), 0x9f);
+    mmu.write8(std::to_underlying(IO::NR33), 0xff);
+    mmu.write8(std::to_underlying(IO::NR34), 0xbf);
+    mmu.write8(std::to_underlying(IO::NR41), 0xff);
+    mmu.write8(std::to_underlying(IO::NR42), 0x00);
+    mmu.write8(std::to_underlying(IO::NR43), 0x00);
+    mmu.write8(std::to_underlying(IO::NR44), 0xbf);
+    mmu.write8(std::to_underlying(IO::NR50), 0x77);
+    mmu.write8(std::to_underlying(IO::NR51), 0xf3);
+    mmu.write8(std::to_underlying(IO::NR52), 0xf0);
+    mmu.write8(std::to_underlying(IO::LCDC), 0x91);
+    mmu.write8(std::to_underlying(IO::STAT), 0x85);
+    mmu.write8(std::to_underlying(IO::LYC), 0x00);
+    mmu.write8(std::to_underlying(IO::DMA), 0xff);
+    mmu.write8(std::to_underlying(IO::BGP), 0xfc);
+    mmu.write8(std::to_underlying(IO::WX), 0x00);
+    mmu.write8(std::to_underlying(IO::WY), 0x00);
+    mmu.write8(std::to_underlying(IO::IE), 0x00);
+
     boot.set_disable(0xff);
   }
 }
