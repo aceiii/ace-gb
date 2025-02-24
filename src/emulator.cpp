@@ -35,7 +35,7 @@ tl::expected<bool, std::string> Emulator::init() {
 
   cpu.add_synced(&timer);
   cpu.add_synced(&ppu);
-//  cpu.add_synced(&serial_device);
+  cpu.add_synced(&serial_device);
 
   null_device.add_override(0xff72, 0x00, true);
   null_device.add_override(0xff73, 0x00, true);

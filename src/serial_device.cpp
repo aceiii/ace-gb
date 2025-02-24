@@ -19,6 +19,7 @@ void SerialDevice::write8(uint16_t addr, uint8_t byte) {
     case std::to_underlying(IO::SC): {
       sc.val = byte;
       if (sc.transfer_enable == 0b1 && sc.clock_select == 0b1) {
+        spdlog::info("start serial transfer");
         transfer_bytes = 8;
       }
       return;
@@ -60,11 +61,15 @@ void SerialDevice::step() {
     return;
   }
 
-  if (clock != 256) {
+  if (clock % 256 == 0) {
     return;
   }
 
-  clock = 0;
+  if (!transfer_bytes) {
+    return;
+  }
+
+  spdlog::info("serial transfer -- bytes left: {}", transfer_bytes);
 
   byte_buffer = (byte_buffer << 1) | ((sb & 0x80) >> 7);
   sb <<= 1;

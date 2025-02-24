@@ -109,8 +109,6 @@ void Interface::run() {
 
   auto &io = ImGui::GetIO();
 
-  SetTargetFPS(60);
-
   while (!should_close) {
     const auto frame_time = GetFrameTime();
 
