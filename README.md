@@ -2,6 +2,10 @@
 
 My first GameBoy emulator!!
 
+## Requirements
+- [vcpkg](https://github.com/microsoft/vcpkg)
+
+
 ## Build
 
 ```
