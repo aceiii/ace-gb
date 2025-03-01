@@ -1,14 +1,10 @@
 {
-    "dependencies": [
-        "spdlog",
-        "argparse",
-        "magic-enum",
-        "raylib",
-        "tomlplusplus",
-        "glfw3",
-        "nlohmann-json",
-        "tl-expected"
-    ],
-    "version": "0.0.1",
-    "name": "ace-gb"
+  "dependencies" : [ "spdlog", "argparse", "magic-enum", "raylib", "tomlplusplus", "glfw3", "nlohmann-json", "tl-expected", {
+    "name" : "imgui",
+    "version>=" : "1.91.8#2",
+    "features" : [ "docking-experimental", "glfw-binding", "opengl3-binding" ]
+  }],
+  "version" : "0.0.1",
+  "name" : "ace-gb",
+  "builtin-baseline" : "d5ec528843d29e3a52d745a64b469f810b2cedbf"
 }

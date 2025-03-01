@@ -1,4 +1,6 @@
 #pragma once
+#include <cstddef>
+#include <cstdint>
 
 constexpr size_t kRomBank00Start = 0x0000;
 constexpr size_t kRomBank00End = 0x3FFF;
