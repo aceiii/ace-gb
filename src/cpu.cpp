@@ -12,7 +12,7 @@ inline uint16_t interrupt_handler(Interrupt interrupt) {
   switch (interrupt) {
     case Interrupt::VBlank: return 0x40;
     case Interrupt::Stat: return 0x48;
-    case Interrupt::Timer: return 050;
+    case Interrupt::Timer: return 0x50;
     case Interrupt::Serial: return 0x58;
     case Interrupt::Joypad: return 0x60;
     default: std::unreachable();
@@ -706,12 +706,12 @@ inline void instr_bit_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
   cpu.regs.set(Flag::H, 1);
 }
 
-inline void instr_reset_imm8_reg8(Cpu &cpu, uint8_t imm, Reg8 r) {
+inline void instr_res_imm8_reg8(Cpu &cpu, uint8_t imm, Reg8 r) {
   uint8_t mask = cpu.regs.get(r) & (1 << imm);
   cpu.regs.at(r) ^= mask;
 }
 
-inline void instr_reset_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
+inline void instr_res_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
   uint16_t addr = cpu.regs.get(r);
   uint8_t val = cpu.read8(addr);
   uint8_t mask = val & (1 << imm);
@@ -1115,9 +1115,9 @@ void execute_bit(Cpu &cpu, Mmu& mmu, Instruction &instr) {
 
 void execute_res(Cpu &cpu, Mmu& mmu, Instruction &instr) {
   if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
-    instr_reset_imm8_reg8(cpu, ops->imm, ops->reg);
+    instr_res_imm8_reg8(cpu, ops->imm, ops->reg);
   } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
-    instr_reset_imm8_reg16_ptr(cpu, ops->imm, ops->reg);
+    instr_res_imm8_reg16_ptr(cpu, ops->imm, ops->reg);
   }
 }
 
