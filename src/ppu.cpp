@@ -519,6 +519,7 @@ void Ppu::write8(uint16_t addr, uint8_t byte) {
     regs.ly = 0;
     cycle_counter = 0;
     window_line_counter = 0;
+    regs.stat.ppu_mode = 0;
     clear_target_buffers();
   } else if (addr == std::to_underlying(IO::LYC)) {
     regs.stat.coincidence_flag = regs.lyc == regs.ly;

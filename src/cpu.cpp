@@ -1283,21 +1283,14 @@ uint8_t Cpu::execute_interrupts() {
     return 0;
   }
 
-  auto enable = mmu.read8(std::to_underlying(IO::IE));
-  auto flag = mmu.read8(std::to_underlying(IO::IF));
-
-  if (!(enable & flag)) {
-    return 0;
-  }
-
-  state.halt = false;
-  if (!state.ime) {
-    return 0;
-  }
-
   for (int i = 0; i < std::to_underlying(Interrupt::Count); i++) {
     Interrupt interrupt { i };
     if (interrupts.is_requested(interrupt)) {
+      state.halt = false;
+      if (!state.ime) {
+        return 0;
+      }
+
       state.ime = false;
       interrupts.clear_interrupt(interrupt);
 

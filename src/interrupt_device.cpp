@@ -73,7 +73,7 @@ void InterruptDevice::disable_interrupt(Interrupt interrupt) {
       enable.timer = 0;
       return;
     case Interrupt::Serial:
-      enable.serial =0 ;
+      enable.serial = 0;
       return;
     case Interrupt::Joypad:
       enable.joypad = 0;
