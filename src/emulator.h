@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <memory>
 #include <set>
 #include <string>
@@ -54,6 +55,8 @@ public:
   void clear_breakpoints();
 
   void update_input(JoypadButton btn, bool pressed);
+
+  void audio_samples(float *samples, size_t samples_size, size_t num_channels);
 
 private:
   Mmu mmu;

@@ -1,3 +1,4 @@
+#include <array>
 #include <fstream>
 #include <memory>
 #include <spdlog/spdlog.h>
@@ -243,4 +244,8 @@ void Emulator::set_skip_bootrom(bool skip) {
 
 bool Emulator::skip_bootrom() const {
   return _skip_bootrom;
+}
+
+void Emulator::audio_samples(float *samples, size_t samples_size, size_t num_channels) {
+  std::fill_n(samples, samples_size, 0);
 }

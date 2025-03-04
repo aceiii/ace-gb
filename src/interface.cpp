@@ -19,6 +19,13 @@ namespace {
   constexpr int kDefaulWindowWidth = 800;
   constexpr int kDefaultWindowHeight = 600;
   constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
+
+  constexpr int kAudioSampleRate = 48000;
+  constexpr int kAudioSampleSize = 32;
+  constexpr int kAudioNumChannels = 2;
+  constexpr int kSamplesPerUpdate = 4096;
+
+  AudioStream stream;
 }
 
 void rlImGuiImageTextureFit(const Texture2D *image, bool center)
@@ -59,6 +66,9 @@ Interface::Interface() {
   InitWindow(kDefaulWindowWidth, kDefaultWindowHeight, kWindowTitle);
   InitAudioDevice();
 
+  SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
+  stream = LoadAudioStream(kAudioSampleRate, kAudioSampleSize, kAudioNumChannels);
+
   int monitor = GetCurrentMonitor();
   spdlog::trace("Current monitor: {}", monitor);
 
@@ -94,8 +104,7 @@ Interface::~Interface() {
 }
 
 void Interface::run() {
-  emulator.reset();
-//  emulator.add_breakpoint(0x150);
+  reset();
 
   spdlog::info("Running...");
 
@@ -143,8 +152,6 @@ void Interface::run() {
 
     BeginDrawing();
     ClearBackground(DARKGRAY);
-
-    render_info();
 
     rlImGuiBegin();
 
@@ -194,20 +201,20 @@ void Interface::run() {
       }
       ImGui::Separator();
       if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator.is_playing())) {
-        emulator.play();
+        play();
       }
       if (ImGui::MenuItem("Stop", nullptr, nullptr, emulator.is_playing())) {
-        emulator.stop();
+        stop();
       }
       ImGui::Separator();
       if (ImGui::MenuItem("Step", nullptr, nullptr, !emulator.is_playing())) {
-        emulator.step();
+        step();
       }
       ImGui::Separator();
       if (ImGui::MenuItem("Reset")) {
-        emulator.reset();
+        reset();
         if (auto_start) {
-          emulator.play();
+          play();
         }
       }
       ImGui::EndMenu();
@@ -232,6 +239,12 @@ void Interface::run() {
     DrawFPS(10, GetScreenHeight() - 24);
 
     EndDrawing();
+
+    if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
+      std::array<float, kAudioNumChannels * kSamplesPerUpdate> samples {};
+      emulator.audio_samples(samples.data(), samples.size(), kAudioNumChannels);
+      UpdateAudioStream(stream, samples.data(), kSamplesPerUpdate);
+    }
   }
 
   spdlog::info("Shutting down...");
@@ -289,28 +302,8 @@ void Interface::load_cart_rom(const std::string &file_path) {
   spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
 
   if (auto_start) {
-    emulator.play();
+    play();
   }
-}
-
-void Interface::render_info() {
-//  DrawText(fmt::format("{}", emulator.registers()).c_str(), 20, 32, 12, RAYWHITE);
-//  DrawText(fmt::format("cycles={}", emulator.cycles()).c_str(), 20, 48, 12, RAYWHITE);
-//  DrawText(fmt::format("mode={}", magic_enum::enum_name(emulator.mode())).c_str(), 20, 64, 12, RAYWHITE);
-//    DrawText(fmt::format("stat={}", emulator.read8(std::to_underlying(IO::STAT))).c_str(), 20, 80, 12, RAYWHITE);
-
-//  Instruction instr = emulator.instr();
-//  DrawText(fmt::format("opcode={}, bytes={}, cycles={}/{}", magic_enum::enum_name(instr.opcode), instr.bytes, instr.cycles, instr.cycles_cond).c_str() , 20, 96, 12, RAYWHITE);
-
-//  uint8_t pc = emulator.registers().pc;
-//  DrawText(fmt::format("PC=0x{:02x}", pc).c_str() , 20, 128, 12, RAYWHITE);
-//  DrawText(fmt::format("@PC+0={:02x}", emulator.read8(pc)).c_str() , 20, 144, 12, RAYWHITE);
-//  DrawText(fmt::format("@PC+1={:02x}", emulator.read8(pc+1)).c_str() , 20, 160, 12, RAYWHITE);
-//  DrawText(fmt::format("@PC+2={:02x}", emulator.read8(pc+2)).c_str() , 20, 176, 12, RAYWHITE);
-//  DrawText(fmt::format("@PC+4={:02x}", emulator.read8(pc+3)).c_str() , 20, 192, 12, RAYWHITE);
-
-//  const auto &state = emulator.state();
-//  DrawText(fmt::format("CPU State ime={}, halt={}, stop={}, hard_lock={}", state.ime, state.halt, state.stop, state.hard_lock).c_str(), 20, 224, 12, RAYWHITE);
 }
 
 void Interface::render_lcd(bool &show_window) {
@@ -422,4 +415,22 @@ void Interface::render_registers(bool &show_window) {
     ImGui::Text("State IME=%d HALT=%d STOP=%d HARD_LOCK=%d", state.ime, state.halt, state.stop, state.hard_lock);
   }
   ImGui::End();
+}
+
+void Interface::play() {
+  emulator.play();
+  PlayAudioStream(stream);
+}
+
+void Interface::stop() {
+  emulator.stop();
+  StopAudioStream(stream);
+}
+
+void Interface::step() {
+  emulator.step();
+}
+
+void Interface::reset() {
+  emulator.reset();
 }

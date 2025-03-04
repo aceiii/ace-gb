@@ -18,8 +18,12 @@ private:
   bool auto_start = true;
   std::string error_message;
 
+  void play();
+  void stop();
+  void step();
+  void reset();
+
   void render_error();
-  void render_info();
   void render_lcd(bool &show_window);
   void render_tiles(bool &show_window);
   void render_tilemap1(bool &show_window);
