@@ -1,5 +1,8 @@
 #include "audio.h"
 
+constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
+constexpr int kWaveRamEnd = kWaveRamStart + 15;
+
 bool Audio::valid_for(uint16_t addr) const {
   return addr >= kAudioStart && addr <= kAudioEnd;
 }
@@ -9,6 +12,10 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
 }
 
 uint8_t Audio::read8(uint16_t addr) const {
+  if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
+    return wave_pattern_ram[addr - kWaveRamStart];
+  }
+
   auto index = addr - kAudioStart;
   switch (addr) {
     case std::to_underlying(IO::NR10):
@@ -46,4 +53,11 @@ uint8_t Audio::read8(uint16_t addr) const {
 
 void Audio::reset() {
   ram.fill(0);
+}
+
+void Audio::on_tick() {
+}
+
+void Audio::get_samples(float *samples, size_t num_samples, size_t num_channels) {
+  std::fill_n(samples, num_samples, 0);
 }
