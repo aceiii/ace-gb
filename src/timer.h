@@ -30,6 +30,8 @@ public:
   void execute(uint8_t cycles);
   void on_tick() override;
 
+  uint16_t div() const;
+
 private:
   InterruptDevice &interrupts;
   uint16_t tima_counter;

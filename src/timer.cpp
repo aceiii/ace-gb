@@ -52,7 +52,7 @@ uint8_t Timer::read8(uint16_t addr) const {
 //    case std::to_underlying(IO::DIV)-1:
 //      return regs.div & 0xff;
     case std::to_underlying(IO::DIV):
-      return regs.div >> 8;
+      return div();
     case std::to_underlying(IO::TIMA):
       return regs.tima;
     case std::to_underlying(IO::TMA):
@@ -95,3 +95,6 @@ void Timer::on_tick() {
   execute(4);
 }
 
+uint16_t Timer::div() const {
+  return regs.div >> 8;
+}

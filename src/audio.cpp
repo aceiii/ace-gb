@@ -8,7 +8,16 @@ bool Audio::valid_for(uint16_t addr) const {
 }
 
 void Audio::write8(uint16_t addr, uint8_t byte) {
-  ram[addr - kAudioStart] = byte;
+  if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
+    wave_pattern_ram[addr - kWaveRamStart] = byte;
+  } else if (addr == std::to_underlying(IO::NR52)) {
+    nr52.val = byte;
+    if (!nr52.audio) {
+      std::fill_n(ram.data(), std::to_underlying(IO::NR51) - std::to_underlying(IO::NR10) + 1, 0);
+    }
+  } else if (nr52.audio) {
+    ram[addr - kAudioStart] = byte;
+  }
 }
 
 uint8_t Audio::read8(uint16_t addr) const {

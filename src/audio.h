@@ -77,25 +77,25 @@ private:
       } nr24;
 
       struct {
-        uint8_t unused : 7;
-        uint8_t dac_enable : 1;
+        uint8_t unused: 7;
+        uint8_t dac_enable: 1;
       } nr30;
 
       uint8_t nr31;
 
       struct {
-        uint8_t unused : 5;
-        uint8_t output_level : 1;
-        uint8_t unused2 : 1;
+        uint8_t unused: 5;
+        uint8_t output_level: 1;
+        uint8_t unused2: 1;
       } nr32;
 
       uint8_t nr33;
 
       struct {
-        uint8_t period : 3;
-        uint8_t unused : 3;
-        uint8_t length_enable : 1;
-        uint8_t trigger : 1;
+        uint8_t period: 3;
+        uint8_t unused: 3;
+        uint8_t length_enable: 1;
+        uint8_t trigger: 1;
       } nr34;
 
       uint8_t nr40; // unused
@@ -103,30 +103,30 @@ private:
       union {
         uint8_t val;
         struct {
-          uint8_t initial_length_timer : 6;
-          uint8_t unused : 2;
+          uint8_t initial_length_timer: 6;
+          uint8_t unused: 2;
         };
       } nr41;
 
       uint8_t nr42;
 
       struct {
-        uint8_t clock_divider : 3;
-        uint8_t lfsr_width : 1;
-        uint8_t clock_shift : 4;
+        uint8_t clock_divider: 3;
+        uint8_t lfsr_width: 1;
+        uint8_t clock_shift: 4;
       } nr43;
 
       struct {
-        uint8_t unused : 6;
-        uint8_t length_enable : 1;
-        uint8_t trigger : 1;
+        uint8_t unused: 6;
+        uint8_t length_enable: 1;
+        uint8_t trigger: 1;
       } nr44;
 
       struct {
-        uint8_t right_volume : 3;
-        uint8_t vin_right : 1;
-        uint8_t left_volume : 3;
-        uint8_t vin_left : 1;
+        uint8_t right_volume: 3;
+        uint8_t vin_right: 1;
+        uint8_t left_volume: 3;
+        uint8_t vin_left: 1;
       } nr50;
 
       struct {
@@ -140,13 +140,16 @@ private:
         uint8_t ch4_left: 1;
       } nr51;
 
-      struct {
-        uint8_t ch1: 1;
-        uint8_t ch2: 1;
-        uint8_t ch3: 1;
-        uint8_t ch4: 1;
-        uint8_t unused: 3;
-        uint8_t audio: 1;
+      union {
+        uint8_t val;
+        struct {
+          uint8_t ch1: 1;
+          uint8_t ch2: 1;
+          uint8_t ch3: 1;
+          uint8_t ch4: 1;
+          uint8_t unused: 3;
+          uint8_t audio: 1;
+        };
       } nr52;
 
       std::array<uint8_t, 9> unused;
