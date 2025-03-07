@@ -6,6 +6,7 @@
 #include "io.h"
 #include "mmu_device.h"
 #include "synced_device.h"
+#include "timer.h"
 
 constexpr int kAudioStart = std::to_underlying(IO::NR10);
 constexpr int kAudioEnd = std::to_underlying(IO::LCDC) - 1;
@@ -13,6 +14,8 @@ constexpr int kAudioSize = kAudioEnd - kAudioStart + 1;
 
 class Audio : public MmuDevice, public SyncedDevice {
 public:
+  explicit Audio(Timer &timer);
+
   [[nodiscard]] bool valid_for(uint16_t addr) const override;
   void write8(uint16_t addr, uint8_t byte) override;
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
@@ -23,6 +26,8 @@ public:
   void get_samples(float *samples, size_t num_samples, size_t num_channels);
 
 private:
+  Timer &timer;
+
   union {
     std::array<uint8_t, kAudioSize> ram {};
 
@@ -39,10 +44,16 @@ private:
         uint8_t wave_duty: 2;
       } nr11;
 
-      struct {
-        uint8_t sweep_pace: 3;
-        uint8_t env_dir: 1;
-        uint8_t initial_volume: 4;
+      union {
+        struct {
+          uint8_t : 3;
+          uint8_t dac: 5;
+        };
+        struct {
+          uint8_t sweep_pace: 3;
+          uint8_t env_dir: 1;
+          uint8_t initial_volume: 4;
+        };
       } nr12;
 
       uint8_t nr13;
@@ -108,7 +119,11 @@ private:
         };
       } nr41;
 
-      uint8_t nr42;
+      struct {
+        uint8_t sweep_pace: 3;
+        uint8_t env_dir: 1;
+        uint8_t initial_volume: 4;
+      } nr42;
 
       struct {
         uint8_t clock_divider: 3;
@@ -140,16 +155,13 @@ private:
         uint8_t ch4_left: 1;
       } nr51;
 
-      union {
-        uint8_t val;
-        struct {
-          uint8_t ch1: 1;
-          uint8_t ch2: 1;
-          uint8_t ch3: 1;
-          uint8_t ch4: 1;
-          uint8_t unused: 3;
-          uint8_t audio: 1;
-        };
+      struct {
+        uint8_t ch1: 1;
+        uint8_t ch2: 1;
+        uint8_t ch3: 1;
+        uint8_t ch4: 1;
+        uint8_t unused: 3;
+        uint8_t audio: 1;
       } nr52;
 
       std::array<uint8_t, 9> unused;
@@ -157,4 +169,15 @@ private:
       std::array<uint16_t, 16> wave_pattern_ram;
     };
   };
+
+  uint16_t div_apu {};
+
+  struct {
+    bool dac;
+    bool enable;
+    uint16_t period;
+    uint8_t length_timer;
+    uint8_t envelope_timer;
+    uint8_t volume;
+  } ch1;
 };

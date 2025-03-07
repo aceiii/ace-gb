@@ -3,6 +3,9 @@
 constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
 constexpr int kWaveRamEnd = kWaveRamStart + 15;
 
+Audio::Audio(Timer &timer):timer{timer} {
+}
+
 bool Audio::valid_for(uint16_t addr) const {
   return addr >= kAudioStart && addr <= kAudioEnd;
 }
@@ -11,12 +14,32 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
   if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
     wave_pattern_ram[addr - kWaveRamStart] = byte;
   } else if (addr == std::to_underlying(IO::NR52)) {
-    nr52.val = byte;
+    uint8_t enable_audio = byte >> 7;
+    nr52.audio = enable_audio;
     if (!nr52.audio) {
       std::fill_n(ram.data(), std::to_underlying(IO::NR51) - std::to_underlying(IO::NR10) + 1, 0);
     }
   } else if (nr52.audio) {
     ram[addr - kAudioStart] = byte;
+
+    switch (addr) {
+      case std::to_underlying(IO::NR14):
+        ch1.enable = true;
+        if (ch1.length_timer >= 64) {
+          ch1.length_timer = nr11.initial_length_timer;
+        }
+        ch1.period = nr13 | (nr14.period << 8);
+        ch1.envelope_timer = 0;
+        ch1.volume = nr12.initial_volume;
+        break;
+      case std::to_underlying(IO::NR24):
+      case std::to_underlying(IO::NR34):
+      case std::to_underlying(IO::NR44):
+        break;
+      case std::to_underlying(IO::NR12):
+        ch1.dac = nr12.dac != 0;
+      break;
+    }
   }
 }
 
@@ -65,6 +88,26 @@ void Audio::reset() {
 }
 
 void Audio::on_tick() {
+  auto div = timer.div();
+  if (div == 0) {
+    div_apu += 1;
+  }
+
+  if (div % 8 == 0) {
+
+  }
+  if (div % 4 == 0) {
+
+  }
+  if (div % 2 == 0) {
+    if (ch1.enable) {
+      ch1.length_timer += 1;
+      if (ch1.length_timer >= 64) {
+        ch1.length_timer = nr11.initial_length_timer;
+        ch1.enable = false;
+      }
+    }
+  }
 }
 
 void Audio::get_samples(float *samples, size_t num_samples, size_t num_channels) {
