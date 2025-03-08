@@ -1,49 +1,38 @@
+#include <utility>
+
 #include "square_channel.h"
 
-SquareChannel::SquareChannel() {
+
+constexpr std::array<uint8_t, 5> defaultMask(bool sweep) {
+  if (sweep) {
+    return { 0x80, 0x3f, 0x00, 0xff, 0xbf };
+  }
+  return { 0xff, 0x3f, 0x00, 0xff, 0xbf };
+}
+
+SquareChannel::SquareChannel(bool sweep): enable_sweep { sweep }, masks { defaultMask(sweep) } {
 }
 
 void SquareChannel::reset() {
-  nrx0.val = 0;
-  nrx1.val = 0;
-  nrx2.val = 0;
-  nrx3 = 0;
-  nrx4.val = 0;
+  regs.fill(0);
 }
 
 void SquareChannel::write(AudioRegister reg, uint8_t value) {
-  switch (reg) {
-    case AudioRegister::NRx0:
-      nrx0.val = value;
-      break;
-    case AudioRegister::NRx1:
-      nrx1.val = value;
-      break;
-    case AudioRegister::NRx2:
-      nrx2.val = value;
-      break;
-    case AudioRegister::NRx3:
-      nrx3 = value;
-      break;
-    case AudioRegister::NRx4:
-      nrx4.val = value;
-      break;
-  }
+  const auto idx = std::to_underlying(reg);
+  regs[idx] = value;
 }
 
 uint8_t SquareChannel::read(AudioRegister reg) const {
-  switch (reg) {
-    case AudioRegister::NRx0: return nrx0.val;
-    case AudioRegister::NRx1: return nrx1.val;
-    case AudioRegister::NRx2: return nrx2.val;
-    case AudioRegister::NRx3: return nrx3;
-    case AudioRegister::NRx4: return nrx4.val;
-  }
+  const auto idx = std::to_underlying(reg);
+  return regs[idx] | masks[idx];
 }
 
 uint8_t SquareChannel::sample() const {
   return 0;
 }
 
-void SquareChannel::tick(uint8_t cycles) {
+void SquareChannel::clock() {
+}
+
+void SquareChannel::trigger() {
 }

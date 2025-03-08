@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <tuple>
 #include <utility>
 
 #include "io.h"
@@ -29,9 +30,12 @@ public:
   void get_samples(float *samples, size_t num_samples, size_t num_channels);
 
 private:
+  std::tuple<float, float> sample();
+
+private:
   Timer &timer;
 
-  uint8_t div_apu;
+  uint8_t frame_sequencer {};
 
   union {
     uint8_t val;
@@ -69,8 +73,8 @@ private:
     };
   } nr52;
 
-  SquareChannel ch1 {};
-  SquareChannel ch2 {};
+  SquareChannel ch1 {true};
+  SquareChannel ch2 {false};
   WaveChannel ch3 {};
   NoiseChannel ch4 {};
 
