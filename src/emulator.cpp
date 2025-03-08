@@ -12,7 +12,7 @@
 // NOTE: not sure why, but my emulator seems to be 4x slower than it should be...
 constexpr auto kStaticSpeedMultiplier = 4;
 
-Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts}, input_device{interrupts} {
+Emulator::Emulator():cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts}, input_device{interrupts}, audio{timer} {
   serial_device.on_line([] (const std::string &str) {
     spdlog::info("Serial: {}", str);
   });

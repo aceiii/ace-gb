@@ -71,6 +71,13 @@ set(SOURCE_FILES
         src/mbc3.h
         src/mbc5.cpp
         src/mbc5.h
+        src/square_channel.cpp
+        src/square_channel.h
+        src/wave_channel.cpp
+        src/wave_channel.h
+        src/noise_channel.cpp
+        src/noise_channel.h
+        src/audio_channel.h
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
