@@ -2,6 +2,14 @@
 
 #include "square_channel.h"
 
+using waveform = std::array<uint8_t, 8>;
+
+std::array<waveform, 4> waveforms {{
+  { 0, 0, 0, 0, 0, 0, 0, 1 },
+  { 1, 0, 0, 0, 0, 0, 0, 1 },
+  { 1, 0, 0, 0, 0, 1, 1, 1 },
+  { 0, 1, 1, 1, 1, 1, 1, 0 },
+}};
 
 constexpr std::array<uint8_t, 5> defaultMask(bool sweep) {
   if (sweep) {
@@ -20,6 +28,10 @@ void SquareChannel::reset() {
 void SquareChannel::write(AudioRegister reg, uint8_t value) {
   const auto idx = std::to_underlying(reg);
   regs[idx] = value;
+
+  if (reg == AudioRegister::NRx4 && (value >> 7)) {
+    trigger();
+  }
 }
 
 uint8_t SquareChannel::read(AudioRegister reg) const {
@@ -31,8 +43,17 @@ uint8_t SquareChannel::sample() const {
   return 0;
 }
 
-void SquareChannel::clock() {
+void SquareChannel::clock(uint8_t sequence) {
 }
 
 void SquareChannel::trigger() {
+  enable_channel = nrx2.dac;
+  period = nrx4.period;
+
+  if (nrx0.step) {
+    frequency >>= nrx0.step;
+    if (frequency > 0x7ff) {
+      enable_channel = false;
+    }
+  }
 }

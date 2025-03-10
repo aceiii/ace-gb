@@ -85,6 +85,11 @@ void Audio::on_tick() {
   auto div = timer.div();
   if (div == 0) {
     frame_sequencer = (frame_sequencer + 1) % 8;
+
+    ch1.clock(frame_sequencer);
+    ch2.clock(frame_sequencer);
+    ch3.clock(frame_sequencer);
+    ch4.clock(frame_sequencer);
   }
 
   auto [left, right] = sample();
@@ -95,5 +100,5 @@ void Audio::get_samples(float *samples, size_t num_samples, size_t num_channels)
 }
 
 std::tuple<float, float> Audio::sample() {
-
+  return std::make_tuple(0.f, 0.f);
 }

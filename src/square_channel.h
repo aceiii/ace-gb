@@ -12,11 +12,16 @@ public:
   void write(AudioRegister reg, uint8_t value) override;
   uint8_t read(AudioRegister reg) const override;
   uint8_t sample() const override;
-  void clock() override;
+  void clock(uint8_t sequence) override;
+  void trigger() override;
 
 private:
   bool enable_sweep {};
   bool enable_channel {};
+  uint8_t duty_step {};
+  uint16_t period {};
+  uint16_t frequency {};
+  uint16_t timer {};
 
   std::array<uint8_t, 5> masks;
 

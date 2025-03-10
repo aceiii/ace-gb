@@ -16,6 +16,10 @@ void WaveChannel::reset() {
 void WaveChannel::write(AudioRegister reg, uint8_t value) {
   const auto idx = std::to_underlying(reg);
   regs[idx] = value;
+
+  if (reg == AudioRegister::NRx4 && (value >> 7)) {
+    trigger();
+  }
 }
 
 uint8_t WaveChannel::read(AudioRegister reg) const {
@@ -27,7 +31,7 @@ uint8_t WaveChannel::sample() const {
   return 0;
 }
 
-void WaveChannel::clock() {
+void WaveChannel::clock(uint8_t sequence) {
 }
 
 uint8_t WaveChannel::read_wave(uint8_t idx) const {
