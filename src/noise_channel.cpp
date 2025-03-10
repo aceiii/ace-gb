@@ -29,9 +29,15 @@ uint8_t NoiseChannel::sample() const {
   return 0;
 }
 
-void NoiseChannel::clock(uint8_t sequence) {
-}
-
 void NoiseChannel::trigger() {
   enable_channel = nrx2.dac;
+}
+
+void NoiseChannel::length_tick() {
+}
+
+void NoiseChannel::envelope_tick() {
+}
+
+void NoiseChannel::sweep_tick() {
 }

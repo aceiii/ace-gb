@@ -43,9 +43,6 @@ uint8_t SquareChannel::sample() const {
   return 0;
 }
 
-void SquareChannel::clock(uint8_t sequence) {
-}
-
 void SquareChannel::trigger() {
   enable_channel = nrx2.dac;
   period = nrx4.period;
@@ -56,4 +53,13 @@ void SquareChannel::trigger() {
       enable_channel = false;
     }
   }
+}
+
+void SquareChannel::length_tick() {
+}
+
+void SquareChannel::envelope_tick() {
+}
+
+void SquareChannel::sweep_tick() {
 }

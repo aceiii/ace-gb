@@ -12,11 +12,15 @@ public:
   void write(AudioRegister reg, uint8_t value) override;
   uint8_t read(AudioRegister reg) const override;
   uint8_t sample() const override;
-  void clock(uint8_t sequence) override;
   void trigger() override;
 
   uint8_t read_wave(uint8_t idx) const;
   void set_wave(uint8_t idx, uint8_t byte);
+
+private:
+  void length_tick() override;
+  void envelope_tick() override;
+  void sweep_tick() override;
 
 private:
   bool enable_channel {};

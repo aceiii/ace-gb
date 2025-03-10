@@ -31,9 +31,6 @@ uint8_t WaveChannel::sample() const {
   return 0;
 }
 
-void WaveChannel::clock(uint8_t sequence) {
-}
-
 uint8_t WaveChannel::read_wave(uint8_t idx) const {
   return wave_pattern_ram[idx];
 }
@@ -43,4 +40,13 @@ void WaveChannel::set_wave(uint8_t idx, uint8_t byte) {
 }
 
 void WaveChannel::trigger() {
+}
+
+void WaveChannel::length_tick() {
+}
+
+void WaveChannel::envelope_tick() {
+}
+
+void WaveChannel::sweep_tick() {
 }
