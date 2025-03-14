@@ -82,14 +82,19 @@ void Audio::reset() {
 }
 
 void Audio::on_tick() {
+  ch1.tick();
+  ch2.tick();
+  ch3.tick();
+  ch4.tick();
+
   auto div = timer.div();
   if (div == 0) {
-    frame_sequencer = (frame_sequencer + 1) % 8;
-
     ch1.clock(frame_sequencer);
     ch2.clock(frame_sequencer);
     ch3.clock(frame_sequencer);
     ch4.clock(frame_sequencer);
+
+    frame_sequencer = (frame_sequencer + 1) % 8;
   }
 
   auto [left, right] = sample();

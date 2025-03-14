@@ -17,10 +17,11 @@ public:
   virtual void write(AudioRegister reg, uint8_t value) = 0;
   virtual uint8_t read(AudioRegister reg) const = 0;
   virtual uint8_t sample() const = 0;
+  virtual void tick() = 0;
   virtual void trigger() = 0;
 
   inline void clock(uint8_t sequence) {
-    if (sequence == 0 || sequence == 2 || sequence == 4 || sequence == 6) {
+    if (sequence % 2 == 0) {
       length_tick();
     }
     if (sequence == 7) {

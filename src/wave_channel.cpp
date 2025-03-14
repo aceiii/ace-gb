@@ -17,8 +17,10 @@ void WaveChannel::write(AudioRegister reg, uint8_t value) {
   const auto idx = std::to_underlying(reg);
   regs[idx] = value;
 
-  if (reg == AudioRegister::NRx4 && (value >> 7)) {
-    trigger();
+  if (reg == AudioRegister::NRx4) {
+    if (nrx4.trigger) {
+      trigger();
+    }
   }
 }
 
@@ -37,6 +39,9 @@ uint8_t WaveChannel::read_wave(uint8_t idx) const {
 
 void WaveChannel::set_wave(uint8_t idx, uint8_t byte) {
   wave_pattern_ram[idx] = byte;
+}
+
+void WaveChannel::tick() {
 }
 
 void WaveChannel::trigger() {

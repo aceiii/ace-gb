@@ -29,6 +29,9 @@ uint8_t NoiseChannel::sample() const {
   return 0;
 }
 
+void NoiseChannel::tick() {
+}
+
 void NoiseChannel::trigger() {
   enable_channel = nrx2.dac;
 }

@@ -12,6 +12,7 @@ public:
   void write(AudioRegister reg, uint8_t value) override;
   uint8_t read(AudioRegister reg) const override;
   uint8_t sample() const override;
+  void tick() override;
   void trigger() override;
 
 private:

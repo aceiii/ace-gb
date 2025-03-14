@@ -12,6 +12,7 @@ public:
   void write(AudioRegister reg, uint8_t value) override;
   uint8_t read(AudioRegister reg) const override;
   uint8_t sample() const override;
+  void tick() override;
   void trigger() override;
 
 private:
@@ -22,10 +23,20 @@ private:
 private:
   bool enable_sweep {};
   bool enable_channel {};
+  uint16_t length_counter {};
   uint8_t duty_step {};
-  uint16_t period {};
-  uint16_t frequency {};
-  uint16_t timer {};
+
+//  uint16_t period {};
+//  uint16_t timer {};
+  uint16_t envelope_timer {};
+//  uint16_t sweep {};
+  uint8_t volume {};
+
+  struct {
+    bool enabled;
+    uint16_t timer;
+    uint16_t current;
+  } period;
 
   std::array<uint8_t, 5> masks;
 
@@ -34,9 +45,9 @@ private:
 
     struct {
       struct {
-        uint8_t step: 3;
-        uint8_t direction: 1;
-        uint8_t pace: 3;
+        uint8_t period_sweep_step: 3;
+        uint8_t period_sweep_direction: 1;
+        uint8_t period_sweep_pace: 3;
         uint8_t : 1;
       } nrx0;
 
@@ -51,8 +62,8 @@ private:
           uint8_t dac: 5;
         };
         struct {
-          uint8_t sweep_pace: 3;
-          uint8_t env_dir: 1;
+          uint8_t envelope_sweep_pace: 3;
+          uint8_t envelope_direction: 1;
           uint8_t initial_volume: 4;
         };
       } nrx2;
