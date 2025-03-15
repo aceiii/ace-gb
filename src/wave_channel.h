@@ -11,7 +11,7 @@ public:
   void reset() override;
   void write(AudioRegister reg, uint8_t value) override;
   uint8_t read(AudioRegister reg) const override;
-  uint8_t sample() const override;
+  float sample() const override;
   void tick() override;
   void trigger() override;
 
@@ -23,11 +23,18 @@ private:
   void envelope_tick() override;
   void sweep_tick() override;
 
+  uint16_t frequency() const;
+  void set_frequency(uint16_t freq);
+
 private:
   bool enable_channel {};
+  uint16_t length_counter {};
+  uint16_t timer {};
+  uint8_t volume {};
+  uint8_t wave_index {};
+  uint8_t buffer {};
 
   std::array<uint8_t, 16> wave_pattern_ram;
-
   std::array<uint8_t, 5> masks;
 
   union {

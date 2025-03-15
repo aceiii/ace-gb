@@ -11,7 +11,7 @@ public:
   void reset() override;
   void write(AudioRegister reg, uint8_t value) override;
   uint8_t read(AudioRegister reg) const override;
-  uint8_t sample() const override;
+  float sample() const override;
   void tick() override;
   void trigger() override;
 
@@ -22,6 +22,17 @@ private:
 
 private:
   bool enable_channel {};
+  uint16_t length_counter {};
+  uint16_t envelope_timer {};
+  uint16_t timer {};
+  uint8_t volume {};
+  union {
+    uint16_t byte {};
+    struct {
+      uint16_t val: 15;
+      uint16_t temp: 1;
+    };
+  } lfsr;
 
   std::array<uint8_t, 5> masks;
 

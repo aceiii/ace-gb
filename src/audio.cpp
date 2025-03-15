@@ -1,9 +1,13 @@
+#include <spdlog/spdlog.h>
+
 #include "audio.h"
 
+constexpr int kClockSpeed = 4194304;
 constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
 constexpr int kWaveRamEnd = kWaveRamStart + 15;
 
-Audio::Audio(Timer &timer): timer { timer } {
+Audio::Audio(Timer &timer, audio_config cfg): timer { timer }, config { cfg } {
+  sample_buffer.reserve(cfg.buffer_size * cfg.num_channels);
 }
 
 bool Audio::valid_for(uint16_t addr) const {
@@ -15,14 +19,16 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
     ch3.set_wave(addr - kWaveRamStart, byte);
   } else if (addr == std::to_underlying(IO::NR52)) {
     uint8_t enable_audio = byte >> 7;
-    nr52.audio = enable_audio;
-    if (!nr52.audio) {
+    nr52.val = byte;
+    if (!enable_audio) {
       nr50.val = 0;
       nr51.val = 0;
       ch1.reset();
       ch2.reset();
       ch3.reset();
       ch4.reset();
+    } else {
+      spdlog::info("Enable audio!");
     }
   } else if (nr52.audio) {
     if (addr >= std::to_underlying(IO::NR10) && addr <= std::to_underlying(IO::NR14)) {
@@ -33,6 +39,10 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
       ch3.write(AudioRegister { addr - std::to_underlying(IO::NR30) }, byte);
     } else if (addr >= std::to_underlying(IO::NR40) && addr <= std::to_underlying(IO::NR44)) {
       ch4.write(AudioRegister { addr - std::to_underlying(IO::NR40) }, byte);
+    } else if (addr == std::to_underlying(IO::NR51)) {
+      nr51.val = byte;
+    } else if (addr == std::to_underlying(IO::NR52)) {
+      nr52.val = byte;
     }
   }
 }
@@ -72,6 +82,7 @@ uint8_t Audio::read8(uint16_t addr) const {
 }
 
 void Audio::reset() {
+  sample_timer = 0;
   nr50.val = 0;
   nr51.val = 0;
   nr52.val = 0;
@@ -82,28 +93,88 @@ void Audio::reset() {
 }
 
 void Audio::on_tick() {
-  ch1.tick();
-  ch2.tick();
-  ch3.tick();
-  ch4.tick();
+    ch1.tick();
+    ch2.tick();
+    ch3.tick();
+    ch4.tick();
 
-  auto div = timer.div();
-  if (div == 0) {
-    ch1.clock(frame_sequencer);
-    ch2.clock(frame_sequencer);
-    ch3.clock(frame_sequencer);
-    ch4.clock(frame_sequencer);
+    auto div = timer.div();
+    if (div == 0) {
+      ch1.clock(frame_sequencer);
+      ch2.clock(frame_sequencer);
+      ch3.clock(frame_sequencer);
+      ch4.clock(frame_sequencer);
 
-    frame_sequencer = (frame_sequencer + 1) % 8;
-  }
+      frame_sequencer = (frame_sequencer + 1) % 8;
+    }
 
-  auto [left, right] = sample();
+    if (sample_timer) {
+      sample_timer -= 1;
+    }
+
+    if (sample_timer == 0) {
+      const auto [left, right] = sample();
+      //    spdlog::info("sample: {}, {}", left, right);
+      sample_buffer.push_back(left);
+      sample_buffer.push_back(right);
+      sample_timer = kClockSpeed / config.sample_rate;
+    }
 }
 
 void Audio::get_samples(float *samples, size_t num_samples, size_t num_channels) {
-  std::fill_n(samples, num_samples, 0);
+  auto samples_to_copy = std::min(num_samples * num_channels, sample_buffer.size());
+//  spdlog::info("get_samples: {}", samples_to_copy);
+  std::copy_n(sample_buffer.begin(), samples_to_copy, samples);
+  sample_buffer.erase(sample_buffer.begin(), sample_buffer.begin() + samples_to_copy);
 }
 
 std::tuple<float, float> Audio::sample() {
-  return std::make_tuple(0.f, 0.f);
+  float left = 0.0f;
+  float right = 0.0f;
+
+  if (nr52.audio) {
+    auto s1 = ch1.sample();
+    auto s2 = ch2.sample();
+    auto s3 = ch3.sample();
+    auto s4 = ch4.sample();
+
+//    if (nr51.ch1_left) {
+//      left += s1;
+//    }
+//    if (nr51.ch2_left) {
+//      left += s2;
+//    }
+//    if (nr51.ch3_left) {
+//      left += s3;
+//    }
+    if (nr51.ch4_left) {
+      left += s4;
+    }
+//
+//    if (nr51.ch1_right) {
+//      right += s1;
+//    }
+//    if (nr51.ch2_right) {
+//      right += s2;
+//    }
+//    if (nr51.ch3_right) {
+//      right += s3;
+//    }
+    if (nr51.ch4_right) {
+      right += s4;
+    }
+
+    left /= 4.0f;
+    right /= 4.0f;
+//    spdlog::info("sample: {}, {}", left, right);
+  } else {
+//    spdlog::info("off");
+  }
+
+  left = (left * static_cast<float>(nr50.left_volume + 1)) / 8.0f;
+  right = (right * static_cast<float>(nr50.right_volume + 1)) / 8.0f;
+
+//  spdlog::info("audio: {} {} {} {}", s1, s2, s3, s4);
+
+  return std::make_tuple(left, right);
 }

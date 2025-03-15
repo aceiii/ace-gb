@@ -16,47 +16,44 @@
 namespace fs = std::filesystem;
 
 namespace {
-  constexpr int kDefaulWindowWidth = 800;
-  constexpr int kDefaultWindowHeight = 600;
-  constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
+constexpr int kDefaulWindowWidth = 800;
+constexpr int kDefaultWindowHeight = 600;
+constexpr char const *kWindowTitle = "Ace::GB - GameBoy Emulator";
 
-  constexpr int kAudioSampleRate = 48000;
-  constexpr int kAudioSampleSize = 32;
-  constexpr int kAudioNumChannels = 2;
-  constexpr int kSamplesPerUpdate = 4096;
+constexpr int kAudioSampleRate = 48000;
+constexpr int kAudioSampleSize = 32;
+constexpr int kAudioNumChannels = 2;
+constexpr int kSamplesPerUpdate = 4096;
 
-  AudioStream stream;
+AudioStream stream;
 }
 
-void rlImGuiImageTextureFit(const Texture2D *image, bool center)
-{
+void rlImGuiImageTextureFit(const Texture2D *image, bool center) {
   if (!image)
     return;
 
   ImVec2 area = ImGui::GetContentRegionAvail();
 
-  float scale =  area.x / image->width;
+  float scale = area.x / image->width;
 
   float y = image->height * scale;
-  if (y > area.y)
-  {
+  if (y > area.y) {
     scale = area.y / image->height;
   }
 
   int sizeX = image->width * scale;
   int sizeY = image->height * scale;
 
-  if (center)
-  {
+  if (center) {
     ImGui::SetCursorPosX(0);
-    ImGui::SetCursorPosX(area.x/2 - sizeX/2);
+    ImGui::SetCursorPosX(area.x / 2 - sizeX / 2);
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (area.y / 2 - sizeY / 2));
   }
 
-  rlImGuiImageRect(image, sizeX, sizeY, Rectangle{ 0,0, static_cast<float>(image->width), static_cast<float>(image->height) });
+  rlImGuiImageRect(image, sizeX, sizeY, Rectangle { 0, 0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
-Interface::Interface() {
+Interface::Interface(): emulator {{ kAudioSampleRate, kSamplesPerUpdate, kAudioNumChannels }} {
   spdlog::info("Initializing interface");
 
   NFD_Init();
@@ -133,7 +130,7 @@ void Interface::run() {
       }
 
       auto idx = dropped_files.count - 1;
-      std::string file_path {dropped_files.paths[idx]};
+      std::string file_path { dropped_files.paths[idx] };
       load_cart_rom(file_path);
 
       UnloadDroppedFiles(dropped_files);
@@ -242,7 +239,7 @@ void Interface::run() {
 
     if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
       std::array<float, kAudioNumChannels * kSamplesPerUpdate> samples {};
-      emulator.audio_samples(samples.data(), samples.size(), kAudioNumChannels);
+      emulator.audio_samples(samples.data(), samples.size() / kAudioNumChannels, kAudioNumChannels);
       UpdateAudioStream(stream, samples.data(), kSamplesPerUpdate);
     }
   }
@@ -261,16 +258,16 @@ void Interface::render_error() {
   auto text_y = (kDefaultWindowHeight / 2) - (text_height / 2);
   auto padding = 10;
 
-  DrawRectangle(text_x - padding, text_y - padding, text_width + padding + padding, text_height + padding + padding, Color{32,32,32,127});
+  DrawRectangle(text_x - padding, text_y - padding, text_width + padding + padding, text_height + padding + padding, Color { 32, 32, 32, 127 });
   DrawText(error_message.c_str(), text_x, text_y, 15, RED);
 }
 
 void Interface::load_cartridge() {
-  nfdchar_t* file_path = nullptr;
+  nfdchar_t *file_path = nullptr;
   std::array<nfdfilteritem_t, 3> filter_items = {{
-    {"GB", "gb"},
-    {"BIN", "bin"},
-    {"ROM", "rom"}
+    { "GB", "gb" },
+    { "BIN", "bin" },
+    { "ROM", "rom" }
   }};
 
   nfdresult_t result = NFD_OpenDialog(&file_path, filter_items.data(), filter_items.size(), nullptr);
@@ -284,7 +281,7 @@ void Interface::load_cartridge() {
 }
 
 void Interface::load_cart_rom(const std::string &file_path) {
-  fs::path path{file_path};
+  fs::path path { file_path };
   auto ext = path.extension();
   if (ext != ".gb" && ext != ".bin" && ext != ".rom") {
     spdlog::error("Invalid file extension: {}. Only supports loading .gb, .bin, .rom", ext.string());
@@ -326,7 +323,7 @@ void Interface::render_tiles(bool &show_window) {
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 3;
-    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle{ 0,0, static_cast<float>(width), -static_cast<float>(height) });
+    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
   }
   ImGui::End();
 }
@@ -342,7 +339,7 @@ void Interface::render_tilemap1(bool &show_window) {
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
-    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle{ 0,0, static_cast<float>(width), -static_cast<float>(height) });
+    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
   }
   ImGui::End();
 }
@@ -358,7 +355,7 @@ void Interface::render_tilemap2(bool &show_window) {
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
-    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle{ 0,0, static_cast<float>(width), -static_cast<float>(height) });
+    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
   }
   ImGui::End();
 }
@@ -374,7 +371,7 @@ void Interface::render_sprites(bool &show_window) {
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
-    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle{ 0,0, static_cast<float>(width), -static_cast<float>(height) });
+    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
   }
   ImGui::End();
 }
@@ -408,7 +405,7 @@ void Interface::render_registers(bool &show_window) {
     ImGui::Text("PC=%04X (%d)", regs.pc, regs.pc);
     ImGui::Text("SP=%04X (%d)", regs.sp, regs.sp);
     ImGui::Text("A=%02X F=%02X B=%02X C=%02X D=%02X E=%02X H=%02X L=%02X", a, f, b, c, d, e, h, l);
-    ImGui::Text("AF=%04X BC=%04X DE=%04X HL=%04X", af, bc, de,hl);
+    ImGui::Text("AF=%04X BC=%04X DE=%04X HL=%04X", af, bc, de, hl);
     ImGui::Text("Flags Z=%d N=%d H=%d C=%d", zero, neg, half_carry, carry);
 
     const auto &state = emulator.state();
@@ -433,4 +430,5 @@ void Interface::step() {
 
 void Interface::reset() {
   emulator.reset();
+  StopAudioStream(stream);
 }

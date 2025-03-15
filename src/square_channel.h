@@ -11,7 +11,7 @@ public:
   void reset() override;
   void write(AudioRegister reg, uint8_t value) override;
   uint8_t read(AudioRegister reg) const override;
-  uint8_t sample() const override;
+  float sample() const override;
   void tick() override;
   void trigger() override;
 
@@ -20,23 +20,24 @@ private:
   void envelope_tick() override;
   void sweep_tick() override;
 
+  uint16_t calc_sweep();
+  uint16_t frequency() const;
+  void set_frequency(uint16_t freq);
+
 private:
   bool enable_sweep {};
   bool enable_channel {};
   uint16_t length_counter {};
-  uint8_t duty_step {};
-
-//  uint16_t period {};
-//  uint16_t timer {};
   uint16_t envelope_timer {};
-//  uint16_t sweep {};
+  uint16_t timer {};
   uint8_t volume {};
+  uint8_t duty_step {};
 
   struct {
     bool enabled;
     uint16_t timer;
     uint16_t current;
-  } period;
+  } period {};
 
   std::array<uint8_t, 5> masks;
 

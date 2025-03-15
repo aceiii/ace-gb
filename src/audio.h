@@ -3,6 +3,7 @@
 #include <array>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #include "io.h"
 #include "mmu_device.h"
@@ -16,9 +17,15 @@ constexpr int kAudioStart = std::to_underlying(IO::NR10);
 constexpr int kAudioEnd = std::to_underlying(IO::LCDC) - 1;
 constexpr int kAudioSize = kAudioEnd - kAudioStart + 1;
 
+struct audio_config {
+  int sample_rate;
+  int buffer_size;
+  int num_channels;
+};
+
 class Audio : public MmuDevice, public SyncedDevice {
 public:
-  explicit Audio(Timer &timer);
+  explicit Audio(Timer &timer, audio_config cfg);
 
   [[nodiscard]] bool valid_for(uint16_t addr) const override;
   void write8(uint16_t addr, uint8_t byte) override;
@@ -34,8 +41,11 @@ private:
 
 private:
   Timer &timer;
+  audio_config config;
 
   uint8_t frame_sequencer {};
+  uint16_t sample_timer {};
+  std::vector<float> sample_buffer;
 
   union {
     uint8_t val;

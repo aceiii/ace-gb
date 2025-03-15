@@ -16,7 +16,7 @@ public:
   virtual void reset() = 0;
   virtual void write(AudioRegister reg, uint8_t value) = 0;
   virtual uint8_t read(AudioRegister reg) const = 0;
-  virtual uint8_t sample() const = 0;
+  virtual float sample() const = 0;
   virtual void tick() = 0;
   virtual void trigger() = 0;
 

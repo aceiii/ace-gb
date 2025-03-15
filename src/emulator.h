@@ -22,7 +22,7 @@
 
 class Emulator {
 public:
-  explicit Emulator();
+  explicit Emulator(audio_config cfg);
   ~Emulator() = default;
 
   tl::expected<bool, std::string> init();

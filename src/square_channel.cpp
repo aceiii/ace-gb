@@ -3,13 +3,11 @@
 
 #include "square_channel.h"
 
-using waveform = std::array<uint8_t, 8>;
-
-std::array<waveform, 4> waveforms {{
-  { 0, 0, 0, 0, 0, 0, 0, 1 },
-  { 1, 0, 0, 0, 0, 0, 0, 1 },
-  { 1, 0, 0, 0, 0, 1, 1, 1 },
-  { 0, 1, 1, 1, 1, 1, 1, 0 },
+std::array<uint8_t, 4> waveforms {{
+  0b00000001,
+  0b10000001,
+  0b10000111,
+  0b01111110,
 }};
 
 constexpr std::array<uint8_t, 5> defaultMask(bool sweep) {
@@ -25,6 +23,15 @@ SquareChannel::SquareChannel(bool sweep): enable_sweep { sweep }, masks { defaul
 }
 
 void SquareChannel::reset() {
+  enable_channel = false;
+  length_counter = 0;
+  envelope_timer = 0;
+  timer = 0;
+  volume = 0;
+  duty_step = 0;
+  period.enabled = false;
+  period.timer = 0;
+  period.current = 0;
   regs.fill(0);
 }
 
@@ -32,20 +39,27 @@ void SquareChannel::write(AudioRegister reg, uint8_t value) {
   const auto idx = std::to_underlying(reg);
   regs[idx] = value;
 
-  if (reg == AudioRegister::NRx0) {
-    if (!period.enabled && nrx0.period_sweep_pace) {
-      period.enabled = true;
-    } else if (nrx0.period_sweep_pace == 0) {
-      period.enabled = false;
-    }
-  } else if (reg == AudioRegister::NRx1) {
-    length_counter = nrx1.initial_length_timer;
-  } else if (reg == AudioRegister::NRx2) {
-    envelope_timer = nrx2.envelope_sweep_pace;
-  } else if (reg == AudioRegister::NRx4) {
-    if (nrx4.trigger) {
-      trigger();
-    }
+  switch (reg) {
+    case AudioRegister::NRx0:
+      if (!period.enabled && nrx0.period_sweep_pace) {
+        period.enabled = true;
+      } else if (nrx0.period_sweep_pace == 0) {
+        period.enabled = false;
+      }
+      break;
+    case AudioRegister::NRx1:
+      length_counter = nrx1.initial_length_timer;
+      break;
+    case AudioRegister::NRx2:
+      volume = nrx2.initial_volume;
+      envelope_timer = nrx2.envelope_sweep_pace;
+      break;
+    case AudioRegister::NRx4:
+      if (nrx4.trigger) {
+        trigger();
+      }
+      break;
+    default: break;
   }
 }
 
@@ -54,38 +68,38 @@ uint8_t SquareChannel::read(AudioRegister reg) const {
   return regs[idx] | masks[idx];
 }
 
-uint8_t SquareChannel::sample() const {
-  if (!enable_channel) {
-    return 0;
+float SquareChannel::sample() const {
+  if (!enable_channel || !nrx2.dac) {
+    return 0.0f;
   }
 
   const auto &waveform = waveforms[nrx1.wave_duty];
-  auto bit = waveform[duty_step];
+  auto bit = (waveform >> (7 - duty_step)) & 0b1;
 
   if (bit) {
-    return volume;
+    return (static_cast<float>(volume) / 7.5f) - 1.0f;
   }
 
-  return 0;
+  return 0.0f;
 }
 
 void SquareChannel::tick() {
-//  if (period.timer) {
-//    period.timer -= 1;
-//  }
-//
-//  if (period.timer == 0) {
-//    duty_step = (duty_step + 1) % 8;
-//    period.timer = (2048 - period.current) * 4;
-//  }
+  if (timer) {
+    timer -= 1;
+  }
+
+  if (timer == 0) {
+    duty_step = (duty_step + 1) % 8;
+     timer = (2048 - frequency()) * 4;
+  }
 }
 
 void SquareChannel::trigger() {
-  duty_step = 0;
-  enable_channel = nrx2.dac;
-  period.current = (nrx4.period << 8) | nrx3;
+  enable_channel = true;
   envelope_timer = nrx2.envelope_sweep_pace;
   volume = nrx2.initial_volume;
+  timer = (2048 - frequency()) * 4;
+  duty_step = 0;
 
   if (length_counter == 0) {
     length_counter = kInitialLengthCounter;
@@ -95,23 +109,24 @@ void SquareChannel::trigger() {
     return;
   }
 
-  period.timer = (2048 - period.current) * 4;
+  period.enabled = nrx0.period_sweep_step || nrx0.period_sweep_pace;
+  period.current = frequency();
+  period.timer = nrx0.period_sweep_pace;
   if (nrx0.period_sweep_step) {
-    // NOTE: frequency calculation and overflow check
-
-    auto frequency = period.current >> nrx0.period_sweep_step;
-    if (frequency > 0x7ff) {
-      enable_channel = false;
-    }
+    calc_sweep();
   }
 }
 
 void SquareChannel::length_tick() {
-  if (!length_counter || !nrx4.length_enable) {
+  if (length_counter) {
+    length_counter -= 1;
+  }
+
+  if (!nrx4.length_enable) {
     return;
   }
 
-  if (--length_counter == 0) {
+  if (length_counter == 0) {
     enable_channel = false;
   }
 }
@@ -125,18 +140,17 @@ void SquareChannel::envelope_tick() {
     envelope_timer -= 1;
   }
 
-  if (envelope_timer == 0) {
-    int8_t change = nrx2.envelope_direction ? 1 : -1;
-    volume = std::clamp(volume + change, 0, 0xf);
-
-    if (nrx2.envelope_direction && volume < 0xf) {
-      volume += 1;
-    } else if (!nrx2.envelope_direction && volume > 0){
-      volume -= 1;
-    }
-
-    envelope_timer = nrx2.envelope_sweep_pace;
+  if (envelope_timer != 0) {
+    return;
   }
+
+  if (nrx2.envelope_direction && volume < 0xf) {
+    volume += 1;
+  } else if (!nrx2.envelope_direction && volume > 0) {
+    volume -= 1;
+  }
+
+  envelope_timer = nrx2.envelope_sweep_pace;
 }
 
 void SquareChannel::sweep_tick() {
@@ -148,21 +162,37 @@ void SquareChannel::sweep_tick() {
     period.timer -= 1;
   }
 
-  if (period.timer == 0) {
-   auto new_value = period.current;
-    if (nrx0.period_sweep_direction) {
-      new_value -= period.current >> nrx0.period_sweep_step;
-    } else {
-      new_value += period.current >> nrx0.period_sweep_step;
+  if (period.timer == 0 && nrx0.period_sweep_step) {
+    auto new_frequency = calc_sweep();
+    if (new_frequency <= 2047 && nrx0.period_sweep_step) {
+      period.current = new_frequency;
+      set_frequency(new_frequency);
+      calc_sweep();
     }
-
-    period.current = new_value;
-    period.timer = (2048 - period.current) * 4;
-    nrx3 = period.current & 0xff;
-    nrx4.period = (period.current >> 8) & 0xff;
-
-    if (period.current > 0x7ff) {
-      enable_channel = false;
-    }
+    period.timer = nrx0.period_sweep_pace;
   }
+}
+
+uint16_t SquareChannel::calc_sweep() {
+  uint16_t val = period.current >> nrx0.period_sweep_step;
+  if (nrx0.period_sweep_direction) {
+    val = period.current - val;
+  } else {
+    val = period.current + val;
+  }
+
+  if (val > 2047) {
+    enable_channel = false;
+  }
+
+  return val;
+}
+
+uint16_t SquareChannel::frequency() const {
+  return nrx3 | (nrx4.period << 8);
+}
+
+void SquareChannel::set_frequency(uint16_t freq) {
+  nrx3 = freq & 0xff;
+  nrx4.period = (freq >> 8) & 0b111;
 }
