@@ -21,6 +21,7 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
     uint8_t enable_audio = byte >> 7;
     nr52.val = byte;
     if (!enable_audio) {
+      nr52.val = 0;
       nr50.val = 0;
       nr51.val = 0;
       ch1.reset();
@@ -39,6 +40,8 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
       ch3.write(AudioRegister { addr - std::to_underlying(IO::NR30) }, byte);
     } else if (addr >= std::to_underlying(IO::NR40) && addr <= std::to_underlying(IO::NR44)) {
       ch4.write(AudioRegister { addr - std::to_underlying(IO::NR40) }, byte);
+    } else if (addr == std::to_underlying(IO::NR50)) {
+      nr50.val = byte;
     } else if (addr == std::to_underlying(IO::NR51)) {
       nr51.val = byte;
     } else if (addr == std::to_underlying(IO::NR52)) {
@@ -59,7 +62,7 @@ uint8_t Audio::read8(uint16_t addr) const {
     return nr51.val;
   }
   if (addr == std::to_underlying(IO::NR52)) {
-    return nr52.val | 0b01110000;
+    return (nr52.val | 0b01110000) & 0b11110000;
   }
 
   if (addr >= std::to_underlying(IO::NR10) && addr <= std::to_underlying(IO::NR14)) {
