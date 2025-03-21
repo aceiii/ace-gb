@@ -97,12 +97,14 @@ bool WaveChannel::enabled() const {
 }
 
 void WaveChannel::length_tick() {
-  if (length_counter) {
-    length_counter -= 1;
-  }
   if (!nrx4.length_enable) {
     return;
   }
+
+  if (length_counter) {
+    length_counter -= 1;
+  }
+
   if (length_counter == 0) {
     enable_channel = false;
   }

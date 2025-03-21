@@ -127,13 +127,13 @@ bool SquareChannel::enabled() const {
 }
 
 void SquareChannel::length_tick() {
+  if (!nrx4.length_enable) {
+    return;
+  }
+
   if (length_counter) {
     spdlog::info("square channel length_tick: {} -> {}, enable_sweep:{}", length_counter, length_counter-1, enable_sweep);
     length_counter -= 1;
-  }
-
-  if (!nrx4.length_enable) {
-    return;
   }
 
   if (length_counter == 0 && enable_channel) {
