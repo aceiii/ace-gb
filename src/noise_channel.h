@@ -14,6 +14,7 @@ public:
   float sample() const override;
   void tick() override;
   void trigger() override;
+  bool enabled() const override;
 
 private:
   void length_tick() override;
@@ -27,7 +28,7 @@ private:
   uint16_t timer {};
   uint8_t volume {};
   union {
-    uint16_t byte {};
+    uint16_t bytes {};
     struct {
       uint16_t val: 15;
       uint16_t temp: 1;

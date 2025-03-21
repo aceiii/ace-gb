@@ -92,6 +92,10 @@ void WaveChannel::trigger() {
   wave_index = 0;
 }
 
+bool WaveChannel::enabled() const {
+  return enable_channel;
+}
+
 void WaveChannel::length_tick() {
   if (length_counter) {
     length_counter -= 1;

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <utility>
+#include <spdlog/spdlog.h>
 
 #include "square_channel.h"
 
@@ -41,20 +42,18 @@ void SquareChannel::write(AudioRegister reg, uint8_t value) {
 
   switch (reg) {
     case AudioRegister::NRx0:
-      if (!period.enabled && nrx0.period_sweep_pace) {
-        period.enabled = true;
-      } else if (nrx0.period_sweep_pace == 0) {
-        period.enabled = false;
-      }
+      period.enabled = !nrx0.period_sweep_pace;
       break;
     case AudioRegister::NRx1:
-      length_counter = nrx1.initial_length_timer;
+      length_counter = kInitialLengthCounter - nrx1.initial_length_timer;
+      spdlog::info("NRx1: {:02x}, initial_length_timer: {}, length_counter:{}", value, static_cast<uint8_t>(nrx1.initial_length_timer), length_counter);
       break;
     case AudioRegister::NRx2:
       volume = nrx2.initial_volume;
       envelope_timer = nrx2.envelope_sweep_pace;
       break;
     case AudioRegister::NRx4:
+      spdlog::info("NRx4: {:02x}, trigger:{}, length_enable:{}, period:{}", value, static_cast<uint8_t>(nrx4.trigger), static_cast<uint8_t>(nrx4.length_enable), static_cast<uint8_t>(nrx4.period));
       if (nrx4.trigger) {
         trigger();
       }
@@ -105,6 +104,8 @@ void SquareChannel::trigger() {
     length_counter = kInitialLengthCounter;
   }
 
+  spdlog::info("trigger square_channel: enable_sweep:{}, length_counter:{}", enable_sweep, length_counter);
+
   if (!enable_sweep) {
     return;
   }
@@ -112,13 +113,22 @@ void SquareChannel::trigger() {
   period.enabled = nrx0.period_sweep_step || nrx0.period_sweep_pace;
   period.current = frequency();
   period.timer = nrx0.period_sweep_pace;
+  if (period.timer == 0) {
+    period.timer = 8;
+  }
   if (nrx0.period_sweep_step) {
     calc_sweep();
   }
 }
 
+bool SquareChannel::enabled() const {
+  spdlog::info("square:length_counter:{}", length_counter);
+  return enable_channel;
+}
+
 void SquareChannel::length_tick() {
   if (length_counter) {
+    spdlog::info("square channel length_tick: {} -> {}, enable_sweep:{}", length_counter, length_counter-1, enable_sweep);
     length_counter -= 1;
   }
 
@@ -126,7 +136,8 @@ void SquareChannel::length_tick() {
     return;
   }
 
-  if (length_counter == 0) {
+  if (length_counter == 0 && enable_channel) {
+    spdlog::info("disable square channel: enable_sweep:{}, length_counter:{}", enable_sweep, length_counter);
     enable_channel = false;
   }
 }
@@ -151,6 +162,9 @@ void SquareChannel::envelope_tick() {
   }
 
   envelope_timer = nrx2.envelope_sweep_pace;
+  if (envelope_timer == 0) {
+    envelope_timer = 8;
+  }
 }
 
 void SquareChannel::sweep_tick() {

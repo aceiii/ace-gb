@@ -43,6 +43,7 @@ private:
   Timer &timer;
   audio_config config;
 
+  uint8_t prev_bit {};
   uint8_t frame_sequencer {};
   uint16_t sample_timer {};
   std::vector<float> sample_buffer;

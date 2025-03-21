@@ -19,6 +19,7 @@ public:
   virtual float sample() const = 0;
   virtual void tick() = 0;
   virtual void trigger() = 0;
+  virtual bool enabled() const = 0;
 
   inline void clock(uint8_t sequence) {
     if (sequence % 2 == 0) {

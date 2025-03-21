@@ -14,6 +14,7 @@ public:
   float sample() const override;
   void tick() override;
   void trigger() override;
+  bool enabled() const override;
 
   uint8_t read_wave(uint8_t idx) const;
   void set_wave(uint8_t idx, uint8_t byte);

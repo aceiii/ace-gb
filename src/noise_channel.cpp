@@ -1,3 +1,4 @@
+#include <spdlog/spdlog.h>
 #include <utility>
 
 #include "noise_channel.h"
@@ -21,7 +22,7 @@ void NoiseChannel::reset() {
   length_counter = 0;
   envelope_timer = 0;
   timer = 0;
-  lfsr.byte = 0;
+  lfsr.bytes = 0;
   volume = 0;
   regs.fill(0);
 }
@@ -74,11 +75,11 @@ void NoiseChannel::tick() {
   }
 
   if (timer == 0) {
-    lfsr.temp = (lfsr.val & 0b1) ^ ((lfsr.val >> 1) & 0b1);
+    lfsr.temp = ~((lfsr.val & 0b1) ^ ((lfsr.val >> 1) & 0b1)) & 0b1;
     if (nrx3.lfsr_width) {
-      lfsr.byte = (lfsr.byte & ~0x40) | (lfsr.temp << 7);
+      lfsr.bytes = (lfsr.bytes & ~0x80) | (lfsr.temp << 7);
     }
-    lfsr.byte >>= 1;
+    lfsr.bytes >>= 1;
     timer = clock_divisor(nrx3.clock_divider) << nrx3.clock_shift;
   }
 }
@@ -93,7 +94,11 @@ void NoiseChannel::trigger() {
   timer = clock_divisor(nrx3.clock_divider) << nrx3.clock_shift;
   envelope_timer = nrx2.sweep_pace;
   volume = nrx2.initial_volume;
-  lfsr.byte = 0x7FFF;
+  lfsr.bytes = 0xff;
+}
+
+bool NoiseChannel::enabled() const {
+  return enable_channel;
 }
 
 void NoiseChannel::length_tick() {
