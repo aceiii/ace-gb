@@ -35,16 +35,21 @@ void NoiseChannel::write(AudioRegister reg, uint8_t value) {
 
   switch (reg) {
     case AudioRegister::NRx1:
-      length_counter = nrx1.initial_length_timer;
+      length_counter = kInitialLengthCounter - nrx1.initial_length_timer;
+//      spdlog::info("NRx1: {:02x}, initial_length_timer: {}, length_counter:{}", value, static_cast<uint8_t>(nrx1.initial_length_timer), length_counter);
       break;
     case AudioRegister::NRx2:
       volume = nrx2.initial_volume;
       envelope_timer = nrx2.sweep_pace;
+      if (!nrx2.dac) {
+        enable_channel = false;
+      }
       break;
     case AudioRegister::NRx3:
       timer = clock_divisor(prev_clock_divider) << nrx3.clock_shift;
       break;
     case AudioRegister::NRx4:
+//      spdlog::info("NRx4: {:02x}, trigger:{}, length_enable:{}", value, static_cast<uint8_t>(nrx4.trigger), static_cast<uint8_t>(nrx4.length_enable));
       if (nrx4.trigger) {
         trigger();
       }
@@ -60,7 +65,7 @@ uint8_t NoiseChannel::read(AudioRegister reg) const {
 }
 
 float NoiseChannel::sample() const {
-  if (!nrx2.dac) {
+  if (!enable_channel || !nrx2.dac) {
     return 0.0f;
   }
   if (!(lfsr.val & 0b1)) {
@@ -85,7 +90,7 @@ void NoiseChannel::tick() {
 }
 
 void NoiseChannel::trigger() {
-  enable_channel = true;
+  enable_channel = nrx2.dac;
 
   if (length_counter == 0) {
     length_counter = kInitialLengthCounter;
@@ -107,11 +112,13 @@ void NoiseChannel::length_tick() {
   }
 
   if (length_counter) {
+//    spdlog::info("noise channel length_tick: {} -> {}", length_counter, length_counter-1);
     length_counter -= 1;
   }
 
   if (length_counter == 0) {
-   enable_channel = false;
+//    spdlog::info("disable noise channel: length_counter:{}", length_counter);
+    enable_channel = false;
   }
 }
 

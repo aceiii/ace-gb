@@ -27,6 +27,11 @@ void WaveChannel::write(AudioRegister reg, uint8_t value) {
   regs[idx] = value;
 
   switch (reg) {
+    case AudioRegister::NRx0:
+      if (!nrx0.dac) {
+        enable_channel = false;
+      }
+      break;
     case AudioRegister::NRx1:
       length_counter = 256 - value;
       break;
@@ -82,7 +87,7 @@ void WaveChannel::tick() {
 }
 
 void WaveChannel::trigger() {
-  enable_channel = true;
+  enable_channel = nrx0.dac;
 
   if (length_counter == 0) {
     length_counter = kInitialLengthCounter;
