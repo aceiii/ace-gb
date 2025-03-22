@@ -33,7 +33,7 @@ void WaveChannel::write(AudioRegister reg, uint8_t value) {
       }
       break;
     case AudioRegister::NRx1:
-      length_counter = 256 - value;
+      length_counter = kInitialLengthCounter - value;
       break;
     case AudioRegister::NRx2:
       volume = nrx2.output_level;

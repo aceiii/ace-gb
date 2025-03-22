@@ -64,8 +64,7 @@ uint8_t Audio::read8(uint16_t addr) const {
   if (addr == std::to_underlying(IO::NR52)) {
     auto hi = ((nr52.val | 0b01110000) & 0b11110000);
     uint8_t lo = (ch1.enabled() & 0b1) | ((ch2.enabled() & 0b1) << 1) | ((ch3.enabled() & 0b1) << 2) | ((ch4.enabled() & 0b1) << 3);
-
-    spdlog::info("NR52: {:08b}, div_timer:{}", (hi | lo), timer.div());
+//    spdlog::info("NR52: {:08b}, div_timer:{}", (hi | lo), timer.div());
     return hi | lo;
   }
 
@@ -146,37 +145,35 @@ std::tuple<float, float> Audio::sample() {
     auto s3 = ch3.sample();
     auto s4 = ch4.sample();
 
-//    if (nr51.ch1_left) {
-//      left += s1;
-//    }
-//    if (nr51.ch2_left) {
-//      left += s2;
-//    }
-//    if (nr51.ch3_left) {
-//      left += s3;
-//    }
+    if (nr51.ch1_left) {
+      left += s1;
+    }
+    if (nr51.ch2_left) {
+      left += s2;
+    }
+    if (nr51.ch3_left) {
+      left += s3;
+    }
     if (nr51.ch4_left) {
       left += s4;
     }
-//
-//    if (nr51.ch1_right) {
-//      right += s1;
-//    }
-//    if (nr51.ch2_right) {
-//      right += s2;
-//    }
-//    if (nr51.ch3_right) {
-//      right += s3;
-//    }
+
+    if (nr51.ch1_right) {
+      right += s1;
+    }
+    if (nr51.ch2_right) {
+      right += s2;
+    }
+    if (nr51.ch3_right) {
+      right += s3;
+    }
     if (nr51.ch4_right) {
       right += s4;
     }
 
-//    left /= 4.0f;
-//    right /= 4.0f;
+    left /= 4.0f;
+    right /= 4.0f;
 //    spdlog::info("sample: {}, {}", left, right);
-  } else {
-//    spdlog::info("off");
   }
 
   left = (left * static_cast<float>(nr50.left_volume + 1)) / 8.0f;
