@@ -188,8 +188,8 @@ cmake --build build
 - [x] 01-registers.gb
 - [x] 02-len ctr.gb
 - [ ] 03-trigger.gb
-- [ ] 04-sweep.gb
-- [ ] 05-sweep details.gb
+- [x] 04-sweep.gb
+- [x] 05-sweep details.gb
 - [ ] 06-overflow on trigger.gb
 - [ ] 07-len sweep period sync.gb
 - [ ] 08-len ctr during power.gb
