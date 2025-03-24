@@ -42,18 +42,23 @@ void SquareChannel::write(AudioRegister reg, uint8_t value) {
 
   switch (reg) {
     case AudioRegister::NRx0:
-      period.enabled = !nrx0.period_sweep_pace;
+      period.enabled = nrx0.period_sweep_pace || nrx0.period_sweep_step;
+      spdlog::info("NRx0: {:02x}, sweep_step:{}, sweep_direction:{}, sweep_pace:{}, length_counter:{}", value, static_cast<uint8_t>(nrx0.period_sweep_step), static_cast<uint8_t>(nrx0.period_sweep_direction), static_cast<uint8_t>(nrx0.period_sweep_pace), length_counter);
       break;
     case AudioRegister::NRx1:
       length_counter = kInitialLengthCounter - nrx1.initial_length_timer;
       spdlog::info("NRx1: {:02x}, initial_length_timer: {}, length_counter:{}", value, static_cast<uint8_t>(nrx1.initial_length_timer), length_counter);
       break;
     case AudioRegister::NRx2:
+      spdlog::info("NRx2: {:02x}, initial_volume: {}, envelope_direction:{}, sweep_pace:{}", value, static_cast<uint8_t>(nrx2.initial_volume), static_cast<uint8_t>(nrx2.envelope_direction), static_cast<uint8_t>(nrx2.envelope_sweep_pace));
       volume = nrx2.initial_volume;
       envelope_timer = nrx2.envelope_sweep_pace;
       if (!nrx2.dac) {
         enable_channel = false;
       }
+      break;
+    case AudioRegister::NRx3:
+      spdlog::info("NRx3: {:02x}", value);
       break;
     case AudioRegister::NRx4:
       spdlog::info("NRx4: {:02x}, trigger:{}, length_enable:{}, period:{}", value, static_cast<uint8_t>(nrx4.trigger), static_cast<uint8_t>(nrx4.length_enable), static_cast<uint8_t>(nrx4.period));
@@ -92,7 +97,7 @@ void SquareChannel::tick() {
 
   if (timer == 0) {
     duty_step = (duty_step + 1) % 8;
-     timer = (2048 - frequency()) * 4;
+    timer = (2048 - frequency()) * 4;
   }
 }
 
@@ -107,16 +112,16 @@ void SquareChannel::trigger() {
     length_counter = kInitialLengthCounter;
   }
 
-//  spdlog::info("trigger square_channel: enable_sweep:{}, length_counter:{}", enable_sweep, length_counter);
-
   if (!enable_sweep) {
     return;
   }
 
   period.enabled = nrx0.period_sweep_step || nrx0.period_sweep_pace;
+  spdlog::info("trigger square_channel: sweep_step:{}, sweep_pace:{}, enabled:{}", static_cast<uint8_t>(nrx0.period_sweep_step), static_cast<uint8_t>(nrx0.period_sweep_pace), period.enabled);
+
   period.current = frequency();
   period.timer = nrx0.period_sweep_pace;
-  if (period.timer == 0) {
+  if (!period.timer) {
     period.timer = 8;
   }
   if (nrx0.period_sweep_step) {
@@ -125,7 +130,7 @@ void SquareChannel::trigger() {
 }
 
 bool SquareChannel::enabled() const {
-  spdlog::info("square:length_counter:{}", length_counter);
+  spdlog::info("square:length_counter:{}, period_sweep_step:{}, period_sweep_pace:{}, enable_sweep:{}", length_counter, nrx0.period_sweep_step, nrx0.period_sweep_pace, enable_sweep);
   return enable_channel;
 }
 
@@ -133,6 +138,8 @@ void SquareChannel::length_tick() {
   if (!nrx4.length_enable) {
     return;
   }
+
+//  spdlog::info("length_tick:{}", length_counter);
 
   if (length_counter) {
 //    spdlog::info("square channel length_tick: {} -> {}, enable_sweep:{}", length_counter, length_counter-1, enable_sweep);
@@ -179,7 +186,15 @@ void SquareChannel::sweep_tick() {
     period.timer -= 1;
   }
 
-  if (period.timer == 0 && nrx0.period_sweep_step) {
+  if (!nrx0.period_sweep_pace) {
+    return;
+  }
+
+  if (!period.enabled) {
+    return;
+  }
+
+  if (period.timer == 0) {
     auto new_frequency = calc_sweep();
     if (new_frequency <= 2047 && nrx0.period_sweep_step) {
       period.current = new_frequency;
@@ -187,10 +202,14 @@ void SquareChannel::sweep_tick() {
       calc_sweep();
     }
     period.timer = nrx0.period_sweep_pace;
+//    if (!period.timer) {
+//      period.timer = 8;
+//    }
   }
 }
 
 uint16_t SquareChannel::calc_sweep() {
+  spdlog::info("square_channel calc_sweep: enable_sweep:{}, period_sweep_step:{}, period_sweep_pace:{}", enable_sweep, static_cast<uint8_t>(nrx0.period_sweep_step), static_cast<uint8_t>(nrx0.period_sweep_pace));
   uint16_t val = period.current >> nrx0.period_sweep_step;
   if (nrx0.period_sweep_direction) {
     val = period.current - val;

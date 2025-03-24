@@ -64,7 +64,7 @@ uint8_t Audio::read8(uint16_t addr) const {
   if (addr == std::to_underlying(IO::NR52)) {
     auto hi = ((nr52.val | 0b01110000) & 0b11110000);
     uint8_t lo = (ch1.enabled() & 0b1) | ((ch2.enabled() & 0b1) << 1) | ((ch3.enabled() & 0b1) << 2) | ((ch4.enabled() & 0b1) << 3);
-//    spdlog::info("NR52: {:08b}, div_timer:{}", (hi | lo), timer.div());
+    spdlog::info("NR52: {:08b}, div_timer:{}", (hi | lo), timer.div());
     return hi | lo;
   }
 
@@ -99,33 +99,33 @@ void Audio::reset() {
 }
 
 void Audio::on_tick() {
-    ch1.tick();
-    ch2.tick();
-    ch3.tick();
-    ch4.tick();
+  ch1.tick();
+  ch2.tick();
+  ch3.tick();
+  ch4.tick();
 
-    auto bit = (timer.div() >> 4) & 0b1; // NOTE: bit 4 normal, 5 in double-speed mode
-    if (bit == 0 && prev_bit == 1) {
-      ch1.clock(frame_sequencer);
-      ch2.clock(frame_sequencer);
-      ch3.clock(frame_sequencer);
-      ch4.clock(frame_sequencer);
+  auto bit = (timer.div() >> 4) & 0b1; // NOTE: bit 4 normal, 5 in double-speed mode
+  if (bit == 0 && prev_bit == 1) {
+    ch1.clock(frame_sequencer);
+    ch2.clock(frame_sequencer);
+    ch3.clock(frame_sequencer);
+    ch4.clock(frame_sequencer);
 
-      frame_sequencer = (frame_sequencer + 1) % 8;
-    }
+    frame_sequencer = (frame_sequencer + 1) % 8;
+  }
 
-    prev_bit = bit;
+  prev_bit = bit;
 
-    if (sample_timer) {
-      sample_timer -= 1;
-    }
+  if (sample_timer) {
+    sample_timer -= 1;
+  }
 
-    if (sample_timer == 0) {
-      const auto [left, right] = sample();
-      sample_buffer.push_back(left);
-      sample_buffer.push_back(right);
-      sample_timer = kClockSpeed / config.sample_rate;
-    }
+  if (sample_timer == 0) {
+    const auto [left, right] = sample();
+    sample_buffer.push_back(left);
+    sample_buffer.push_back(right);
+    sample_timer = kClockSpeed / config.sample_rate;
+  }
 }
 
 void Audio::get_samples(float *samples, size_t num_samples, size_t num_channels) {
