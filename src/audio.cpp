@@ -21,13 +21,7 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
     uint8_t enable_audio = byte >> 7;
     nr52.val = byte;
     if (!enable_audio) {
-      nr52.val = 0;
-      nr50.val = 0;
-      nr51.val = 0;
-      ch1.reset();
-      ch2.reset();
-      ch3.reset();
-      ch4.reset();
+      poweroff();
     } else {
       spdlog::info("Enable audio!");
     }
@@ -46,6 +40,10 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
       nr51.val = byte;
     } else if (addr == std::to_underlying(IO::NR52)) {
       nr52.val = byte;
+    }
+  } else {
+    if (addr == std::to_underlying(IO::NR41)) {
+      ch4.write(AudioRegister::NRx1, byte);
     }
   }
 }
@@ -96,6 +94,17 @@ void Audio::reset() {
   ch2.reset();
   ch3.reset();
   ch4.reset();
+}
+
+void Audio::poweroff() {
+  sample_timer = 0;
+  nr50.val = 0;
+  nr51.val = 0;
+  nr52.val = 0;
+  ch1.poweroff();
+  ch2.poweroff();
+  ch3.poweroff();
+  ch4.poweroff();
 }
 
 void Audio::on_tick() {

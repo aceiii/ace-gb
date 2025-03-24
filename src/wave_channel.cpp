@@ -20,6 +20,17 @@ void WaveChannel::reset() {
   wave_index = 0;
   buffer = 0;
   regs.fill(0);
+  wave_pattern_ram = kInitialWaveRam;
+}
+
+void WaveChannel::poweroff() {
+  enable_channel = false;
+  length_counter = 0;
+  timer = 0;
+  volume = 0;
+  wave_index = 0;
+  buffer = 0;
+  regs.fill(0);
 }
 
 void WaveChannel::write(AudioRegister reg, uint8_t value) {

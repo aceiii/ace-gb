@@ -37,6 +37,20 @@ void SquareChannel::reset() {
   regs.fill(0);
 }
 
+void SquareChannel::poweroff() {
+  enable_channel = false;
+  length_counter = 0;
+  envelope_timer = 0;
+  timer = 0;
+  volume = 0;
+  duty_step = 0;
+  period.enabled = false;
+  period.timer = 0;
+  period.current = 0;
+  period.calculated = false;
+  regs.fill(0);
+}
+
 void SquareChannel::write(AudioRegister reg, uint8_t value) {
   const auto idx = std::to_underlying(reg);
   const auto prev_direction = nrx0.period_sweep_direction;

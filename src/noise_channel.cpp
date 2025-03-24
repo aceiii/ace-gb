@@ -27,6 +27,19 @@ void NoiseChannel::reset() {
   regs.fill(0);
 }
 
+void NoiseChannel::poweroff() {
+  enable_channel = false;
+  length_counter = 0;
+  envelope_timer = 0;
+  timer = 0;
+  lfsr.bytes = 0;
+  volume = 0;
+
+  auto initial_length_timer = nrx1.initial_length_timer;
+  regs.fill(0);
+  nrx1.initial_length_timer = initial_length_timer;
+}
+
 void NoiseChannel::write(AudioRegister reg, uint8_t value) {
   auto prev_clock_divider = nrx3.clock_divider;
 

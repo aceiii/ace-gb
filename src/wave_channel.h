@@ -9,6 +9,7 @@ public:
   explicit WaveChannel();
 
   void reset() override;
+  void poweroff() override;
   void write(AudioRegister reg, uint8_t value) override;
   uint8_t read(AudioRegister reg) const override;
   float sample() const override;

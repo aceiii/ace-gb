@@ -14,6 +14,7 @@ enum class AudioRegister {
 class AudioChannel {
 public:
   virtual void reset() = 0;
+  virtual void poweroff() = 0;
   virtual void write(AudioRegister reg, uint8_t value) = 0;
   virtual uint8_t read(AudioRegister reg) const = 0;
   virtual float sample() const = 0;
