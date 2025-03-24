@@ -36,6 +36,7 @@ private:
 
   struct {
     bool enabled;
+    bool calculated;
     uint16_t timer;
     uint16_t current;
   } period {};

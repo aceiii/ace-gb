@@ -33,15 +33,22 @@ void SquareChannel::reset() {
   period.enabled = false;
   period.timer = 0;
   period.current = 0;
+  period.calculated = false;
   regs.fill(0);
 }
 
 void SquareChannel::write(AudioRegister reg, uint8_t value) {
   const auto idx = std::to_underlying(reg);
+  const auto prev_direction = nrx0.period_sweep_direction;
   regs[idx] = value;
 
   switch (reg) {
     case AudioRegister::NRx0:
+      if (!nrx0.period_sweep_direction && prev_direction && period.calculated) {
+        enable_channel = false;
+      }
+
+      period.calculated = false;
       period.enabled = nrx0.period_sweep_pace || nrx0.period_sweep_step;
       if (!period.enabled) {
         period.timer = 0;
@@ -121,6 +128,7 @@ void SquareChannel::trigger() {
   }
 
   period.enabled = nrx0.period_sweep_step || nrx0.period_sweep_pace;
+  period.calculated = false;
   if (!period.enabled) {
     period.timer = 0;
     period.current = 0;
@@ -203,6 +211,7 @@ void SquareChannel::sweep_tick() {
 
     if (nrx0.period_sweep_pace) {
       auto new_frequency = calc_sweep();
+      period.calculated = true;
       if (new_frequency <= 2047 && nrx0.period_sweep_step) {
         period.current = new_frequency;
         set_frequency(new_frequency);
@@ -220,6 +229,8 @@ uint16_t SquareChannel::calc_sweep() {
   } else {
     val = period.current + val;
   }
+
+  period.calculated = true;
 
   if (val > 2047) {
     enable_channel = false;

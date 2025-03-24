@@ -22,14 +22,13 @@ public:
   virtual bool enabled() const = 0;
 
   inline void clock(uint8_t sequence) {
-    if (sequence % 2 == 0) {
-      length_tick();
-    }
     if (sequence == 7) {
       envelope_tick();
-    }
-    if (sequence == 2 || sequence == 6) {
+    } else if (sequence == 2 || sequence == 6) {
+      length_tick();
       sweep_tick();
+    } else if (sequence == 0 || sequence == 4) {
+      length_tick();
     }
   }
 
