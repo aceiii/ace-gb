@@ -190,7 +190,7 @@ cmake --build build
 - [ ] 03-trigger.gb
 - [x] 04-sweep.gb
 - [x] 05-sweep details.gb
-- [ ] 06-overflow on trigger.gb
+- [x] 06-overflow on trigger.gb
 - [ ] 07-len sweep period sync.gb
 - [ ] 08-len ctr during power.gb
 - [ ] 09-wave read while on.gb
