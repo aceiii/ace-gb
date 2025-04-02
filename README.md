@@ -82,7 +82,7 @@ cmake --build build
 - [ ] ei_timing.gb
 - [x] halt_ime0_ei.gb
 - [ ] halt_ime0_nointr_timing.gb
-- [ ] halt_ime1_timing.gb
+- [x] halt_ime1_timing.gb
 - [ ] halt_ime1_timing2-GS.gb
 - [x] if_ie_registers.gb
 - [x] intr_timing.gb
@@ -138,7 +138,7 @@ cmake --build build
 
 #### Manual only
 
-- [ ] sprite_priority.gb
+- [x] sprite_priority.gb
 
 #### Misc
 
@@ -156,16 +156,16 @@ cmake --build build
 
 #### cgb_sound
 
-- [ ] 01-registers.gb
-- [ ] 02-len ctr.gb
+- [x] 01-registers.gb
+- [x] 02-len ctr.gb
 - [ ] 03-trigger.gb
-- [ ] 04-sweep.gb
-- [ ] 05-sweep details.gb
-- [ ] 06-overflow on trigger.gb
+- [x] 04-sweep.gb
+- [x] 05-sweep details.gb
+- [x] 06-overflow on trigger.gb
 - [ ] 07-len sweep period sync.gb
-- [ ] 08-len ctr during power.gb
+- [x] 08-len ctr during power.gb
 - [ ] 09-wave read while on.gb
-- [ ] 10-wave trigger while on.gb
+- [x] 10-wave trigger while on.gb
 - [ ] 11-regs after power.gb
 - [ ] 12-wave.gb
 
@@ -195,7 +195,7 @@ cmake --build build
 - [ ] 08-len ctr during power.gb
 - [ ] 09-wave read while on.gb
 - [ ] 10-wave trigger while on.gb
-- [ ] 11-regs after power.gb
+- [x] 11-regs after power.gb
 - [ ] 12-wave write while on.gb
 
 #### instr_timing
