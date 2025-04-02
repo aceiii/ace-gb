@@ -35,6 +35,7 @@ private:
   uint8_t volume {};
   uint8_t wave_index {};
   uint8_t buffer {};
+  uint16_t last_read {};
 
   std::array<uint8_t, 16> wave_pattern_ram;
   std::array<uint8_t, 5> masks;

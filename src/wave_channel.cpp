@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <utility>
+#include <spdlog/spdlog.h>
 
 #include "wave_channel.h"
 
@@ -78,10 +79,21 @@ float WaveChannel::sample() const {
 }
 
 uint8_t WaveChannel::read_wave(uint8_t idx) const {
+  spdlog::info("wave channel read:{} = {:02x}, enable_channel:{}", idx, wave_pattern_ram[idx], enable_channel);
+  if (enable_channel) {
+    if (last_read) {
+      return wave_pattern_ram[wave_index >> 1];
+    }
+    return 0xff;
+  }
   return wave_pattern_ram[idx];
 }
 
 void WaveChannel::set_wave(uint8_t idx, uint8_t byte) {
+  spdlog::info("wave channel write:{} = {:02x}, enable_channel:{}", idx, byte, enable_channel);
+  if (enable_channel) {
+    return;
+  }
   wave_pattern_ram[idx] = byte;
 }
 
@@ -90,10 +102,15 @@ void WaveChannel::tick() {
     timer -= 1;
   }
 
+  if (last_read) {
+    last_read -= 1;
+  }
+
   if (timer == 0) {
     wave_index = (wave_index + 1) % 32;
     buffer = (wave_pattern_ram[wave_index / 2] >> ((1 - (wave_index % 2)) * 4)) & 0xf;
     timer = (2048 - frequency()) * 2;
+    last_read = 84;
   }
 }
 
