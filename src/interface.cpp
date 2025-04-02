@@ -225,6 +225,31 @@ void Interface::run() {
         ImGui::MenuItem("Tiles", nullptr, &show_tiles);
         ImGui::EndMenu();
       }
+      if (ImGui::BeginMenu("APU")) {
+        ImGui::MenuItem("Enable Sound");
+        if (ImGui::BeginMenu("Volume")) {
+          ImGui::Text("Blah");
+          ImGui::MenuItem("Up");
+          ImGui::MenuItem("Down");
+          ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Channels")) {
+          if (ImGui::MenuItem("CH1 - Square", nullptr, emulator.channel_enabled(AudioChannelID::CH1))) {
+            emulator.toggle_channel(AudioChannelID::CH1, !emulator.channel_enabled(AudioChannelID::CH1));
+          }
+          if (ImGui::MenuItem("CH2 - Square", nullptr, emulator.channel_enabled(AudioChannelID::CH2))) {
+            emulator.toggle_channel(AudioChannelID::CH2, !emulator.channel_enabled(AudioChannelID::CH2));
+          }
+          if (ImGui::MenuItem("CH3 - Wave", nullptr, emulator.channel_enabled(AudioChannelID::CH3))) {
+            emulator.toggle_channel(AudioChannelID::CH3, !emulator.channel_enabled(AudioChannelID::CH3));
+          }
+          if (ImGui::MenuItem("CH4 - Noise", nullptr, emulator.channel_enabled(AudioChannelID::CH4))) {
+            emulator.toggle_channel(AudioChannelID::CH4, !emulator.channel_enabled(AudioChannelID::CH4));
+          }
+          ImGui::EndMenu();
+        }
+        ImGui::EndMenu();
+      }
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();

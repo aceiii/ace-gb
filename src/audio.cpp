@@ -154,29 +154,29 @@ std::tuple<float, float> Audio::sample() {
     auto s3 = ch3.sample();
     auto s4 = ch4.sample();
 
-    if (nr51.ch1_left) {
+    if (nr51.ch1_left && enable_channel[0]) {
       left += s1;
     }
-    if (nr51.ch2_left) {
+    if (nr51.ch2_left && enable_channel[1]) {
       left += s2;
     }
-    if (nr51.ch3_left) {
+    if (nr51.ch3_left && enable_channel[2]) {
       left += s3;
     }
-    if (nr51.ch4_left) {
+    if (nr51.ch4_left && enable_channel[3]) {
       left += s4;
     }
 
-    if (nr51.ch1_right) {
+    if (nr51.ch1_right && enable_channel[0]) {
       right += s1;
     }
-    if (nr51.ch2_right) {
+    if (nr51.ch2_right && enable_channel[1]) {
       right += s2;
     }
-    if (nr51.ch3_right) {
+    if (nr51.ch3_right && enable_channel[2]) {
       right += s3;
     }
-    if (nr51.ch4_right) {
+    if (nr51.ch4_right && enable_channel[3]) {
       right += s4;
     }
 
@@ -191,4 +191,12 @@ std::tuple<float, float> Audio::sample() {
 //  spdlog::info("audio: {} {} {} {}", s1, s2, s3, s4);
 
   return std::make_tuple(left, right);
+}
+
+bool Audio::channel_enabled(AudioChannelID channel) const {
+  return enable_channel[std::to_underlying(channel)-1];
+}
+
+void Audio::toggle_channel(AudioChannelID channel, bool enable) {
+  enable_channel[std::to_underlying(channel)-1] = enable;
 }

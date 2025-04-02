@@ -240,6 +240,14 @@ bool Emulator::skip_bootrom() const {
   return _skip_bootrom;
 }
 
+void Emulator::toggle_channel(AudioChannelID channel, bool enable) {
+  audio.toggle_channel(channel, enable);
+}
+
+bool Emulator::channel_enabled(AudioChannelID channel) const {
+  return audio.channel_enabled(channel);
+}
+
 void Emulator::audio_samples(float *samples, size_t samples_size, size_t num_channels) {
   audio.get_samples(samples, samples_size, num_channels);
 }

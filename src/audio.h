@@ -13,6 +13,13 @@
 #include "noise_channel.h"
 #include "wave_channel.h"
 
+enum class AudioChannelID {
+  CH1 = 1,
+  CH2,
+  CH3,
+  CH4,
+};
+
 constexpr int kAudioStart = std::to_underlying(IO::NR10);
 constexpr int kAudioEnd = std::to_underlying(IO::LCDC) - 1;
 constexpr int kAudioSize = kAudioEnd - kAudioStart + 1;
@@ -37,6 +44,9 @@ public:
 
   void get_samples(float *samples, size_t num_samples, size_t num_channels);
 
+  bool channel_enabled(AudioChannelID channel) const;
+  void toggle_channel(AudioChannelID channel, bool enable);
+
 private:
   std::tuple<float, float> sample();
 
@@ -47,7 +57,8 @@ private:
   uint8_t prev_bit {};
   uint8_t frame_sequencer {};
   uint16_t sample_timer {};
-  std::vector<float> sample_buffer;
+  std::vector<float> sample_buffer {};
+  std::array<bool, 4> enable_channel {{ true, true, true, true }};
 
   union {
     uint8_t val;
