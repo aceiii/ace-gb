@@ -113,6 +113,8 @@ void Interface::run() {
   static bool show_sprites = true;
   static bool show_cpu_registers = true;
 
+  static bool enable_audio = true;
+
   auto &io = ImGui::GetIO();
 
   while (!should_close) {
@@ -226,11 +228,20 @@ void Interface::run() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("APU")) {
-        ImGui::MenuItem("Enable Sound");
+        if (ImGui::MenuItem("Enable Sound", nullptr, emulator.channel_enabled(AudioChannelID::MASTER))) {
+          emulator.toggle_channel(AudioChannelID::MASTER, !emulator.channel_enabled(AudioChannelID::MASTER));
+        }
         if (ImGui::BeginMenu("Volume")) {
-          ImGui::Text("Blah");
-          ImGui::MenuItem("Up");
-          ImGui::MenuItem("Down");
+          auto volume = GetMasterVolume() * 100;
+          ImGui::Text("%d%%", static_cast<int>(volume));
+          if (ImGui::MenuItem("Up")) {
+            volume = std::clamp(volume + 10, 0.f, 100.f);
+            SetMasterVolume(volume / 100.f);
+          }
+          if (ImGui::MenuItem("Down")) {
+            volume = std::clamp(volume - 10, 0.0f, 100.0f);
+            SetMasterVolume(volume / 100.f);
+          }
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Channels")) {

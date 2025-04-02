@@ -14,10 +14,11 @@
 #include "wave_channel.h"
 
 enum class AudioChannelID {
-  CH1 = 1,
+  CH1,
   CH2,
   CH3,
   CH4,
+  MASTER,
 };
 
 constexpr int kAudioStart = std::to_underlying(IO::NR10);
@@ -58,7 +59,7 @@ private:
   uint8_t frame_sequencer {};
   uint16_t sample_timer {};
   std::vector<float> sample_buffer {};
-  std::array<bool, 4> enable_channel {{ true, true, true, true }};
+  std::array<bool, 5> enable_channel {{ true, true, true, true, true }};
 
   union {
     uint8_t val;
