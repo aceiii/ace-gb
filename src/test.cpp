@@ -1,3 +1,4 @@
+#include <format>
 #include <fstream>
 #include <memory>
 #include <argparse/argparse.hpp>
@@ -127,7 +128,7 @@ std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> mismatched_memory(const json
 tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &config) {
   std::ifstream input(config.path);
   if (input.fail()) {
-    return tl::unexpected { fmt::format("Failed to open '{}': {}", config.path.string(), strerror(errno)) };
+    return tl::unexpected { std::format("Failed to open '{}': {}", config.path.string(), strerror(errno)) };
   }
 
   json data;
@@ -332,7 +333,7 @@ auto main(int argc, char *argv[]) -> int {
 
   const std::string level = program.get("--log-level");
   if (!set_logging_level(level)) {
-    std::cerr << fmt::format("Invalid argument \"{}\" - allowed options: "
+    std::cerr << std::format("Invalid argument \"{}\" - allowed options: "
                              "{{trace, debug, info, warn, err, critical, off}}",
                              level)
               << std::endl;

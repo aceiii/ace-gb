@@ -86,7 +86,9 @@ include(cmake/rlimgui.cmake)
 include(cmake/imgui_club.cmake)
 include(cmake/nfd.cmake)
 
-find_package(spdlog CONFIG REQUIRED)
+set(SPDLOG_USE_STD_FORMAT ON)
+add_subdirectory(external/spdlog)
+
 find_package(argparse CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
 find_package(raylib CONFIG REQUIRED)

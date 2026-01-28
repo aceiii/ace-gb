@@ -1,11 +1,12 @@
 #pragma once
 
 #include <array>
-#include <variant>
+#include <format>
 #include <optional>
 #include <string_view>
+#include <variant>
 #include <magic_enum/magic_enum.hpp>
-#include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
 
 #include "opcodes.h"
 #include "overloaded.h"
@@ -234,13 +235,13 @@ struct Instruction {
 };
 
 template <>
-struct fmt::formatter<Instruction> {
+struct std::formatter<Instruction> {
 public:
-  constexpr auto parse(fmt::format_parse_context &ctx) {
+  constexpr auto parse(auto &ctx) {
     return ctx.begin();
   }
 
-  auto format(const Instruction &instr, fmt::format_context &ctx) const {
-    return fmt::format_to(ctx.out(), "Instr({})", magic_enum::enum_name(instr.opcode));
+  auto format(const Instruction &instr, auto &ctx) const {
+    return std::format_to(ctx.out(), "Instr({})", magic_enum::enum_name(instr.opcode));
   }
 };

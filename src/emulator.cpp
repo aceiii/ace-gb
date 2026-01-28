@@ -1,4 +1,5 @@
 #include <array>
+#include <format>
 #include <fstream>
 #include <memory>
 #include <spdlog/spdlog.h>
@@ -41,7 +42,7 @@ tl::expected<bool, std::string> Emulator::init() {
 
   auto result = load_bin("./boot.bin");
   if (!result) {
-    return tl::unexpected(fmt::format("Failed to load boot rom: {}", result.error()));
+    return tl::unexpected(std::format("Failed to load boot rom: {}", result.error()));
   }
 
   const auto &bytes = result.value();

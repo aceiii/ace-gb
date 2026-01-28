@@ -1,4 +1,5 @@
 #include <chrono>
+#include <format>
 #include <fstream>
 #include <memory>
 #include <thread>
@@ -48,7 +49,7 @@ auto main(int argc, char *argv[]) -> int {
 
   const std::string level = program.get("--log-level");
   if (!set_logging_level(level)) {
-    std::cerr << fmt::format("Invalid argument \"{}\" - allowed options: "
+    std::cerr << std::format("Invalid argument \"{}\" - allowed options: "
                              "{{trace, debug, info, warn, err, critical, off}}",
                              level)
               << std::endl;

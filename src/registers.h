@@ -2,9 +2,11 @@
 
 #include <algorithm>
 #include <array>
+#include <format>
 #include <cstdint>
 #include <ranges>
 #include <utility>
+#include <spdlog/spdlog.h>
 
 #include "memory.h"
 
@@ -88,14 +90,14 @@ inline bool operator==(const Registers &r1, const Registers &r2) {
 }
 
 template <>
-struct fmt::formatter<Registers> {
+struct std::formatter<Registers> {
 public:
-  constexpr auto parse(fmt::format_parse_context &ctx) {
+  constexpr auto parse(auto &ctx) {
     return ctx.begin();
   }
 
-  auto format(const Registers &regs, fmt::format_context &ctx) const {
-    return fmt::format_to(ctx.out(), "a={}, f={}, b={}, c={}, d={}, e={}, h={}, l={}, sp={}, pc={}",
+  auto format(const Registers &regs, auto &ctx) const {
+    return std::format_to(ctx.out(), "a={}, f={}, b={}, c={}, d={}, e={}, h={}, l={}, sp={}, pc={}",
                           regs.get(Reg8::A), regs.get(Reg8::F), regs.get(Reg8::B), regs.get(Reg8::C), regs.get(Reg8::D),
                           regs.get(Reg8::E), regs.get(Reg8::H), regs.get(Reg8::L), regs.sp, regs.pc);
   }
