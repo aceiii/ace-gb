@@ -12,6 +12,9 @@ vcpkg_installed/
 cmake-build-*
 build-*
 
+# cmake
+CMakeUserPresets.json
+
 # executables
 main
 aceboy

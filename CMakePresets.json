@@ -8,6 +8,31 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       }
+    },
+    {
+      "name": "Debug",
+      "inherits": "vcpkg",
+      "binaryDir": "${sourceDir}/build",
+      "environment": {},
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release",
+      "inherits": "vcpkg",
+      "binaryDir": "${sourceDir}/build-release",
+      "environment": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "RelWithDebInfo",
+      "inherits": "vcpkg",
+      "binaryDir": "${sourceDir}/build-reldebug",
+      "environment": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
     }
   ]
 }
