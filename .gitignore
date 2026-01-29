@@ -10,6 +10,7 @@ vcpkg_installed/
 .vscode/
 .cache/
 cmake-build-*
+build-*
 
 # executables
 main
