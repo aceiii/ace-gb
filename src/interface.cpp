@@ -112,6 +112,7 @@ void Interface::run() {
   static bool show_tilemap2 = true;
   static bool show_sprites = true;
   static bool show_cpu_registers = true;
+  static bool show_input = true;
 
   static bool enable_audio = true;
 
@@ -178,6 +179,10 @@ void Interface::run() {
 
     if (show_cpu_registers) {
       render_registers(show_cpu_registers);
+    }
+
+    if (show_input) {
+      render_input(show_input);
     }
 
     ImGui::BeginMainMenuBar();
@@ -446,6 +451,93 @@ void Interface::render_registers(bool &show_window) {
 
     const auto &state = emulator.state();
     ImGui::Text("State IME=%d HALT=%d STOP=%d HARD_LOCK=%d", state.ime, state.halt, state.stop, state.hard_lock);
+  }
+  ImGui::End();
+}
+
+void Interface::render_input(bool &show_window) {
+  if (!show_window) {
+    return;
+  }
+
+  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Input", &show_window)) {
+
+    static constexpr auto alignForWidth = [](float width, float alignment = 0.5f) {
+      ImGuiStyle& style = ImGui::GetStyle();
+      float avail = ImGui::GetContentRegionAvail().x;
+      float off = (avail - width) * alignment;
+      if (off > 0.0f) {
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+      }
+    };
+
+    static constexpr auto drawMaybeDisabled = [](bool disabled, auto draw) {
+      if (disabled) {
+        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+      }
+      draw();
+      if (disabled) {
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
+        ImGui::PopItemFlag();
+      }
+    };
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, -4));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+
+    alignForWidth(288);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
+    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Up), []() {
+      ImGui::Button(ICON_FA_CARET_UP, { 32, 32 });
+    });
+
+    ImGui::SameLine(0, 32);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
+    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Select), []() {
+      ImGui::Button("select");
+    });
+    ImGui::SameLine(0, 4);
+    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Start), []() {
+      ImGui::Button("start");
+    });
+    ImGui::PopStyleVar();
+    ImGui::PopStyleVar();
+
+    ImGui::NewLine();
+    alignForWidth(288);
+    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Left), []() {
+      ImGui::Button(ICON_FA_CARET_LEFT, { 32, 32 });
+    });
+    ImGui::SameLine(0, 32);
+    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Right), []() {
+      ImGui::Button(ICON_FA_CARET_RIGHT, { 32, 32 });
+    });
+
+    ImGui::SameLine(0, 64);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 24.0f);
+    drawMaybeDisabled(emulator.is_pressed(JoypadButton::B), []() {
+      ImGui::Button("B", { 32, 32 });
+    });
+    ImGui::SameLine();
+    drawMaybeDisabled(emulator.is_pressed(JoypadButton::A), []() {
+      ImGui::Button("A", { 32, 32 });
+    });
+    ImGui::PopStyleVar();
+
+    ImGui::NewLine();
+    alignForWidth(288);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
+    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Down), []() {
+      ImGui::Button(ICON_FA_CARET_DOWN, { 32, 32 });
+    });
+
+    ImGui::PopStyleVar();
+    ImGui::PopStyleVar();
   }
   ImGui::End();
 }

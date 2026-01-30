@@ -233,6 +233,10 @@ void Emulator::update_input(JoypadButton btn, bool pressed) {
   input_device.update(btn, pressed);
 }
 
+bool Emulator::is_pressed(JoypadButton btn) const {
+  return input_device.is_pressed(btn);
+}
+
 void Emulator::set_skip_bootrom(bool skip) {
   _skip_bootrom = skip;
 }

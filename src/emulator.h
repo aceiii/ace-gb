@@ -55,6 +55,7 @@ public:
   void clear_breakpoints();
 
   void update_input(JoypadButton btn, bool pressed);
+  bool is_pressed(JoypadButton btn) const;
 
   void toggle_channel(AudioChannelID channel, bool enable);
   bool channel_enabled(AudioChannelID channel) const;

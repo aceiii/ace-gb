@@ -77,3 +77,17 @@ void InputDevice::update(JoypadButton button, bool pressed) {
     interrupts.request_interrupt(Interrupt::Joypad);
   }
 }
+
+bool InputDevice::is_pressed(JoypadButton button) const {
+  switch (button) {
+    case JoypadButton::Start: return !reg_buttons.start_down;
+    case JoypadButton::Select: return !reg_buttons.select_up;
+    case JoypadButton::Up: return !reg_dpad.select_up;
+    case JoypadButton::Down: return !reg_dpad.start_down;
+    case JoypadButton::Left: return !reg_dpad.b_left;
+    case JoypadButton::Right: return !reg_dpad.a_right;
+    case JoypadButton::A: return !reg_buttons.a_right;
+    case JoypadButton::B: return !reg_buttons.b_left;
+    default: std::unreachable();
+  }
+}

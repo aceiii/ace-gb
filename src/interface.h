@@ -30,4 +30,5 @@ private:
   void render_tilemap2(bool &show_window);
   void render_sprites(bool &show_window);
   void render_registers(bool &show_window);
+  void render_input(bool &show_window);
 };

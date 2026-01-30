@@ -43,6 +43,7 @@ public:
   void reset() override;
 
   void update(JoypadButton button, bool pressed);
+  bool is_pressed(JoypadButton button) const;
 
 private:
   InterruptDevice &interrupts;
