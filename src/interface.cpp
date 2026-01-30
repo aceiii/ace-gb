@@ -191,6 +191,28 @@ void Interface::run() {
         spdlog::info("Loading cart...");
         load_cartridge();
       }
+
+
+      // TODO: implement actual recent files that are saved somewhere
+      static std::vector<std::string> recent_files {
+        "foobar.gb",
+        "Pokemon.gb",
+      };
+
+      if (ImGui::BeginMenu("Open Recent", !recent_files.empty())) {
+        for (auto &file : recent_files) {
+          if (ImGui::MenuItem(fs::relative(file).c_str())) {
+            spdlog::debug("Pressed recent file: '{}'", file);
+          }
+        }
+        ImGui::Separator();
+        if (ImGui::MenuItem("Clear Recent")) {
+          spdlog::debug("Clearing recent files");
+          recent_files.clear();
+        }
+        ImGui::EndMenu();
+      }
+
       ImGui::Separator();
       if (ImGui::MenuItem("Exit")) {
         spdlog::info("Exiting...");
