@@ -3,6 +3,7 @@
   "configurePresets": [
     {
       "name": "vcpkg",
+      "hidden": true,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
@@ -11,6 +12,7 @@
     },
     {
       "name": "Debug",
+      "displayName": "Configure Debug",
       "inherits": "vcpkg",
       "binaryDir": "${sourceDir}/build",
       "environment": {},
@@ -20,6 +22,7 @@
     },
     {
       "name": "Release",
+      "displayName": "Configure Release",
       "inherits": "vcpkg",
       "binaryDir": "${sourceDir}/build-release",
       "environment": {
@@ -28,11 +31,29 @@
     },
     {
       "name": "RelWithDebInfo",
+      "displayName": "Configure RelWithDebInfo",
       "inherits": "vcpkg",
-      "binaryDir": "${sourceDir}/build-reldebug",
+      "binaryDir": "${sourceDir}/build-release-debinfo",
       "environment": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "Debug",
+      "displayName": "Build Debug",
+      "configurePreset": "Debug"
+    },
+    {
+      "name": "Release",
+      "displayName": "Configure Release",
+      "configurePreset": "Release"
+    },
+    {
+      "name": "RelWithDebInfo",
+      "displayName": "Configure RelWithDebInfo",
+      "configurePreset": "RelWithDebInfo"
     }
   ]
 }
