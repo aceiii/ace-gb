@@ -2,21 +2,29 @@
 
 My first GameBoy emulator!!
 
+
+![Ace-GB Emulator running Pokemon](images/acegb_2026-01-29.png)
+
+
 ## Requirements
+
+- [cmake](https://cmake.org)
 - [vcpkg](https://github.com/microsoft/vcpkg)
 
 
 ## Build
 
 ```
-./configure.sh
-cmake --build build
+git clone --recurse-submodules https://github.com/aceiii/ace-gb.git
+cd ace-gb
+cmake --preset Release
+cmake --build --preset Release
 ```
 
 ## Run
 
 ```
-./build/ace-gb
+./build-release/ace-gb
 ```
 
 ## Tests
