@@ -57,7 +57,7 @@ void Emulator::update(float dt) {
     return;
   }
 
-  const auto target_cycles_per_frame = static_cast<int>(kClockSpeed * dt) * kStaticSpeedMultiplier;
+  static constexpr auto target_cycles_per_frame = static_cast<int>(kClockSpeed / kFrameRate);
   static int current_cycles = 0;
 
   do {

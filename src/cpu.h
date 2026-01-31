@@ -14,6 +14,7 @@
 #include <vector>
 
 constexpr size_t kClockSpeed = 4194304;
+constexpr float kFrameRate = 59.73;
 
 struct State {
   bool ime = false;
