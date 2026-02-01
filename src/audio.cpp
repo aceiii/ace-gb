@@ -146,8 +146,6 @@ std::vector<float> Audio::get_samples(size_t num_samples, size_t num_channels) {
     sample_buffer.push_back(right_sample_buffer[i]);
   }
 
-  spdlog::debug("before buffer size: {}", left_sample_buffer.size());
-
   if (num_samples >= left_sample_buffer.size()) {
     left_sample_buffer.clear();
   } else {
@@ -158,8 +156,6 @@ std::vector<float> Audio::get_samples(size_t num_samples, size_t num_channels) {
   } else {
     right_sample_buffer.erase(right_sample_buffer.begin(), right_sample_buffer.begin() + num_samples);
   }
-
-  spdlog::debug("after buffer size: {}", left_sample_buffer.size());
 
   return sample_buffer;
 }

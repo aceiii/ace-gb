@@ -16,7 +16,7 @@
 namespace fs = std::filesystem;
 
 namespace {
-constexpr int kDefaulWindowWidth = 800;
+constexpr int kDefaultWindowWidth = 800;
 constexpr int kDefaultWindowHeight = 600;
 constexpr char const *kWindowTitle = "Ace::GB - GameBoy Emulator";
 
@@ -60,7 +60,7 @@ Interface::Interface(): emulator {{ .sample_rate=kAudioSampleRate, .buffer_size=
 
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
-  InitWindow(kDefaulWindowWidth, kDefaultWindowHeight, kWindowTitle);
+  InitWindow(kDefaultWindowWidth, kDefaultWindowHeight, kWindowTitle);
   InitAudioDevice();
 
   SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
@@ -306,8 +306,6 @@ void Interface::run() {
       auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - prev);
       prev = current;
 
-      spdlog::debug("Time between audio updates: {}", diff.count());
-
       // std::array<float, kAudioNumChannels * kSamplesPerUpdate> samples {};
       // emulator.audio_samples(samples.data(), samples.size() / kAudioNumChannels, kAudioNumChannels);
       std::vector<float> samples = emulator.audio_samples(kSamplesPerUpdate, kAudioNumChannels);
@@ -325,7 +323,7 @@ void Interface::render_error() {
 
   auto text_width = MeasureText(error_message.c_str(), 15);
   auto text_height = 20;
-  auto text_x = (kDefaulWindowWidth - text_width) / 2;
+  auto text_x = (kDefaultWindowWidth - text_width) / 2;
   auto text_y = (kDefaultWindowHeight / 2) - (text_height / 2);
   auto padding = 10;
 
