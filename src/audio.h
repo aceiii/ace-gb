@@ -43,7 +43,7 @@ public:
 
   void on_tick() override;
 
-  void get_samples(float *samples, size_t num_samples, size_t num_channels);
+  std::vector<float> get_samples(size_t num_samples, size_t num_channels);
 
   bool channel_enabled(AudioChannelID channel) const;
   void toggle_channel(AudioChannelID channel, bool enable);
@@ -55,10 +55,11 @@ private:
   Timer &timer;
   audio_config config;
 
-  uint8_t prev_bit {};
   uint8_t frame_sequencer {};
+  uint16_t frame_sequencer_counter {};
   uint16_t sample_timer {};
-  std::vector<float> sample_buffer {};
+  std::vector<float> left_sample_buffer {};
+  std::vector<float> right_sample_buffer {};
   std::array<bool, 5> enable_channel {{ true, true, true, true, true }};
 
   union {
@@ -69,7 +70,7 @@ private:
       uint8_t left_volume: 3;
       uint8_t vin_left: 1;
     };
-  } nr50;
+  } nr50 {};
 
   union {
     uint8_t val;
@@ -83,7 +84,7 @@ private:
       uint8_t ch3_left: 1;
       uint8_t ch4_left: 1;
     };
-  } nr51;
+  } nr51 {};
 
   union {
     uint8_t val;
@@ -95,7 +96,7 @@ private:
       uint8_t unused: 3;
       uint8_t audio: 1;
     };
-  } nr52;
+  } nr52 {};
 
   SquareChannel ch1 {true};
   SquareChannel ch2 {false};

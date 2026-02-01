@@ -22,7 +22,7 @@ public:
   virtual void trigger() = 0;
   virtual bool enabled() const = 0;
 
-  inline void clock(uint8_t sequence) {
+  void clock(uint8_t sequence) {
     if (sequence == 7) {
       envelope_tick();
     } else if (sequence == 2 || sequence == 6) {

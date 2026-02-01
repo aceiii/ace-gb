@@ -107,22 +107,28 @@ float SquareChannel::sample() const {
 
   const auto &waveform = waveforms[nrx1.wave_duty];
   auto bit = (waveform >> (7 - duty_step)) & 0b1;
+  auto vol = static_cast<float>(volume) / 15.0f;
+  return bit ? vol : -vol;
 
-  if (bit) {
-    return (static_cast<float>(volume) / 7.5f) - 1.0f;
-  }
-
-  return 0.0f;
+  // if (bit) {
+  //   return 1.0f - (static_cast<float>(volume) / 7.5f);
+  // }
+  //
+  // return 0.0f;
 }
 
 void SquareChannel::tick() {
+  if (!enabled()) {
+    return;
+  }
+
   if (timer) {
     timer -= 1;
   }
 
   if (timer == 0) {
     duty_step = (duty_step + 1) % 8;
-    timer = (2048 - frequency()) * 4;
+    timer = 2048 - frequency();
   }
 }
 

@@ -81,10 +81,15 @@ float NoiseChannel::sample() const {
   if (!enable_channel || !nrx2.dac) {
     return 0.0f;
   }
-  if (!(lfsr.val & 0b1)) {
-    return (static_cast<float>(volume) / 7.5f) - 1.0f;
-  }
-  return 0.0f;
+
+  auto bit = !(lfsr.val & 0b1);
+  auto vol = static_cast<float>(volume) / 15.0f;
+  return bit ? vol : -vol;
+
+  // if (!(lfsr.val & 0b1)) {
+  //   return 1.0f - (static_cast<float>(volume) / 7.5f);
+  // }
+  // return 0.0f;
 }
 
 void NoiseChannel::tick() {
@@ -112,7 +117,7 @@ void NoiseChannel::trigger() {
   timer = clock_divisor(nrx3.clock_divider) << nrx3.clock_shift;
   envelope_timer = nrx2.sweep_pace;
   volume = nrx2.initial_volume;
-  lfsr.bytes = 0xff;
+  lfsr.bytes = 0; //0xff;
 }
 
 bool NoiseChannel::enabled() const {

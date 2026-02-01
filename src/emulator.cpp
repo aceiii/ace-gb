@@ -253,6 +253,6 @@ bool Emulator::channel_enabled(AudioChannelID channel) const {
   return audio.channel_enabled(channel);
 }
 
-void Emulator::audio_samples(float *samples, size_t samples_size, size_t num_channels) {
-  audio.get_samples(samples, samples_size, num_channels);
+std::vector<float> Emulator::audio_samples(size_t samples_size, size_t num_channels) {
+  return audio.get_samples(samples_size, num_channels);
 }

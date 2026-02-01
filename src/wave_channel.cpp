@@ -69,20 +69,22 @@ float WaveChannel::sample() const {
     return 0.0f;
   }
 
-  auto shift = 4;
-  if (volume > 0) {
-    shift = volume - 1;
-  }
+  // auto shift = 4;
+  // if (volume > 0) {
+  //   shift = volume - 1;
+  // }
+  //
+  // auto byte = buffer >> shift;
+  // return 1.0f - (static_cast<float>(byte) / 7.5f);
 
-  auto byte = buffer >> shift;
-  return (static_cast<float>(byte) / 7.5f) - 1.0f;
+  return 0.0f;
 }
 
 uint8_t WaveChannel::read_wave(uint8_t idx) const {
-  spdlog::info("wave channel read:{} = {:02x}, enable_channel:{}", idx, wave_pattern_ram[idx], enable_channel);
   if (enable_channel) {
+    spdlog::info("wave channel read:{} = {:02x}, enable_channel:{}, last_read:{}", wave_index, wave_pattern_ram[wave_index], enable_channel, last_read);
     if (last_read) {
-      return wave_pattern_ram[wave_index >> 1];
+      return wave_pattern_ram[wave_index];
     }
     return 0xff;
   }
@@ -90,14 +92,21 @@ uint8_t WaveChannel::read_wave(uint8_t idx) const {
 }
 
 void WaveChannel::set_wave(uint8_t idx, uint8_t byte) {
-  spdlog::info("wave channel write:{} = {:02x}, enable_channel:{}", idx, byte, enable_channel);
+  // spdlog::info("wave channel write:{} = {:02x}, enable_channel:{}", idx, byte, enable_channel);
   if (enable_channel) {
+    if (last_read) {
+      wave_pattern_ram[idx] = byte;
+    }
     return;
   }
   wave_pattern_ram[idx] = byte;
 }
 
 void WaveChannel::tick() {
+  if (!enabled()) {
+    return;
+  }
+
   if (timer) {
     timer -= 1;
   }
@@ -110,7 +119,7 @@ void WaveChannel::tick() {
     wave_index = (wave_index + 1) % 32;
     buffer = (wave_pattern_ram[wave_index / 2] >> ((1 - (wave_index % 2)) * 4)) & 0xf;
     timer = (2048 - frequency()) * 2;
-    last_read = 84;
+    last_read = 64;
   }
 }
 
@@ -123,6 +132,7 @@ void WaveChannel::trigger() {
 
   timer = (2048 - frequency()) * 2;
   wave_index = 0;
+  buffer = (wave_pattern_ram[0] >> 4) & 0xf;
 }
 
 bool WaveChannel::enabled() const {

@@ -59,7 +59,7 @@ public:
 
   void toggle_channel(AudioChannelID channel, bool enable);
   bool channel_enabled(AudioChannelID channel) const;
-  void audio_samples(float *samples, size_t samples_size, size_t num_channels);
+  std::vector<float> audio_samples(size_t samples_size, size_t num_channels);
 
 private:
   Mmu mmu;

@@ -23,7 +23,7 @@ constexpr char const *kWindowTitle = "Ace::GB - GameBoy Emulator";
 constexpr int kAudioSampleRate = 48000;
 constexpr int kAudioSampleSize = 32;
 constexpr int kAudioNumChannels = 2;
-constexpr int kSamplesPerUpdate = 4096;
+constexpr int kSamplesPerUpdate = 512;
 
 AudioStream stream;
 }
@@ -53,7 +53,7 @@ void rlImGuiImageTextureFit(const Texture2D *image, bool center) {
   rlImGuiImageRect(image, sizeX, sizeY, Rectangle { 0, 0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
-Interface::Interface(): emulator {{ kAudioSampleRate, kSamplesPerUpdate, kAudioNumChannels }} {
+Interface::Interface(): emulator {{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }} {
   spdlog::info("Initializing interface");
 
   NFD_Init();
@@ -301,9 +301,17 @@ void Interface::run() {
     EndDrawing();
 
     if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
-      std::array<float, kAudioNumChannels * kSamplesPerUpdate> samples {};
-      emulator.audio_samples(samples.data(), samples.size() / kAudioNumChannels, kAudioNumChannels);
-      UpdateAudioStream(stream, samples.data(), kSamplesPerUpdate);
+      static auto prev = std::chrono::high_resolution_clock::now();
+      auto current = std::chrono::high_resolution_clock::now();
+      auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - prev);
+      prev = current;
+
+      spdlog::debug("Time between audio updates: {}", diff.count());
+
+      // std::array<float, kAudioNumChannels * kSamplesPerUpdate> samples {};
+      // emulator.audio_samples(samples.data(), samples.size() / kAudioNumChannels, kAudioNumChannels);
+      std::vector<float> samples = emulator.audio_samples(kSamplesPerUpdate, kAudioNumChannels);
+      UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
     }
   }
 
@@ -344,6 +352,8 @@ void Interface::load_cartridge() {
 }
 
 void Interface::load_cart_rom(const std::string &file_path) {
+  stop();
+
   fs::path path { file_path };
   auto ext = path.extension();
   if (ext != ".gb" && ext != ".bin" && ext != ".rom") {
@@ -566,12 +576,15 @@ void Interface::render_input(bool &show_window) {
 
 void Interface::play() {
   emulator.play();
+  SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
+  stream = LoadAudioStream(kAudioSampleRate, kAudioSampleSize, kAudioNumChannels);
   PlayAudioStream(stream);
 }
 
 void Interface::stop() {
   emulator.stop();
   StopAudioStream(stream);
+  UnloadAudioStream(stream);
 }
 
 void Interface::step() {

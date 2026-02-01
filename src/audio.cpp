@@ -6,8 +6,9 @@ constexpr int kClockSpeed = 4194304;
 constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
 constexpr int kWaveRamEnd = kWaveRamStart + 15;
 
-Audio::Audio(Timer &timer, audio_config cfg): timer { timer }, config { cfg } {
-  sample_buffer.reserve(cfg.buffer_size * cfg.num_channels);
+Audio::Audio(Timer &timer, audio_config cfg) : timer{ timer }, config{ cfg } {
+  left_sample_buffer.reserve(cfg.buffer_size);
+  right_sample_buffer.reserve(cfg.buffer_size);
 }
 
 bool Audio::valid_for(uint16_t addr) const {
@@ -113,17 +114,15 @@ void Audio::on_tick() {
   ch3.tick();
   ch4.tick();
 
-  auto bit = (timer.div() >> 4) & 0b1; // NOTE: bit 4 normal, 5 in double-speed mode
-  if (bit == 0 && prev_bit == 1) {
+  frame_sequencer_counter += 1;
+  while (frame_sequencer_counter >= 8192) {
+    frame_sequencer_counter -= 8192;
     ch1.clock(frame_sequencer);
     ch2.clock(frame_sequencer);
     ch3.clock(frame_sequencer);
     ch4.clock(frame_sequencer);
-
     frame_sequencer = (frame_sequencer + 1) % 8;
   }
-
-  prev_bit = bit;
 
   if (sample_timer) {
     sample_timer -= 1;
@@ -131,17 +130,38 @@ void Audio::on_tick() {
 
   if (sample_timer == 0) {
     const auto [left, right] = sample();
-    sample_buffer.push_back(left);
-    sample_buffer.push_back(right);
-    sample_timer = kClockSpeed / config.sample_rate;
+    left_sample_buffer.push_back(left);
+    right_sample_buffer.push_back(right);
+    sample_timer += kClockSpeed / config.sample_rate;
   }
 }
 
-void Audio::get_samples(float *samples, size_t num_samples, size_t num_channels) {
-  auto samples_to_copy = std::min(num_samples * num_channels, sample_buffer.size());
-//  spdlog::info("get_samples: {}", samples_to_copy);
-  std::copy_n(sample_buffer.begin(), samples_to_copy, samples);
-  sample_buffer.erase(sample_buffer.begin(), sample_buffer.begin() + samples_to_copy);
+std::vector<float> Audio::get_samples(size_t num_samples, size_t num_channels) {
+  std::vector<float> sample_buffer;
+  sample_buffer.reserve(num_samples * num_channels);
+
+  num_samples = std::min(num_samples, left_sample_buffer.size());
+  for (auto i = 0; i < num_samples; i++) {
+    sample_buffer.push_back(left_sample_buffer[i]);
+    sample_buffer.push_back(right_sample_buffer[i]);
+  }
+
+  spdlog::debug("before buffer size: {}", left_sample_buffer.size());
+
+  if (num_samples >= left_sample_buffer.size()) {
+    left_sample_buffer.clear();
+  } else {
+    left_sample_buffer.erase(left_sample_buffer.begin(), left_sample_buffer.begin() + num_samples);
+  }
+  if (num_samples >= right_sample_buffer.size()) {
+    right_sample_buffer.clear();
+  } else {
+    right_sample_buffer.erase(right_sample_buffer.begin(), right_sample_buffer.begin() + num_samples);
+  }
+
+  spdlog::debug("after buffer size: {}", left_sample_buffer.size());
+
+  return sample_buffer;
 }
 
 std::tuple<float, float> Audio::sample() {
