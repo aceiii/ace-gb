@@ -24,6 +24,7 @@ enum class AudioChannelID {
 constexpr int kAudioStart = std::to_underlying(IO::NR10);
 constexpr int kAudioEnd = std::to_underlying(IO::LCDC) - 1;
 constexpr int kAudioSize = kAudioEnd - kAudioStart + 1;
+constexpr int kSampleBufferMaxSize = 4096 * 4;
 
 struct audio_config {
   int sample_rate;
@@ -43,7 +44,7 @@ public:
 
   void on_tick() override;
 
-  std::vector<float> get_samples(size_t num_samples, size_t num_channels);
+  void get_samples(std::vector<float> &out_buffer);
 
   bool channel_enabled(AudioChannelID channel) const;
   void toggle_channel(AudioChannelID channel, bool enable);
@@ -58,9 +59,10 @@ private:
   uint8_t frame_sequencer {};
   uint16_t frame_sequencer_counter {};
   uint16_t sample_timer {};
-  std::vector<float> left_sample_buffer {};
-  std::vector<float> right_sample_buffer {};
   std::array<bool, 5> enable_channel {{ true, true, true, true, true }};
+  std::array<float, kSampleBufferMaxSize> sample_buffer {};
+  uint16_t buffer_write_idx {};
+  uint16_t buffer_read_idx {};
 
   union {
     uint8_t val;

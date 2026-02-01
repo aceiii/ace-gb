@@ -59,7 +59,7 @@ public:
 
   void toggle_channel(AudioChannelID channel, bool enable);
   bool channel_enabled(AudioChannelID channel) const;
-  std::vector<float> audio_samples(size_t samples_size, size_t num_channels);
+  std::vector<float>& audio_samples();
 
 private:
   Mmu mmu;
@@ -79,6 +79,8 @@ private:
   std::array<uint8_t, kBootRomSize> boot_rom;
   std::vector<uint8_t> cart_bytes;
   std::set<uint16_t> breakpoints;
+
+  std::vector<float> sample_bufffer {};
 
   size_t num_cycles = 0;
   bool running = false;

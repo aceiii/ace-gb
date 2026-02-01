@@ -85,11 +85,6 @@ float NoiseChannel::sample() const {
   auto bit = !(lfsr.val & 0b1);
   auto vol = static_cast<float>(volume) / 15.0f;
   return bit ? vol : -vol;
-
-  // if (!(lfsr.val & 0b1)) {
-  //   return 1.0f - (static_cast<float>(volume) / 7.5f);
-  // }
-  // return 0.0f;
 }
 
 void NoiseChannel::tick() {

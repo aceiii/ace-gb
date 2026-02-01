@@ -306,9 +306,7 @@ void Interface::run() {
       auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - prev);
       prev = current;
 
-      // std::array<float, kAudioNumChannels * kSamplesPerUpdate> samples {};
-      // emulator.audio_samples(samples.data(), samples.size() / kAudioNumChannels, kAudioNumChannels);
-      std::vector<float> samples = emulator.audio_samples(kSamplesPerUpdate, kAudioNumChannels);
+      auto &samples = emulator.audio_samples();
       UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
     }
   }

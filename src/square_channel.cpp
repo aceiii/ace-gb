@@ -109,12 +109,6 @@ float SquareChannel::sample() const {
   auto bit = (waveform >> (7 - duty_step)) & 0b1;
   auto vol = static_cast<float>(volume) / 15.0f;
   return bit ? vol : -vol;
-
-  // if (bit) {
-  //   return 1.0f - (static_cast<float>(volume) / 7.5f);
-  // }
-  //
-  // return 0.0f;
 }
 
 void SquareChannel::tick() {

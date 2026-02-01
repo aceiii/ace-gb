@@ -7,8 +7,6 @@ constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
 constexpr int kWaveRamEnd = kWaveRamStart + 15;
 
 Audio::Audio(Timer &timer, audio_config cfg) : timer{ timer }, config{ cfg } {
-  left_sample_buffer.reserve(cfg.buffer_size);
-  right_sample_buffer.reserve(cfg.buffer_size);
 }
 
 bool Audio::valid_for(uint16_t addr) const {
@@ -130,34 +128,23 @@ void Audio::on_tick() {
 
   if (sample_timer == 0) {
     const auto [left, right] = sample();
-    left_sample_buffer.push_back(left);
-    right_sample_buffer.push_back(right);
+    sample_buffer[buffer_write_idx] = left;
+    sample_buffer[buffer_write_idx + 1] = right;
+    buffer_write_idx = (buffer_write_idx + 2) % sample_buffer.size();
     sample_timer += kClockSpeed / config.sample_rate;
   }
 }
 
-std::vector<float> Audio::get_samples(size_t num_samples, size_t num_channels) {
-  std::vector<float> sample_buffer;
-  sample_buffer.reserve(num_samples * num_channels);
-
-  num_samples = std::min(num_samples, left_sample_buffer.size());
-  for (auto i = 0; i < num_samples; i++) {
-    sample_buffer.push_back(left_sample_buffer[i]);
-    sample_buffer.push_back(right_sample_buffer[i]);
+void Audio::get_samples(std::vector<float> &out_buffer) {
+  spdlog::debug("buffer size: {}", out_buffer.size());
+  for (auto it = out_buffer.begin(); it != out_buffer.end(); ++it) {
+    if (buffer_read_idx == buffer_write_idx) {
+      *it = 0;
+      continue;
+    }
+    *it = sample_buffer[buffer_read_idx];
+    buffer_read_idx = (buffer_read_idx + 1) % sample_buffer.size();
   }
-
-  if (num_samples >= left_sample_buffer.size()) {
-    left_sample_buffer.clear();
-  } else {
-    left_sample_buffer.erase(left_sample_buffer.begin(), left_sample_buffer.begin() + num_samples);
-  }
-  if (num_samples >= right_sample_buffer.size()) {
-    right_sample_buffer.clear();
-  } else {
-    right_sample_buffer.erase(right_sample_buffer.begin(), right_sample_buffer.begin() + num_samples);
-  }
-
-  return sample_buffer;
 }
 
 std::tuple<float, float> Audio::sample() {
@@ -198,13 +185,10 @@ std::tuple<float, float> Audio::sample() {
 
     left /= 4.0f;
     right /= 4.0f;
-//    spdlog::info("sample: {}, {}", left, right);
   }
 
-  left = (left * static_cast<float>(nr50.left_volume + 1)) / 8.0f;
-  right = (right * static_cast<float>(nr50.right_volume + 1)) / 8.0f;
-
-//  spdlog::info("audio: {} {} {} {}", s1, s2, s3, s4);
+  left = left * nr50.left_volume / 7.0f;
+  right = right * nr50.right_volume / 7.0f;
 
   return std::make_tuple(left, right);
 }

@@ -65,17 +65,18 @@ uint8_t WaveChannel::read(AudioRegister reg) const {
 }
 
 float WaveChannel::sample() const {
+  return 0;
   if (!enable_channel || !nrx0.dac) {
     return 0.0f;
   }
 
-  // auto shift = 4;
-  // if (volume > 0) {
-  //   shift = volume - 1;
-  // }
-  //
-  // auto byte = buffer >> shift;
-  // return 1.0f - (static_cast<float>(byte) / 7.5f);
+  auto shift = 4;
+  if (volume > 0) {
+    shift = volume - 1;
+  }
+
+  auto byte = buffer >> shift;
+  return 1.0f - (static_cast<float>(byte) / 7.5f);
 
   return 0.0f;
 }
@@ -92,7 +93,6 @@ uint8_t WaveChannel::read_wave(uint8_t idx) const {
 }
 
 void WaveChannel::set_wave(uint8_t idx, uint8_t byte) {
-  // spdlog::info("wave channel write:{} = {:02x}, enable_channel:{}", idx, byte, enable_channel);
   if (enable_channel) {
     if (last_read) {
       wave_pattern_ram[idx] = byte;
@@ -118,7 +118,7 @@ void WaveChannel::tick() {
   if (timer == 0) {
     wave_index = (wave_index + 1) % 32;
     buffer = (wave_pattern_ram[wave_index / 2] >> ((1 - (wave_index % 2)) * 4)) & 0xf;
-    timer = (2048 - frequency()) * 2;
+    timer = (2048 - frequency());
     last_read = 64;
   }
 }

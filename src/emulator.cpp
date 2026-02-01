@@ -17,6 +17,8 @@ Emulator::Emulator(audio_config cfg):cpu{mmu, interrupts}, ppu{mmu, interrupts},
   serial_device.on_line([] (const std::string &str) {
     spdlog::info("Serial: {}", str);
   });
+
+  sample_bufffer.resize(cfg.num_channels * cfg.buffer_size);
 }
 
 tl::expected<bool, std::string> Emulator::init() {
@@ -253,6 +255,7 @@ bool Emulator::channel_enabled(AudioChannelID channel) const {
   return audio.channel_enabled(channel);
 }
 
-std::vector<float> Emulator::audio_samples(size_t samples_size, size_t num_channels) {
-  return audio.get_samples(samples_size, num_channels);
+std::vector<float>& Emulator::audio_samples() {
+  audio.get_samples(sample_bufffer);
+  return sample_bufffer;
 }
