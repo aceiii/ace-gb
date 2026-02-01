@@ -65,7 +65,6 @@ uint8_t WaveChannel::read(AudioRegister reg) const {
 }
 
 float WaveChannel::sample() const {
-  return 0;
   if (!enable_channel || !nrx0.dac) {
     return 0.0f;
   }
@@ -77,8 +76,6 @@ float WaveChannel::sample() const {
 
   auto byte = buffer >> shift;
   return 1.0f - (static_cast<float>(byte) / 7.5f);
-
-  return 0.0f;
 }
 
 uint8_t WaveChannel::read_wave(uint8_t idx) const {
