@@ -115,7 +115,7 @@ void WaveChannel::tick() {
   if (timer == 0) {
     wave_index = (wave_index + 1) % 32;
     buffer = (wave_pattern_ram[wave_index / 2] >> ((1 - (wave_index % 2)) * 4)) & 0xf;
-    timer = (2048 - frequency());
+    timer = (2048 - frequency()) * 2;
     last_read = 64;
   }
 }
