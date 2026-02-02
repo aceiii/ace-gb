@@ -122,7 +122,7 @@ void SquareChannel::tick() {
 
   if (timer == 0) {
     duty_step = (duty_step + 1) % 8;
-    timer = 2048 - frequency();
+    timer = (2048 - frequency()) * 4;
   }
 }
 
