@@ -13,6 +13,8 @@ enum class AudioRegister {
 
 class AudioChannel {
 public:
+  virtual ~AudioChannel() = default;
+
   virtual void reset() = 0;
   virtual void poweroff() = 0;
   virtual void write(AudioRegister reg, uint8_t value) = 0;

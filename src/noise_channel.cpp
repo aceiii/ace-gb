@@ -49,7 +49,6 @@ void NoiseChannel::write(AudioRegister reg, uint8_t value) {
   switch (reg) {
     case AudioRegister::NRx1:
       length_counter = kInitialLengthCounter - nrx1.initial_length_timer;
-//      spdlog::info("NRx1: {:02x}, initial_length_timer: {}, length_counter:{}", value, static_cast<uint8_t>(nrx1.initial_length_timer), length_counter);
       break;
     case AudioRegister::NRx2:
       volume = nrx2.initial_volume;
@@ -62,7 +61,6 @@ void NoiseChannel::write(AudioRegister reg, uint8_t value) {
       timer = clock_divisor(prev_clock_divider) << nrx3.clock_shift;
       break;
     case AudioRegister::NRx4:
-//      spdlog::info("NRx4: {:02x}, trigger:{}, length_enable:{}", value, static_cast<uint8_t>(nrx4.trigger), static_cast<uint8_t>(nrx4.length_enable));
       if (nrx4.trigger) {
         trigger();
       }
@@ -82,9 +80,9 @@ float NoiseChannel::sample() const {
     return 0.0f;
   }
 
-  auto bit = !(lfsr.val & 0b1);
+  auto bit = (lfsr.val & 0b1);
   auto vol = static_cast<float>(volume) / 15.0f;
-  return bit ? vol : -vol;
+  return bit ? -vol : vol;
 }
 
 void NoiseChannel::tick() {
@@ -93,11 +91,12 @@ void NoiseChannel::tick() {
   }
 
   if (timer == 0) {
-    lfsr.temp = ~((lfsr.val & 0b1) ^ ((lfsr.val >> 1) & 0b1)) & 0b1;
+    lfsr.temp = (lfsr.bit0 ^ lfsr.bit1) & 1;
     if (nrx3.lfsr_width) {
-      lfsr.bytes = (lfsr.bytes & ~0x80) | (lfsr.temp << 7);
+      lfsr.mid = lfsr.temp;
     }
     lfsr.bytes >>= 1;
+    lfsr.temp = 0;
     timer = clock_divisor(nrx3.clock_divider) << nrx3.clock_shift;
   }
 }
@@ -112,7 +111,7 @@ void NoiseChannel::trigger() {
   timer = clock_divisor(nrx3.clock_divider) << nrx3.clock_shift;
   envelope_timer = nrx2.sweep_pace;
   volume = nrx2.initial_volume;
-  lfsr.bytes = 0; //0xff;
+  lfsr.bytes = 0x7fff;
 }
 
 bool NoiseChannel::enabled() const {
@@ -125,12 +124,10 @@ void NoiseChannel::length_tick() {
   }
 
   if (length_counter) {
-//    spdlog::info("noise channel length_tick: {} -> {}", length_counter, length_counter-1);
     length_counter -= 1;
   }
 
   if (length_counter == 0) {
-//    spdlog::info("disable noise channel: length_counter:{}", length_counter);
     enable_channel = false;
   }
 }

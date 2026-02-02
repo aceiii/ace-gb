@@ -50,7 +50,7 @@ public:
   void toggle_channel(AudioChannelID channel, bool enable);
 
 private:
-  std::tuple<float, float> sample();
+  std::tuple<float, float> sample() const;
 
 private:
   Timer &timer;

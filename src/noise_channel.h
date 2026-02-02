@@ -34,6 +34,13 @@ private:
       uint16_t val: 15;
       uint16_t temp: 1;
     };
+    struct {
+      uint8_t bit0: 1;
+      uint8_t bit1: 1;
+      uint8_t : 5;
+      uint8_t mid: 1;
+      uint8_t : 8;
+    };
   } lfsr;
 
   std::array<uint8_t, 5> masks;

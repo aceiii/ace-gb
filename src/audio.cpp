@@ -136,7 +136,6 @@ void Audio::on_tick() {
 }
 
 void Audio::get_samples(std::vector<float> &out_buffer) {
-  spdlog::debug("buffer size: {}", out_buffer.size());
   for (auto it = out_buffer.begin(); it != out_buffer.end(); ++it) {
     if (buffer_read_idx == buffer_write_idx) {
       *it = 0;
@@ -147,7 +146,7 @@ void Audio::get_samples(std::vector<float> &out_buffer) {
   }
 }
 
-std::tuple<float, float> Audio::sample() {
+std::tuple<float, float> Audio::sample() const {
   float left = 0.0f;
   float right = 0.0f;
 
