@@ -88,6 +88,7 @@ include(cmake/nfd.cmake)
 
 set(SPDLOG_USE_STD_FORMAT ON)
 add_subdirectory(external/spdlog)
+add_subdirectory(external/tomlplusplus)
 
 find_package(argparse CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
@@ -107,6 +108,7 @@ target_link_libraries(${EXE_NAME} PRIVATE nfd)
 target_link_libraries(${EXE_NAME} PRIVATE glfw)
 target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(${EXE_NAME} PRIVATE tl::expected)
+target_link_libraries(${EXE_NAME} PRIVATE tomlplusplus::tomlplusplus)
 
 target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})
 
