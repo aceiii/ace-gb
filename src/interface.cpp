@@ -398,6 +398,8 @@ void Interface::load_cart_rom(const std::string &file_path) {
   if (auto_start) {
     play();
   }
+
+  config.settings.recent_files.push_back(path.string());
 }
 
 void Interface::render_lcd(bool &show_window) {
