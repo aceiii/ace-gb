@@ -1,8 +1,15 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
+#include "config.h"
 #include "emulator.h"
+
+
+struct InterfaceSettings {
+  std::vector<std::string> recent_files;
+};
 
 class Interface {
 public:
@@ -15,8 +22,11 @@ public:
 
 private:
   Emulator emulator;
+  Config<InterfaceSettings> config;
   bool auto_start = true;
   std::string error_message;
+
+  void cleanup();
 
   void play();
   void stop();

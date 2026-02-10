@@ -78,6 +78,8 @@ set(SOURCE_FILES
     src/noise_channel.cpp
     src/noise_channel.h
     src/audio_channel.h
+    src/config.h
+    src/config.cpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)

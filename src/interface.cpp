@@ -7,6 +7,7 @@
 #include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <toml++/toml.hpp>
 
 #include "interface.h"
 #include "emulator.h"
@@ -19,6 +20,7 @@ namespace {
 constexpr int kDefaultWindowWidth = 800;
 constexpr int kDefaultWindowHeight = 600;
 constexpr char const *kWindowTitle = "Ace::GB - GameBoy Emulator";
+constexpr char const *kSettingsFileName = "settings.toml";
 
 constexpr int kAudioSampleRate = 48000;
 constexpr int kAudioSampleSize = 32;
@@ -53,8 +55,38 @@ void rlImGuiImageTextureFit(const Texture2D *image, bool center) {
   rlImGuiImageRect(image, sizeX, sizeY, Rectangle { 0, 0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
-Interface::Interface(): emulator {{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }} {
+static auto serializeInterfaceSettings(const InterfaceSettings& settings, toml::table& table) -> void {
+  toml::array recent_files {};
+  for (const auto &filename : settings.recent_files) {
+    recent_files.push_back(filename);
+  }
+
+  if (!table["file"]) {
+    table.insert("file", toml::table{});
+  }
+  table["file"].as_table()->insert_or_assign("recent_files", recent_files);
+}
+
+static auto deserializeInterfaceSettings(const toml::table& table, InterfaceSettings& settings) -> void {
+  if (auto arr = table["file"]["recent_files"].as_array()) {
+    settings.recent_files.clear();
+    arr->for_each([&](auto&& file) {
+      if constexpr (toml::is_string<decltype(file)>) {
+        settings.recent_files.push_back(*file);
+      }
+    });
+  }
+}
+
+Interface::Interface()
+    : emulator{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
+      config{.serialize=serializeInterfaceSettings, .deserialize=deserializeInterfaceSettings}
+{
   spdlog::info("Initializing interface");
+
+  if (auto res = config.Load(kSettingsFileName); !res.has_value()) {
+    spdlog::warn("Failed to load settings file '{}': {}", kSettingsFileName, res.error());
+  }
 
   NFD_Init();
 
@@ -192,13 +224,7 @@ void Interface::run() {
         load_cartridge();
       }
 
-
-      // TODO: implement actual recent files that are saved somewhere
-      static std::vector<std::string> recent_files {
-        "foobar.gb",
-        "Pokemon.gb",
-      };
-
+      auto& recent_files = config.settings.recent_files;
       if (ImGui::BeginMenu("Open Recent", !recent_files.empty())) {
         for (auto &file : recent_files) {
           if (ImGui::MenuItem(fs::relative(file).c_str())) {
@@ -310,6 +336,8 @@ void Interface::run() {
       UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
     }
   }
+
+  cleanup();
 
   spdlog::info("Shutting down...");
 }
@@ -568,6 +596,12 @@ void Interface::render_input(bool &show_window) {
     ImGui::PopStyleVar();
   }
   ImGui::End();
+}
+
+void Interface::cleanup() {
+  if (auto res = config.Save(kSettingsFileName); !res.has_value()) {
+    spdlog::warn("Failed to save settings to file '{}': {}", kSettingsFileName, res.error());
+  }
 }
 
 void Interface::play() {
