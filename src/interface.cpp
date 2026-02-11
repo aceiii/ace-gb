@@ -16,11 +16,12 @@
 
 namespace fs = std::filesystem;
 
+using namespace app;
+
 namespace {
 constexpr int kDefaultWindowWidth = 800;
 constexpr int kDefaultWindowHeight = 600;
 constexpr char const *kWindowTitle = "Ace::GB - GameBoy Emulator";
-constexpr char const *kSettingsFileName = "settings.toml";
 
 constexpr int kAudioSampleRate = 48000;
 constexpr int kAudioSampleSize = 32;
@@ -78,14 +79,15 @@ static auto deserializeInterfaceSettings(const toml::table& table, InterfaceSett
   }
 }
 
-Interface::Interface()
-    : emulator{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
+Interface::Interface(Args args)
+    : args{args},
+      emulator{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
       config{.serialize=serializeInterfaceSettings, .deserialize=deserializeInterfaceSettings}
 {
   spdlog::info("Initializing interface");
 
-  if (auto res = config.Load(kSettingsFileName); !res.has_value()) {
-    spdlog::warn("Failed to load settings file '{}': {}", kSettingsFileName, res.error());
+  if (auto res = config.Load(args.settings_filename); !res.has_value()) {
+    spdlog::warn("Failed to load settings file '{}': {}", args.settings_filename, res.error());
   }
 
   NFD_Init();
@@ -601,8 +603,8 @@ void Interface::render_input(bool &show_window) {
 }
 
 void Interface::cleanup() {
-  if (auto res = config.Save(kSettingsFileName); !res.has_value()) {
-    spdlog::warn("Failed to save settings to file '{}': {}", kSettingsFileName, res.error());
+  if (auto res = config.Save(args.settings_filename); !res.has_value()) {
+    spdlog::warn("Failed to save settings to file '{}': {}", args.settings_filename, res.error());
   }
 }
 

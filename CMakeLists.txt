@@ -14,6 +14,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(TOML_EXCEPTIONS=0)
 
 set(SOURCE_FILES
+    src/args.cpp
+    src/args.h
     src/main.cpp
     src/interface.h
     src/interface.cpp

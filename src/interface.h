@@ -3,9 +3,12 @@
 #include <string>
 #include <vector>
 
+#include "args.h"
 #include "config.h"
 #include "emulator.h"
 
+
+namespace app {
 
 struct InterfaceSettings {
   std::vector<std::string> recent_files;
@@ -13,7 +16,7 @@ struct InterfaceSettings {
 
 class Interface {
 public:
-  explicit Interface();
+  explicit Interface(Args args);
   ~Interface();
 
   void run();
@@ -21,6 +24,7 @@ public:
   void load_cart_rom(const std::string &path);
 
 private:
+  Args args;
   Emulator emulator;
   Config<InterfaceSettings> config;
   bool auto_start = true;
@@ -42,3 +46,5 @@ private:
   void render_registers(bool &show_window);
   void render_input(bool &show_window);
 };
+
+}
