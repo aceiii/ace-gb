@@ -56,7 +56,7 @@ void rlImGuiImageTextureFit(const Texture2D *image, bool center) {
   rlImGuiImageRect(image, sizeX, sizeY, Rectangle { 0, 0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
-static auto serializeInterfaceSettings(const InterfaceSettings& settings, toml::table& table) -> void {
+static auto SerializeInterfaceSettings(const InterfaceSettings& settings, toml::table& table) -> void {
   toml::array recent_files {};
   for (const auto &filename : settings.recent_files) {
     recent_files.push_back(filename);
@@ -68,7 +68,7 @@ static auto serializeInterfaceSettings(const InterfaceSettings& settings, toml::
   table["file"].as_table()->insert_or_assign("recent_files", recent_files);
 }
 
-static auto deserializeInterfaceSettings(const toml::table& table, InterfaceSettings& settings) -> void {
+static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSettings& settings) -> void {
   if (auto arr = table["file"]["recent_files"].as_array()) {
     settings.recent_files.clear();
     arr->for_each([&](auto&& file) {
@@ -79,11 +79,27 @@ static auto deserializeInterfaceSettings(const toml::table& table, InterfaceSett
   }
 }
 
+static auto SpdLogTraceLog(int log_level, const char* text, va_list args) -> void {
+  static std::array<char, 2048> buffer;
+  vsnprintf(buffer.data(), buffer.size(), text, args);
+  switch (log_level) {
+    case LOG_TRACE: spdlog::trace("[RAYLIB] {}", buffer.data()); break;
+    case LOG_DEBUG: spdlog::debug("[RAYLIB] {}", buffer.data()); break;
+    case LOG_INFO: spdlog::info("[RAYLIB] {}", buffer.data()); break;
+    case LOG_WARNING: spdlog::warn("[RAYLIB] {}", buffer.data()); break;
+    case LOG_ERROR: spdlog::error("[RAYLIB] {}", buffer.data()); break;
+    case LOG_FATAL: spdlog::critical("[RAYLIB] {}", buffer.data()); break;
+    default: spdlog::info("[RAYLIB] {}", buffer.data()); break;
+  }
+}
+
 Interface::Interface(Args args)
     : args{args},
       emulator{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
-      config{.serialize=serializeInterfaceSettings, .deserialize=deserializeInterfaceSettings}
+      config{.serialize=SerializeInterfaceSettings, .deserialize=DeserializeInterfaceSettings}
 {
+  SetTraceLogCallback(SpdLogTraceLog);
+
   spdlog::info("Initializing interface");
 
   if (auto res = config.Load(args.settings_filename); !res.has_value()) {
