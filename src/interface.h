@@ -13,6 +13,10 @@ namespace app {
 constexpr size_t kMaxRecentFiles = 10;
 
 struct InterfaceSettings {
+  int screen_width;
+  int screen_height;
+  int screen_x;
+  int screen_y;
   RecentFiles recent_files{kMaxRecentFiles};
 };
 

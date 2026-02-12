@@ -56,19 +56,43 @@ void rlImGuiImageTextureFit(const Texture2D *image, bool center) {
   rlImGuiImageRect(image, sizeX, sizeY, Rectangle { 0, 0, static_cast<float>(image->width), static_cast<float>(image->height) });
 }
 
-static auto SerializeInterfaceSettings(const InterfaceSettings& settings, toml::table& table) -> void {
+static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> toml::table {
   toml::array recent_files {};
   for (const auto &filename : settings.recent_files) {
     recent_files.push_back(filename);
   }
 
-  if (!table["file"]) {
-    table.insert("file", toml::table{});
-  }
-  table["file"].as_table()->insert_or_assign("recent_files", recent_files);
+  auto table = toml::table{
+    { "window", toml::table{
+        { "x", settings.screen_x },
+        { "y", settings.screen_y },
+        { "width", settings.screen_width },
+        { "height", settings.screen_height },
+      }
+    },
+    { "file", toml::table{
+        { "recent_files", recent_files },
+      }
+    }
+  };
+
+  return table;
 }
 
 static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSettings& settings) -> void {
+  settings.screen_x = table["window"]["x"].value_or(-1);
+  settings.screen_y = table["window"]["y"].value_or(-1);
+
+  settings.screen_width = table["window"]["width"].value_or(kDefaultWindowWidth);
+  if (settings.screen_width < 100) {
+    settings.screen_width = kDefaultWindowWidth;
+  }
+
+  settings.screen_height = table["window"]["height"].value_or(kDefaultWindowHeight);
+  if (settings.screen_height < 100) {
+    settings.screen_height = kDefaultWindowHeight;
+  }
+
   if (auto arr = table["file"]["recent_files"].as_array()) {
     settings.recent_files.Clear();
     arr->for_each([&](auto&& file) {
@@ -110,7 +134,11 @@ Interface::Interface(Args args)
 
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
-  InitWindow(kDefaultWindowWidth, kDefaultWindowHeight, kWindowTitle);
+  InitWindow(config.settings.screen_width, config.settings.screen_height, kWindowTitle);
+  if (config.settings.screen_x >= 0 && config.settings.screen_y >= 0) {
+    SetWindowPosition(config.settings.screen_x, config.settings.screen_y);
+  }
+
   InitAudioDevice();
 
   SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
@@ -169,11 +197,13 @@ void Interface::run() {
   auto &io = ImGui::GetIO();
 
   while (!should_close) {
-    const auto frame_time = GetFrameTime();
-
     if (WindowShouldClose()) {
       should_close = true;
     }
+
+    const auto frame_time = GetFrameTime();
+    config.settings.screen_width = GetScreenWidth();
+    config.settings.screen_height = GetScreenHeight();
 
     if (IsFileDropped()) {
       FilePathList dropped_files = LoadDroppedFiles();
@@ -341,15 +371,15 @@ void Interface::run() {
 
     render_error();
 
-    DrawFPS(10, GetScreenHeight() - 24);
+    DrawFPS(10, config.settings.screen_height - 24);
 
     EndDrawing();
 
     if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
-      static auto prev = std::chrono::high_resolution_clock::now();
-      auto current = std::chrono::high_resolution_clock::now();
-      auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - prev);
-      prev = current;
+      // static auto prev = std::chrono::high_resolution_clock::now();
+      // auto current = std::chrono::high_resolution_clock::now();
+      // auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - prev);
+      // prev = current;
 
       auto &samples = emulator.audio_samples();
       UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
@@ -368,8 +398,8 @@ void Interface::render_error() {
 
   auto text_width = MeasureText(error_message.c_str(), 15);
   auto text_height = 20;
-  auto text_x = (kDefaultWindowWidth - text_width) / 2;
-  auto text_y = (kDefaultWindowHeight / 2) - (text_height / 2);
+  auto text_x = (config.settings.screen_width - text_width) / 2;
+  auto text_y = (config.settings.screen_height / 2) - (text_height / 2);
   auto padding = 10;
 
   DrawRectangle(text_x - padding, text_y - padding, text_width + padding + padding, text_height + padding + padding, Color { 32, 32, 32, 127 });
@@ -622,6 +652,10 @@ void Interface::render_input(bool &show_window) {
 }
 
 void Interface::cleanup() {
+  auto window_pos = GetWindowPosition();
+  config.settings.screen_x = static_cast<int>(window_pos.x);
+  config.settings.screen_y = static_cast<int>(window_pos.y);
+
   if (auto res = config.Save(args.settings_filename); !res.has_value()) {
     spdlog::warn("Failed to save settings to file '{}': {}", args.settings_filename, res.error());
   }

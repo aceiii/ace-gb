@@ -8,11 +8,12 @@
 #include <string_view>
 #include <toml++/toml.hpp>
 
+
 template <typename Settings>
 struct Config {
   Settings settings;
 
-  std::function<void(const Settings &settings, toml::table&)> serialize;
+  std::function<toml::table(const Settings &settings)> serialize;
   std::function<void(const toml::table&, Settings &settings)> deserialize;
 
   std::expected<void, std::string> Load(std::string_view filename) {
@@ -33,7 +34,7 @@ struct Config {
   [[nodiscard]] std::expected<void, std::string> Save(std::string_view filename) const {
     toml::table table;
     try {
-      serialize(settings, table);
+      table = serialize(settings);
     } catch (std::exception &e) {
       return std::unexpected{std::format("Failed to serialize settings: {}", e.what())};
     }
