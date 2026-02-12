@@ -32,6 +32,13 @@ struct InterfaceSettings {
   bool show_sprites;
   bool show_cpu_registers;
   bool show_input;
+
+  bool enable_audio;
+  bool enable_ch1;
+  bool enable_ch2;
+  bool enable_ch3;
+  bool enable_ch4;
+  float master_volume;
 };
 
 class Interface {

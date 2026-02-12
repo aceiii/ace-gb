@@ -96,6 +96,12 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "show_sprites", settings.show_sprites },
         { "show_cpu_registers", settings.show_cpu_registers },
         { "show_input", settings.show_input },
+        { "enable_audio", settings.enable_audio },
+        { "enable_ch1", settings.enable_ch1 },
+        { "enable_ch2", settings.enable_ch2 },
+        { "enable_ch3", settings.enable_ch3 },
+        { "enable_ch4", settings.enable_ch4 },
+        { "master_volume", settings.master_volume },
       }
     },
   };
@@ -137,6 +143,13 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
   settings.show_sprites = table["hardware"]["show_sprites"].value_or(true);
   settings.show_cpu_registers = table["hardware"]["show_cpu_registers"].value_or(true);
   settings.show_input = table["hardware"]["show_input"].value_or(true);
+
+  settings.enable_audio = table["hardware"]["enable_audio"].value_or(true);
+  settings.enable_ch1 = table["hardware"]["enable_ch1"].value_or(true);
+  settings.enable_ch2 = table["hardware"]["enable_ch2"].value_or(true);
+  settings.enable_ch3 = table["hardware"]["enable_ch3"].value_or(true);
+  settings.enable_ch4 = table["hardware"]["enable_ch4"].value_or(true);
+  settings.master_volume = std::clamp(table["hardware"]["master_volume"].value_or(100.0f), 0.0f, 100.0f);
 }
 
 static auto SpdLogTraceLog(int log_level, const char* text, va_list args) -> void {
@@ -176,6 +189,7 @@ Interface::Interface(Args args)
   }
 
   InitAudioDevice();
+  SetMasterVolume(config.settings.master_volume / 100.0f);
 
   SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
   stream = LoadAudioStream(kAudioSampleRate, kAudioSampleSize, kAudioNumChannels);
@@ -361,8 +375,8 @@ void Interface::run() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("APU")) {
-        if (ImGui::MenuItem("Enable Sound", nullptr, emulator.channel_enabled(AudioChannelID::MASTER))) {
-          emulator.toggle_channel(AudioChannelID::MASTER, !emulator.channel_enabled(AudioChannelID::MASTER));
+        if (ImGui::MenuItem("Enable Sound", nullptr, &config.settings.enable_audio)) {
+          emulator.toggle_channel(AudioChannelID::MASTER, config.settings.enable_audio);
         }
         if (ImGui::BeginMenu("Volume")) {
           auto volume = GetMasterVolume() * 100;
@@ -378,17 +392,17 @@ void Interface::run() {
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Channels")) {
-          if (ImGui::MenuItem("CH1 - Square", nullptr, emulator.channel_enabled(AudioChannelID::CH1))) {
-            emulator.toggle_channel(AudioChannelID::CH1, !emulator.channel_enabled(AudioChannelID::CH1));
+          if (ImGui::MenuItem("CH1 - Square", nullptr, &config.settings.enable_ch1)) {
+            emulator.toggle_channel(AudioChannelID::CH1, config.settings.enable_ch1);
           }
-          if (ImGui::MenuItem("CH2 - Square", nullptr, emulator.channel_enabled(AudioChannelID::CH2))) {
-            emulator.toggle_channel(AudioChannelID::CH2, !emulator.channel_enabled(AudioChannelID::CH2));
+          if (ImGui::MenuItem("CH2 - Square", nullptr, &config.settings.enable_ch2)) {
+            emulator.toggle_channel(AudioChannelID::CH2, config.settings.enable_ch2);
           }
-          if (ImGui::MenuItem("CH3 - Wave", nullptr, emulator.channel_enabled(AudioChannelID::CH3))) {
-            emulator.toggle_channel(AudioChannelID::CH3, !emulator.channel_enabled(AudioChannelID::CH3));
+          if (ImGui::MenuItem("CH3 - Wave", nullptr, &config.settings.enable_ch3)) {
+            emulator.toggle_channel(AudioChannelID::CH3, config.settings.enable_ch3);
           }
-          if (ImGui::MenuItem("CH4 - Noise", nullptr, emulator.channel_enabled(AudioChannelID::CH4))) {
-            emulator.toggle_channel(AudioChannelID::CH4, !emulator.channel_enabled(AudioChannelID::CH4));
+          if (ImGui::MenuItem("CH4 - Noise", nullptr, &config.settings.enable_ch4)) {
+            emulator.toggle_channel(AudioChannelID::CH4, config.settings.enable_ch4);
           }
           ImGui::EndMenu();
         }
@@ -476,6 +490,8 @@ void Interface::load_cart_rom(const std::string &file_path) {
 
   emulator.load_cartridge(std::move(load_result.value()));
   spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
+
+  emulator.toggle_channel(AudioChannelID::MASTER, config.settings.enable_audio);
 
   if (config.settings.auto_start) {
     play();
@@ -686,6 +702,8 @@ void Interface::cleanup() {
   auto window_pos = GetWindowPosition();
   config.settings.screen_x = static_cast<int>(window_pos.x);
   config.settings.screen_y = static_cast<int>(window_pos.y);
+
+  config.settings.master_volume = GetMasterVolume() * 100.0f;
 
   if (auto res = config.Save(args.settings_filename); !res.has_value()) {
     spdlog::warn("Failed to save settings to file '{}': {}", args.settings_filename, res.error());
