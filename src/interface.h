@@ -1,17 +1,19 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 #include "args.h"
 #include "config.h"
 #include "emulator.h"
+#include "recent_files.hpp"
 
 
 namespace app {
 
+constexpr size_t kMaxRecentFiles = 10;
+
 struct InterfaceSettings {
-  std::vector<std::string> recent_files;
+  RecentFiles recent_files{kMaxRecentFiles};
 };
 
 class Interface {

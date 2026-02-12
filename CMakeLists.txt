@@ -82,6 +82,8 @@ set(SOURCE_FILES
     src/audio_channel.h
     src/config.h
     src/config.cpp
+    src/recent_files.cpp
+    src/recent_files.hpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)

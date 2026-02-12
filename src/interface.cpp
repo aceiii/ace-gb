@@ -70,10 +70,10 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings, toml::
 
 static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSettings& settings) -> void {
   if (auto arr = table["file"]["recent_files"].as_array()) {
-    settings.recent_files.clear();
+    settings.recent_files.Clear();
     arr->for_each([&](auto&& file) {
       if constexpr (toml::is_string<decltype(file)>) {
-        settings.recent_files.push_back(*file);
+        settings.recent_files.Push(*file);
       }
     });
   }
@@ -243,16 +243,17 @@ void Interface::run() {
       }
 
       auto& recent_files = config.settings.recent_files;
-      if (ImGui::BeginMenu("Open Recent", !recent_files.empty())) {
+      if (ImGui::BeginMenu("Recent files", !recent_files.IsEmpty())) {
         for (auto &file : recent_files) {
           if (ImGui::MenuItem(fs::relative(file).c_str())) {
             spdlog::debug("Pressed recent file: '{}'", file);
+            load_cart_rom(file);
           }
         }
         ImGui::Separator();
         if (ImGui::MenuItem("Clear Recent")) {
           spdlog::debug("Clearing recent files");
-          recent_files.clear();
+          recent_files.Clear();
         }
         ImGui::EndMenu();
       }
@@ -378,9 +379,9 @@ void Interface::render_error() {
 void Interface::load_cartridge() {
   nfdchar_t *file_path = nullptr;
   std::array<nfdfilteritem_t, 3> filter_items = {{
-    { "GB", "gb" },
-    { "BIN", "bin" },
-    { "ROM", "rom" }
+    { .name="GB", .spec="gb" },
+    { .name="BIN", .spec="bin" },
+    { .name="ROM", .spec="rom" }
   }};
 
   nfdresult_t result = NFD_OpenDialog(&file_path, filter_items.data(), filter_items.size(), nullptr);
@@ -399,12 +400,14 @@ void Interface::load_cart_rom(const std::string &file_path) {
   fs::path path { file_path };
   auto ext = path.extension();
   if (ext != ".gb" && ext != ".bin" && ext != ".rom") {
+    config.settings.recent_files.Remove(path);
     spdlog::error("Invalid file extension: {}. Only supports loading .gb, .bin, .rom", ext.string());
     return;
   }
 
   auto load_result = load_bin(path.string());
   if (!load_result) {
+    config.settings.recent_files.Remove(path);
     error_message = load_result.error();
     spdlog::error("{}", error_message);
     return;
@@ -417,7 +420,7 @@ void Interface::load_cart_rom(const std::string &file_path) {
     play();
   }
 
-  config.settings.recent_files.push_back(path.string());
+  config.settings.recent_files.Push(path.string());
 }
 
 void Interface::render_lcd(bool &show_window) {
