@@ -18,6 +18,20 @@ struct InterfaceSettings {
   int screen_x;
   int screen_y;
   RecentFiles recent_files{kMaxRecentFiles};
+
+  // Emulator
+  bool auto_start;
+  bool skip_boot_rom;
+  std::string boot_rom_path;
+
+  // Hardware
+  bool show_lcd;
+  bool show_tiles;
+  bool show_tilemap1;
+  bool show_tilemap2;
+  bool show_sprites;
+  bool show_cpu_registers;
+  bool show_input;
 };
 
 class Interface {
@@ -33,7 +47,6 @@ private:
   Args args;
   Emulator emulator;
   Config<InterfaceSettings> config;
-  bool auto_start = true;
   std::string error_message;
 
   void cleanup();

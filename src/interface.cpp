@@ -63,17 +63,41 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
   }
 
   auto table = toml::table{
-    { "window", toml::table{
+    {
+      "window",
+      toml::table{
         { "x", settings.screen_x },
         { "y", settings.screen_y },
         { "width", settings.screen_width },
         { "height", settings.screen_height },
+      },
+    },
+    {
+      "file",
+      toml::table{
+        { "recent_files", recent_files },
+      },
+    },
+    {
+      "emulator",
+      toml::table{
+        { "auto_start", settings.auto_start },
+        { "skip_boot_rom", settings.skip_boot_rom },
+        { "boot_rom_path", settings.boot_rom_path },
+      },
+    },
+    {
+      "hardware",
+      toml::table{
+        { "show_lcd", settings.show_lcd },
+        { "show_tiles", settings.show_tiles },
+        { "show_tilemap1", settings.show_tilemap1 },
+        { "show_tilemap2", settings.show_tilemap2 },
+        { "show_sprites", settings.show_sprites },
+        { "show_cpu_registers", settings.show_cpu_registers },
+        { "show_input", settings.show_input },
       }
     },
-    { "file", toml::table{
-        { "recent_files", recent_files },
-      }
-    }
   };
 
   return table;
@@ -101,6 +125,18 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
       }
     });
   }
+
+  settings.auto_start = table["emulator"]["auto_start"].value_or(true);
+  settings.skip_boot_rom = table["emulator"]["skip_boot_rom"].value_or(true);
+  settings.boot_rom_path = table["emulator"]["boot_rom_path"].value_or(fs::path(fs::current_path().append("boot.bin")).string());
+
+  settings.show_lcd = table["hardware"]["show_lcd"].value_or(true);
+  settings.show_tiles = table["hardware"]["show_tiles"].value_or(true);
+  settings.show_tilemap1 = table["hardware"]["show_tilemap1"].value_or(true);
+  settings.show_tilemap2 = table["hardware"]["show_tilemap2"].value_or(true);
+  settings.show_sprites = table["hardware"]["show_sprites"].value_or(true);
+  settings.show_cpu_registers = table["hardware"]["show_cpu_registers"].value_or(true);
+  settings.show_input = table["hardware"]["show_input"].value_or(true);
 }
 
 static auto SpdLogTraceLog(int log_level, const char* text, va_list args) -> void {
@@ -183,14 +219,9 @@ void Interface::run() {
 
   spdlog::info("Running...");
 
+  emulator.set_skip_bootrom(config.settings.skip_boot_rom);
+
   static bool should_close = false;
-  static bool show_lcd = true;
-  static bool show_tiles = true;
-  static bool show_tilemap1 = true;
-  static bool show_tilemap2 = true;
-  static bool show_sprites = true;
-  static bool show_cpu_registers = true;
-  static bool show_input = true;
 
   static bool enable_audio = true;
 
@@ -237,32 +268,32 @@ void Interface::run() {
 
     ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
-    if (show_lcd) {
-      render_lcd(show_lcd);
+    if (config.settings.show_lcd) {
+      render_lcd(config.settings.show_lcd);
     }
 
-    if (show_tiles) {
-      render_tiles(show_tiles);
+    if (config.settings.show_tiles) {
+      render_tiles(config.settings.show_tiles);
     }
 
-    if (show_tilemap1) {
-      render_tilemap1(show_tilemap1);
+    if (config.settings.show_tilemap1) {
+      render_tilemap1(config.settings.show_tilemap1);
     }
 
-    if (show_tilemap2) {
-      render_tilemap2(show_tilemap2);
+    if (config.settings.show_tilemap2) {
+      render_tilemap2(config.settings.show_tilemap2);
     }
 
-    if (show_sprites) {
-      render_sprites(show_sprites);
+    if (config.settings.show_sprites) {
+      render_sprites(config.settings.show_sprites);
     }
 
-    if (show_cpu_registers) {
-      render_registers(show_cpu_registers);
+    if (config.settings.show_cpu_registers) {
+      render_registers(config.settings.show_cpu_registers);
     }
 
-    if (show_input) {
-      render_input(show_input);
+    if (config.settings.show_input) {
+      render_input(config.settings.show_input);
     }
 
     ImGui::BeginMainMenuBar();
@@ -296,9 +327,9 @@ void Interface::run() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Emulator")) {
-      ImGui::MenuItem("Auto-Start", nullptr, &auto_start);
-      if (ImGui::MenuItem("Skip Boot ROM", nullptr, emulator.skip_bootrom())) {
-        emulator.set_skip_bootrom(!emulator.skip_bootrom());
+      ImGui::MenuItem("Auto-Start", nullptr, &config.settings.auto_start);
+      if (ImGui::MenuItem("Skip Boot ROM", nullptr, &config.settings.skip_boot_rom)) {
+        emulator.set_skip_bootrom(config.settings.skip_boot_rom);
       }
       ImGui::Separator();
       if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator.is_playing())) {
@@ -314,7 +345,7 @@ void Interface::run() {
       ImGui::Separator();
       if (ImGui::MenuItem("Reset")) {
         reset();
-        if (auto_start) {
+        if (config.settings.auto_start) {
           play();
         }
       }
@@ -322,11 +353,11 @@ void Interface::run() {
     }
     if (ImGui::BeginMenu("Hardware")) {
       if (ImGui::BeginMenu("PPU")) {
-        ImGui::MenuItem("LCD", nullptr, &show_lcd);
-        ImGui::MenuItem("TileMap 1", nullptr, &show_tilemap1);
-        ImGui::MenuItem("TileMap 2", nullptr, &show_tilemap2);
-        ImGui::MenuItem("Sprites", nullptr, &show_sprites);
-        ImGui::MenuItem("Tiles", nullptr, &show_tiles);
+        ImGui::MenuItem("LCD", nullptr, &config.settings.show_lcd);
+        ImGui::MenuItem("TileMap 1", nullptr, &config.settings.show_tilemap1);
+        ImGui::MenuItem("TileMap 2", nullptr, &config.settings.show_tilemap2);
+        ImGui::MenuItem("Sprites", nullptr, &config.settings.show_sprites);
+        ImGui::MenuItem("Tiles", nullptr, &config.settings.show_tiles);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("APU")) {
@@ -446,7 +477,7 @@ void Interface::load_cart_rom(const std::string &file_path) {
   emulator.load_cartridge(std::move(load_result.value()));
   spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
 
-  if (auto_start) {
+  if (config.settings.auto_start) {
     play();
   }
 
