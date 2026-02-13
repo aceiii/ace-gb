@@ -1,4 +1,5 @@
 #include <array>
+#include <expected>
 #include <format>
 #include <fstream>
 #include <memory>
@@ -21,7 +22,7 @@ Emulator::Emulator(audio_config cfg):cpu{mmu, interrupts}, ppu{mmu, interrupts},
   sample_bufffer.resize(cfg.num_channels * cfg.buffer_size);
 }
 
-tl::expected<bool, std::string> Emulator::init() {
+std::expected<bool, std::string> Emulator::init() {
   ppu.init();
 
   mmu.clear_devices();
@@ -44,7 +45,7 @@ tl::expected<bool, std::string> Emulator::init() {
 
   auto result = load_bin("./boot.bin");
   if (!result) {
-    return tl::unexpected(std::format("Failed to load boot rom: {}", result.error()));
+    return std::unexpected(std::format("Failed to load boot rom: {}", result.error()));
   }
 
   const auto &bytes = result.value();

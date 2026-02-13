@@ -1,3 +1,4 @@
+#include <expected>
 #include <fstream>
 #include <iterator>
 #include <spdlog/spdlog.h>
@@ -7,7 +8,7 @@
 load_file_result load_bin(const std::string &path) {
   std::ifstream input(path, std::ios::in | std::ios::binary);
   if (input.fail()) {
-    return tl::unexpected{strerror(errno)};
+    return std::unexpected{strerror(errno)};
   }
 
   input.unsetf(std::ios::skipws);

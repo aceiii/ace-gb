@@ -1,11 +1,11 @@
 #pragma once
 
 #include <array>
+#include <expected>
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
-#include <tl/expected.hpp>
 
 #include "cpu.h"
 #include "ppu.h"
@@ -25,7 +25,7 @@ public:
   explicit Emulator(audio_config cfg);
   ~Emulator() = default;
 
-  tl::expected<bool, std::string> init();
+  std::expected<bool, std::string> init();
   void cleanup();
   void update(float dt);
   void reset();

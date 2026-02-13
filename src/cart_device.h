@@ -2,8 +2,8 @@
 
 #include <array>
 #include <cstdint>
+#include <expected>
 #include <memory>
-#include <tl/expected.hpp>
 
 #include "cart_info.h"
 #include "mmu_device.h"

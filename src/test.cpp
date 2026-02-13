@@ -1,3 +1,4 @@
+#include <expected>
 #include <format>
 #include <fstream>
 #include <memory>
@@ -5,7 +6,6 @@
 #include <nlohmann/json.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
-#include <tl/expected.hpp>
 
 #include "cpu.h"
 #include "mmu.h"
@@ -125,17 +125,17 @@ std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> mismatched_memory(const json
   return failed;
 }
 
-tl::expected<TestResult<int, int>, std::string> run_test(const TestConfig &config) {
+std::expected<TestResult<int, int>, std::string> run_test(const TestConfig &config) {
   std::ifstream input(config.path);
   if (input.fail()) {
-    return tl::unexpected { std::format("Failed to open '{}': {}", config.path.string(), strerror(errno)) };
+    return std::unexpected { std::format("Failed to open '{}': {}", config.path.string(), strerror(errno)) };
   }
 
   json data;
   try {
     data = json::parse(input);
   } catch (const json::parse_error &e) {
-    return tl::unexpected { e.what() };
+    return std::unexpected { e.what() };
   }
 
   spdlog::debug("Running test '{}', {} cases.", config.path.string(), data.size());
