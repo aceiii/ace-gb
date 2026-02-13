@@ -198,6 +198,10 @@ uint8_t Emulator::read8(uint16_t addr) const {
   return mmu.read8(addr);
 }
 
+void Emulator::write8(uint16_t addr, uint8_t byte) {
+  mmu.write8(addr, byte);
+}
+
 const Texture2D& Emulator::target_lcd() const {
   return ppu.lcd();
 }

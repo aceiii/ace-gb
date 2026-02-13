@@ -5,8 +5,6 @@
 #include <nfd.h>
 #include <rlImGui.h>
 #include <spdlog/spdlog.h>
-#include <imgui.h>
-#include <imgui_internal.h>
 #include <toml++/toml.hpp>
 
 #include "interface.h"
@@ -96,6 +94,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "show_sprites", settings.show_sprites },
         { "show_cpu_registers", settings.show_cpu_registers },
         { "show_input", settings.show_input },
+        { "show_memory", settings.show_memory },
         { "enable_audio", settings.enable_audio },
         { "enable_ch1", settings.enable_ch1 },
         { "enable_ch2", settings.enable_ch2 },
@@ -143,6 +142,7 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
   settings.show_sprites = table["hardware"]["show_sprites"].value_or(true);
   settings.show_cpu_registers = table["hardware"]["show_cpu_registers"].value_or(true);
   settings.show_input = table["hardware"]["show_input"].value_or(true);
+  settings.show_memory = table["hardware"]["show_memory"].value_or(true);
 
   settings.enable_audio = table["hardware"]["enable_audio"].value_or(true);
   settings.enable_ch1 = table["hardware"]["enable_ch1"].value_or(true);
@@ -166,11 +166,25 @@ static auto SpdLogTraceLog(int log_level, const char* text, va_list args) -> voi
   }
 }
 
+static uint8_t MemEditorCustomRead(const uint8_t* data, size_t offset, void* user_data) {
+  auto emulator = static_cast<Emulator*>(user_data);
+  return emulator->read8(offset);
+}
+
+static void MemEditorCustomWrite(uint8_t* data, size_t offset, uint8_t d, void* user_data) {
+  auto emulator = static_cast<Emulator*>(user_data);
+  emulator->write8(offset, d);
+}
+
 Interface::Interface(Args args)
     : args{args},
       emulator{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
       config{.serialize=SerializeInterfaceSettings, .deserialize=DeserializeInterfaceSettings}
 {
+  mem_editor.ReadFn = MemEditorCustomRead;
+  mem_editor.WriteFn = MemEditorCustomWrite;
+  mem_editor.UserData = static_cast<void*>(&emulator);
+
   SetTraceLogCallback(SpdLogTraceLog);
 
   spdlog::info("Initializing interface");
@@ -282,32 +296,20 @@ void Interface::run() {
 
     ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
-    if (config.settings.show_lcd) {
-      render_lcd(config.settings.show_lcd);
-    }
+    render_lcd(config.settings.show_lcd);
+    render_tiles(config.settings.show_tiles);
+    render_tilemap1(config.settings.show_tilemap1);
+    render_tilemap2(config.settings.show_tilemap2);
+    render_sprites(config.settings.show_sprites);
+    render_registers(config.settings.show_cpu_registers);
+    render_input(config.settings.show_input);
 
-    if (config.settings.show_tiles) {
-      render_tiles(config.settings.show_tiles);
-    }
-
-    if (config.settings.show_tilemap1) {
-      render_tilemap1(config.settings.show_tilemap1);
-    }
-
-    if (config.settings.show_tilemap2) {
-      render_tilemap2(config.settings.show_tilemap2);
-    }
-
-    if (config.settings.show_sprites) {
-      render_sprites(config.settings.show_sprites);
-    }
-
-    if (config.settings.show_cpu_registers) {
-      render_registers(config.settings.show_cpu_registers);
-    }
-
-    if (config.settings.show_input) {
-      render_input(config.settings.show_input);
+    if (config.settings.show_memory) {
+      ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
+      if (ImGui::Begin("Memory", &config.settings.show_memory)) {
+        mem_editor.DrawContents(nullptr, 1<<16);
+      }
+      ImGui::End();
     }
 
     ImGui::BeginMainMenuBar();
@@ -408,6 +410,7 @@ void Interface::run() {
         }
         ImGui::EndMenu();
       }
+      ImGui::MenuItem("Show Memory", nullptr, &config.settings.show_memory);
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <string>
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <imgui_memory_editor/imgui_memory_editor.h>
 
 #include "args.h"
 #include "config.h"
@@ -32,6 +35,7 @@ struct InterfaceSettings {
   bool show_sprites;
   bool show_cpu_registers;
   bool show_input;
+  bool show_memory;
 
   bool enable_audio;
   bool enable_ch1;
@@ -55,6 +59,8 @@ private:
   Emulator emulator;
   Config<InterfaceSettings> config;
   std::string error_message;
+
+  MemoryEditor mem_editor;
 
   void cleanup();
 
