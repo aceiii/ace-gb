@@ -5,7 +5,7 @@ project(ace-gb VERSION 0.0.1 LANGUAGES CXX)
 set(EXE_NAME ace-gb)
 set(TEST_NAME test)
 
-option(BUILD_TESTS "Build tests" ON)
+option(BUILD_TESTS "Build tests" OFF)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
