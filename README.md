@@ -3,7 +3,11 @@
 My first GameBoy emulator!!
 
 
+## Screenshots
+
 ![Ace-GB Emulator running Pokemon](images/acegb_2026-01-29.png)
+![Zelda Link's Awakening](images/links_awakening_2026-02-12.png)
+![TMNT 2](images/tmnt_2026-02-12.png)
 
 
 ## Requirements
