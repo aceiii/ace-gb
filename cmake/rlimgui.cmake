@@ -1,5 +1,3 @@
-find_package(imgui CONFIG REQUIRED)
-
 set(rlimgui_SOURCES
     ${CMAKE_SOURCE_DIR}/external/rlImGui/rlImGui.cpp)
 

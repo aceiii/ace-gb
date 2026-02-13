@@ -7,14 +7,13 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       }
     },
     {
       "name": "Debug",
       "displayName": "Configure Debug",
       "inherits": "vcpkg",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build-debug",
       "environment": {},
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"

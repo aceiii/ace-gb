@@ -88,20 +88,19 @@ set(SOURCE_FILES
 
 set(ARGPARSE_BUILD_TESTS OFF)
 
+set(SPDLOG_USE_STD_FORMAT ON)
+add_subdirectory(external/spdlog)
+add_subdirectory(external/tomlplusplus)
+add_subdirectory(external/raylib)
+add_subdirectory(external/argparse)
+add_subdirectory(external/magic_enum)
+add_subdirectory(external/json)
+
+include(cmake/imgui.cmake)
 include(cmake/rlimgui.cmake)
 include(cmake/imgui_club.cmake)
 include(cmake/nfd.cmake)
 
-set(SPDLOG_USE_STD_FORMAT ON)
-add_subdirectory(external/spdlog)
-add_subdirectory(external/tomlplusplus)
-
-find_package(argparse CONFIG REQUIRED)
-find_package(magic_enum CONFIG REQUIRED)
-find_package(raylib CONFIG REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(tl-expected CONFIG REQUIRED)
 
 add_executable(${EXE_NAME} ${SOURCE_FILES})
 
@@ -113,7 +112,6 @@ target_link_libraries(${EXE_NAME} PRIVATE rlimgui)
 target_link_libraries(${EXE_NAME} PRIVATE nfd)
 target_link_libraries(${EXE_NAME} PRIVATE glfw)
 target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(${EXE_NAME} PRIVATE tl::expected)
 target_link_libraries(${EXE_NAME} PRIVATE tomlplusplus::tomlplusplus)
 
 target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})
@@ -145,5 +143,4 @@ if(BUILD_TESTS)
     target_link_libraries(${TEST_NAME} PRIVATE argparse::argparse)
     target_link_libraries(${TEST_NAME} PRIVATE magic_enum::magic_enum)
     target_link_libraries(${TEST_NAME} PRIVATE nlohmann_json::nlohmann_json)
-    target_link_libraries(${TEST_NAME} PRIVATE tl::expected)
 endif(BUILD_TESTS)
