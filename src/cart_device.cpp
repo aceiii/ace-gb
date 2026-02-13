@@ -165,6 +165,6 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
   }
 }
 
-const cart_info &CartDevice::cartridge_info() const {
+const cart_info& CartDevice::cartridge_info() const {
   return info;
 }
