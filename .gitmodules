@@ -28,3 +28,6 @@
 [submodule "external/raylib"]
 	path = external/raylib
 	url = https://github.com/raysan5/raylib.git
+[submodule "external/glfw"]
+	path = external/glfw
+	url = https://github.com/glfw/glfw.git
