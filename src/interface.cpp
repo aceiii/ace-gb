@@ -176,6 +176,22 @@ static void MemEditorCustomWrite(uint8_t* data, size_t offset, uint8_t d, void* 
   emulator->write8(offset, d);
 }
 
+static uint32_t MemEditorCustomBgColor(const uint8_t* data, size_t offset, void* user_data) {
+  auto emulator = static_cast<Emulator*>(user_data);
+
+  uint16_t pc = emulator->registers().pc;
+  if (pc == offset || pc == offset + 1) {
+    return IM_COL32(128, 24, 21, 255);
+  }
+
+  uint16_t sp = emulator->registers().sp;
+  if (sp == offset || sp == offset + 1) {
+    return IM_COL32(32, 72, 128, 255);
+  }
+
+  return IM_COL32(0, 0, 0, 0);
+}
+
 Interface::Interface(Args args)
     : args{args},
       emulator{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
@@ -183,6 +199,7 @@ Interface::Interface(Args args)
 {
   mem_editor.ReadFn = MemEditorCustomRead;
   mem_editor.WriteFn = MemEditorCustomWrite;
+  mem_editor.BgColorFn = MemEditorCustomBgColor;
   mem_editor.UserData = static_cast<void*>(&emulator);
 
   SetTraceLogCallback(SpdLogTraceLog);
