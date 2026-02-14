@@ -739,8 +739,11 @@ void Interface::play() {
 
 void Interface::stop() {
   emulator.stop();
-  StopAudioStream(stream);
-  UnloadAudioStream(stream);
+  if (IsAudioStreamValid(stream)) {
+    StopAudioStream(stream);
+    UnloadAudioStream(stream);
+    stream = AudioStream();
+  }
 }
 
 void Interface::step() {
