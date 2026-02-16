@@ -271,8 +271,8 @@ void Interface::run() {
   emulator.set_skip_bootrom(config.settings.skip_boot_rom);
 
   static bool should_close = false;
-
   static bool enable_audio = true;
+  static bool show_settings = false;
 
   auto &io = ImGui::GetIO();
 
@@ -365,10 +365,17 @@ void Interface::run() {
       }
 
       ImGui::Separator();
+      if (ImGui::MenuItem("Settings...")) {
+        spdlog::debug("Open settings...");
+        show_settings = true;
+      }
+
+      ImGui::Separator();
       if (ImGui::MenuItem("Exit")) {
         spdlog::info("Exiting...");
         should_close = true;
       }
+
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Emulator")) {
@@ -445,6 +452,29 @@ void Interface::run() {
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
+
+    if (show_settings) {
+      ImGui::OpenPopup("Settings");
+      show_settings = false;
+    }
+
+    if (ImGui::BeginPopupModal("Settings", nullptr, ImGuiWindowFlags_Modal | ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("This is the content of my modal dialog.");
+      ImGui::Separator();
+
+      // 3. Add interactive elements and a close button
+      if (ImGui::Button("OK", ImVec2(120, 0)))
+      {
+          ImGui::CloseCurrentPopup(); // This closes the modal
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Cancel", ImVec2(120, 0)))
+      {
+          ImGui::CloseCurrentPopup(); // This also closes the modal
+      }
+
+      ImGui::EndPopup();
+    }
 
     rlImGuiEnd();
 
