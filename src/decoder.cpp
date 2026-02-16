@@ -103,7 +103,7 @@ Instruction decode(uint8_t op) {
   case 0x00:
     return {Opcode::NOP, 1, 4, 4, Operands_None{}};
   case 0x01:
-    return {Opcode::LD, 3, 12, 12, Operands_Reg16_Imm16 { Reg16::BC }};
+    return {Opcode::LD, 3, 12, 12, Operands_Reg16_Imm16{ Reg16::BC }};
   case 0x02:
     return {Opcode::LD, 1, 8, 8, Operands_Reg16_Ptr_Reg8{Reg16::BC, Reg8::A}};
   case 0x03:
@@ -117,7 +117,7 @@ Instruction decode(uint8_t op) {
   case 0x07:
     return {Opcode::RLCA, 1, 4, 4, Operands_None{}};
   case 0x08:
-    return {Opcode::LD, 3, 20, 20, Operands_Imm16_Ptr_SP {}};
+    return {Opcode::LD, 3, 20, 20, Operands_Imm16_Ptr_SP{}};
   case 0x09:
     return {Opcode::ADD, 1, 8, 8, Operands_Reg16_Reg16{Reg16::HL, Reg16::BC}};
   case 0x0A:

@@ -9,6 +9,7 @@
 #include "config.h"
 #include "emulator.h"
 #include "recent_files.hpp"
+#include "assembly_viewer.hpp"
 
 
 namespace app {
@@ -36,6 +37,7 @@ struct InterfaceSettings {
   bool show_cpu_registers;
   bool show_input;
   bool show_memory;
+  bool show_instructions;
 
   bool enable_audio;
   bool enable_ch1;
@@ -57,6 +59,7 @@ public:
 private:
   Args args;
   Emulator emulator;
+  AssemblyViewer assembly_viewer;
   Config<InterfaceSettings> config;
   std::string error_message;
 

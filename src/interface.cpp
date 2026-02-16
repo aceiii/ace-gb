@@ -95,6 +95,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "show_cpu_registers", settings.show_cpu_registers },
         { "show_input", settings.show_input },
         { "show_memory", settings.show_memory },
+        { "show_instructions", settings.show_instructions },
         { "enable_audio", settings.enable_audio },
         { "enable_ch1", settings.enable_ch1 },
         { "enable_ch2", settings.enable_ch2 },
@@ -143,6 +144,7 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
   settings.show_cpu_registers = table["hardware"]["show_cpu_registers"].value_or(true);
   settings.show_input = table["hardware"]["show_input"].value_or(true);
   settings.show_memory = table["hardware"]["show_memory"].value_or(true);
+  settings.show_instructions = table["hardware"]["show_instructions"].value_or(true);
 
   settings.enable_audio = table["hardware"]["enable_audio"].value_or(true);
   settings.enable_ch1 = table["hardware"]["enable_ch1"].value_or(true);
@@ -201,6 +203,8 @@ Interface::Interface(Args args)
   mem_editor.WriteFn = MemEditorCustomWrite;
   mem_editor.BgColorFn = MemEditorCustomBgColor;
   mem_editor.UserData = static_cast<void*>(&emulator);
+
+  assembly_viewer.Initialize(&emulator);
 
   SetTraceLogCallback(SpdLogTraceLog);
 
@@ -329,6 +333,14 @@ void Interface::run() {
       ImGui::End();
     }
 
+    if (config.settings.show_instructions) {
+      ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
+      if (ImGui::Begin("Instructions", &config.settings.show_instructions)) {
+        assembly_viewer.Draw();
+      }
+      ImGui::End();
+    }
+
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("File")) {
       if (ImGui::MenuItem("Load Cartridge")) {
@@ -427,7 +439,9 @@ void Interface::run() {
         }
         ImGui::EndMenu();
       }
-      ImGui::MenuItem("Show Memory", nullptr, &config.settings.show_memory);
+      ImGui::Separator();
+      ImGui::MenuItem("Memory", nullptr, &config.settings.show_memory);
+      ImGui::MenuItem("Instructions", nullptr, &config.settings.show_instructions);
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();

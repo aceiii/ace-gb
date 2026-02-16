@@ -84,6 +84,8 @@ set(SOURCE_FILES
     src/config.cpp
     src/recent_files.cpp
     src/recent_files.hpp
+    src/assembly_viewer.cpp
+    src/assembly_viewer.hpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
