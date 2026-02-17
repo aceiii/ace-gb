@@ -5,8 +5,9 @@ My first GameBoy emulator!!
 
 ## Screenshots
 
+![Kid Icarus](images/kid-icarus_2026-02-16.png)
 ![Final Fantasy Adventure](images/ff-adventure_2026-02-15.png)
-![Zelda Link's Awakening](images/links_awakening_2026-02-12.png)
+![Zelda Link's Awakening](images/links-awakening_2026-02-12.png)
 ![TMNT 2](images/tmnt_2026-02-12.png)
 ![Ace-GB Emulator running Pokemon](images/acegb_2026-01-29.png)
 
