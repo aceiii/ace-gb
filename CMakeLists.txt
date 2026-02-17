@@ -86,6 +86,8 @@ set(SOURCE_FILES
     src/recent_files.hpp
     src/assembly_viewer.cpp
     src/assembly_viewer.hpp
+    src/applog.cpp
+    src/applog.hpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
