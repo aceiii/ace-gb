@@ -39,7 +39,7 @@ cmake --build --preset Release
 #### Acceptance
 
 - [x] bits/mem_oam.gb
-- [x] bits/reg_f.gb
+- [ ] bits/reg_f.gb
 - [x] bits/unused_hwio-GS.gb
 - [x] instr/daa.gb
 - [ ] interrupts/ie_push.gb
@@ -170,13 +170,13 @@ cmake --build --preset Release
 #### cgb_sound
 
 - [x] 01-registers.gb
-- [x] 02-len ctr.gb
+- [ ] 02-len ctr.gb
 - [ ] 03-trigger.gb
-- [x] 04-sweep.gb
-- [x] 05-sweep details.gb
+- [ ] 04-sweep.gb
+- [ ] 05-sweep details.gb
 - [x] 06-overflow on trigger.gb
 - [ ] 07-len sweep period sync.gb
-- [x] 08-len ctr during power.gb
+- [ ] 08-len ctr during power.gb
 - [ ] 09-wave read while on.gb
 - [x] 10-wave trigger while on.gb
 - [ ] 11-regs after power.gb
@@ -199,16 +199,16 @@ cmake --build --preset Release
 #### dmg_sound
 
 - [x] 01-registers.gb
-- [x] 02-len ctr.gb
+- [ ] 02-len ctr.gb
 - [ ] 03-trigger.gb
-- [x] 04-sweep.gb
-- [x] 05-sweep details.gb
+- [ ] 04-sweep.gb
+- [ ] 05-sweep details.gb
 - [x] 06-overflow on trigger.gb
 - [ ] 07-len sweep period sync.gb
 - [ ] 08-len ctr during power.gb
 - [ ] 09-wave read while on.gb
 - [ ] 10-wave trigger while on.gb
-- [x] 11-regs after power.gb
+- [ ] 11-regs after power.gb
 - [ ] 12-wave write while on.gb
 
 #### instr_timing
