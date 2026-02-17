@@ -2,6 +2,7 @@
 #include <string>
 #include <raylib.h>
 #include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 #include <nfd.h>
 #include <rlImGui.h>
 #include <spdlog/spdlog.h>
@@ -20,6 +21,7 @@ namespace {
 constexpr int kDefaultWindowWidth = 800;
 constexpr int kDefaultWindowHeight = 600;
 constexpr char const *kWindowTitle = "Ace::GB - GameBoy Emulator";
+constexpr char const *kDefaultBootRomPath = "./boot.bin";
 
 constexpr int kAudioSampleRate = 48000;
 constexpr int kAudioSampleSize = 32;
@@ -134,7 +136,7 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
 
   settings.auto_start = table["emulator"]["auto_start"].value_or(true);
   settings.skip_boot_rom = table["emulator"]["skip_boot_rom"].value_or(true);
-  settings.boot_rom_path = table["emulator"]["boot_rom_path"].value_or(fs::path(fs::current_path().append("boot.bin")).string());
+  settings.boot_rom_path = table["emulator"]["boot_rom_path"].value_or(fs::path(kDefaultBootRomPath).string());
 
   settings.show_lcd = table["hardware"]["show_lcd"].value_or(true);
   settings.show_tiles = table["hardware"]["show_tiles"].value_or(true);
@@ -242,8 +244,10 @@ Interface::Interface(Args args)
   auto &io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-  if (auto result = emulator.init(); !result) {
-    spdlog::error("Failed to initialize emulator");
+  emulator.init();
+
+  if (auto result = emulator.SetBootRomPath(config.settings.boot_rom_path); !result) {
+    spdlog::error("Failed to set boot rom path");
     error_message = result.error();
   }
 
@@ -459,18 +463,23 @@ void Interface::run() {
     }
 
     if (ImGui::BeginPopupModal("Settings", nullptr, ImGuiWindowFlags_Modal | ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text("This is the content of my modal dialog.");
-      ImGui::Separator();
+      static std::string boot_rom_path = config.settings.boot_rom_path;
+      ImGui::InputText("Boot ROM Path", &boot_rom_path);
 
-      // 3. Add interactive elements and a close button
-      if (ImGui::Button("OK", ImVec2(120, 0)))
-      {
-          ImGui::CloseCurrentPopup(); // This closes the modal
+      if (ImGui::Button("OK", ImVec2(120, 0))) {
+        ImGui::CloseCurrentPopup();
+        spdlog::debug("Set boot rom path: {}", boot_rom_path);
+        config.settings.boot_rom_path = boot_rom_path;
+        if (auto result = emulator.SetBootRomPath(config.settings.boot_rom_path); !result) {
+          error_message = result.error();
+        } else {
+          error_message = "";
+        }
       }
       ImGui::SameLine();
-      if (ImGui::Button("Cancel", ImVec2(120, 0)))
-      {
-          ImGui::CloseCurrentPopup(); // This also closes the modal
+      if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+        ImGui::CloseCurrentPopup();
+        boot_rom_path = config.settings.boot_rom_path;
       }
 
       ImGui::EndPopup();
@@ -763,6 +772,8 @@ void Interface::render_input(bool &show_window) {
 }
 
 void Interface::cleanup() {
+  config.settings.boot_rom_path = emulator.GetBootRomPath();
+
   auto window_pos = GetWindowPosition();
   config.settings.screen_x = static_cast<int>(window_pos.x);
   config.settings.screen_y = static_cast<int>(window_pos.y);

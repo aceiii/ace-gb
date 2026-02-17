@@ -22,7 +22,7 @@ Emulator::Emulator(audio_config cfg):cpu{mmu, interrupts}, ppu{mmu, interrupts},
   sample_bufffer.resize(cfg.num_channels * cfg.buffer_size);
 }
 
-std::expected<bool, std::string> Emulator::init() {
+void Emulator::init() {
   ppu.init();
 
   mmu.clear_devices();
@@ -42,17 +42,6 @@ std::expected<bool, std::string> Emulator::init() {
   cpu.add_synced(&ppu);
   cpu.add_synced(&audio);
   cpu.add_synced(&serial_device);
-
-  auto result = load_bin("./boot.bin");
-  if (!result) {
-    return std::unexpected(std::format("Failed to load boot rom: {}", result.error()));
-  }
-
-  const auto &bytes = result.value();
-  boot_rom.fill(0);
-  std::copy_n(bytes.begin(), std::min(bytes.size(), boot_rom.size()), boot_rom.begin());
-
-  return true;
 }
 
 void Emulator::update(float dt) {
@@ -263,4 +252,23 @@ bool Emulator::channel_enabled(AudioChannelID channel) const {
 std::vector<float>& Emulator::audio_samples() {
   audio.get_samples(sample_bufffer);
   return sample_bufffer;
+}
+
+std::expected<void, std::string> Emulator::SetBootRomPath(std::string_view path) {
+  boot_rom.fill(0);
+  boot_rom_path_ = path;
+
+  auto result = load_bin(boot_rom_path_);
+  if (!result) {
+    return std::unexpected{result.error()};
+  }
+
+  const auto &bytes = result.value();
+  std::copy_n(bytes.begin(), std::min(bytes.size(), boot_rom.size()), boot_rom.begin());
+
+  return {};
+}
+
+std::string Emulator::GetBootRomPath() const {
+  return boot_rom_path_;
 }

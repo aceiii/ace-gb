@@ -20,12 +20,13 @@
 #include "input_device.h"
 #include "serial_device.h"
 
+
 class Emulator {
 public:
   explicit Emulator(audio_config cfg);
   ~Emulator() = default;
 
-  std::expected<bool, std::string> init();
+  void init();
   void cleanup();
   void update(float dt);
   void reset();
@@ -62,6 +63,9 @@ public:
   bool channel_enabled(AudioChannelID channel) const;
   std::vector<float>& audio_samples();
 
+  std::expected<void, std::string> SetBootRomPath(std::string_view path);
+  std::string GetBootRomPath() const;
+
 private:
   Mmu mmu;
   Cpu cpu;
@@ -85,5 +89,7 @@ private:
 
   size_t num_cycles = 0;
   bool running = false;
+
+  std::string boot_rom_path_;
   bool _skip_bootrom = true;
 };
