@@ -471,7 +471,7 @@ void Interface::run() {
         spdlog::debug("Set boot rom path: {}", boot_rom_path);
         config.settings.boot_rom_path = boot_rom_path;
         if (auto result = emulator.SetBootRomPath(config.settings.boot_rom_path); !result) {
-          error_message = result.error();
+          error_message = std::format("Failed to load boot rom: {}", result.error());
         } else {
           error_message = "";
         }
@@ -556,8 +556,8 @@ void Interface::load_cart_rom(const std::string &file_path) {
   auto load_result = load_bin(path.string());
   if (!load_result) {
     config.settings.recent_files.Remove(path);
-    error_message = load_result.error();
-    spdlog::error("{}", error_message);
+    error_message = std::format("Failed to load cart: {}", load_result.error());
+    spdlog::error("Failed to load cart: {}", error_message);
     return;
   }
 
