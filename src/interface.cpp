@@ -6,6 +6,13 @@
 #include <nfd.h>
 #include <rlImGui.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/common.h>
+#include <spdlog/details/log_msg.h>
+#include <spdlog/logger.h>
+#include <spdlog/pattern_formatter.h>
+#include <spdlog/sinks/base_sink.h>
+#include <spdlog/sinks/callback_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <toml++/toml.hpp>
 
 #include "interface.h"
@@ -21,7 +28,7 @@ namespace {
 constexpr int kDefaultWindowWidth = 800;
 constexpr int kDefaultWindowHeight = 600;
 constexpr char const *kWindowTitle = "Ace::GB - GameBoy Emulator";
-constexpr char const *kDefaultBootRomPath = "./boot.bin";
+constexpr char const *kDefaultBootRomPath = "boot.bin";
 
 constexpr int kAudioSampleRate = 48000;
 constexpr int kAudioSampleSize = 32;
@@ -98,6 +105,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "show_input", settings.show_input },
         { "show_memory", settings.show_memory },
         { "show_instructions", settings.show_instructions },
+        { "show_logs", settings.show_logs },
         { "enable_audio", settings.enable_audio },
         { "enable_ch1", settings.enable_ch1 },
         { "enable_ch2", settings.enable_ch2 },
@@ -136,7 +144,7 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
 
   settings.auto_start = table["emulator"]["auto_start"].value_or(true);
   settings.skip_boot_rom = table["emulator"]["skip_boot_rom"].value_or(true);
-  settings.boot_rom_path = table["emulator"]["boot_rom_path"].value_or(fs::path(kDefaultBootRomPath).string());
+  settings.boot_rom_path = table["emulator"]["boot_rom_path"].value_or(std::string{kDefaultBootRomPath});
 
   settings.show_lcd = table["hardware"]["show_lcd"].value_or(true);
   settings.show_tiles = table["hardware"]["show_tiles"].value_or(true);
@@ -147,6 +155,7 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
   settings.show_input = table["hardware"]["show_input"].value_or(true);
   settings.show_memory = table["hardware"]["show_memory"].value_or(true);
   settings.show_instructions = table["hardware"]["show_instructions"].value_or(true);
+  settings.show_logs = table["hardware"]["show_logs"].value_or(true);
 
   settings.enable_audio = table["hardware"]["enable_audio"].value_or(true);
   settings.enable_ch1 = table["hardware"]["enable_ch1"].value_or(true);
@@ -209,6 +218,26 @@ Interface::Interface(Args args)
   assembly_viewer.Initialize(&emulator);
 
   SetTraceLogCallback(SpdLogTraceLog);
+
+  auto level = spdlog::get_level();
+  auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  auto formatter = std::make_shared<spdlog::pattern_formatter>();
+  auto callback_sink = std::make_shared<spdlog::sinks::callback_sink_mt>(
+      [=, this](const spdlog::details::log_msg &msg) {
+        spdlog::memory_buf_t formatted;
+        formatter->format(msg, formatted);
+        app_log_.AddLog(formatted);
+      });
+
+  std::vector<spdlog::sink_ptr> sinks;
+  sinks.push_back(console_sink);
+  sinks.push_back(callback_sink);
+
+  auto logger =
+      std::make_shared<spdlog::logger>("", sinks.begin(), sinks.end());
+  logger->set_level(level);
+
+  spdlog::set_default_logger(logger);
 
   spdlog::info("Initializing interface");
 
@@ -341,6 +370,13 @@ void Interface::run() {
       ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
       if (ImGui::Begin("Instructions", &config.settings.show_instructions)) {
         assembly_viewer.Draw();
+      }
+      ImGui::End();
+    }
+
+    if (config.settings.show_logs) {
+      if (ImGui::Begin("Logs", &config.settings.show_logs)) {
+        app_log_.Draw();
       }
       ImGui::End();
     }
