@@ -491,6 +491,10 @@ void Interface::run() {
       ImGui::MenuItem("Instructions", nullptr, &config.settings.show_instructions);
       ImGui::EndMenu();
     }
+    if (ImGui::BeginMenu("View")) {
+      ImGui::MenuItem("Logs", nullptr, &config.settings.show_logs);
+      ImGui::EndMenu();
+    }
     ImGui::EndMainMenuBar();
 
     if (show_settings) {
