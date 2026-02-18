@@ -183,7 +183,7 @@ static auto SpdLogTraceLog(int log_level, const char* text, va_list args) -> voi
 
 static uint8_t MemEditorCustomRead(const uint8_t* data, size_t offset, void* user_data) {
   auto emulator = static_cast<Emulator*>(user_data);
-  return emulator->read8(offset);
+  return emulator->Read8(offset);
 }
 
 static void MemEditorCustomWrite(uint8_t* data, size_t offset, uint8_t d, void* user_data) {
@@ -194,12 +194,12 @@ static void MemEditorCustomWrite(uint8_t* data, size_t offset, uint8_t d, void* 
 static uint32_t MemEditorCustomBgColor(const uint8_t* data, size_t offset, void* user_data) {
   auto emulator = static_cast<Emulator*>(user_data);
 
-  uint16_t pc = emulator->registers().pc;
+  uint16_t pc = emulator->GetRegisters().pc;
   if (pc == offset || pc == offset + 1) {
     return IM_COL32(128, 24, 21, 255);
   }
 
-  uint16_t sp = emulator->registers().sp;
+  uint16_t sp = emulator->GetRegisters().sp;
   if (sp == offset || sp == offset + 1) {
     return IM_COL32(32, 72, 128, 255);
   }
@@ -275,7 +275,7 @@ Interface::Interface(Args args)
   auto &io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-  emulator_.init();
+  emulator_.Init();
 
   if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
     spdlog::error("Failed to set boot rom path");
@@ -290,7 +290,7 @@ Interface::Interface(Args args)
 Interface::~Interface() {
   spdlog::info("Cleaning up interface");
 
-  emulator_.cleanup();
+  emulator_.Cleanup();
 
   rlImGuiShutdown();
 
@@ -303,7 +303,7 @@ void Interface::Run() {
 
   spdlog::info("Running...");
 
-  emulator_.set_skip_bootrom(config_.settings.skip_boot_rom);
+  emulator_.SetSkipBootRom(config_.settings.skip_boot_rom);
 
   auto &io = ImGui::GetIO();
 
@@ -330,16 +330,16 @@ void Interface::Run() {
       UnloadDroppedFiles(dropped_files);
     }
 
-    emulator_.update_input(JoypadButton::Up, IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
-    emulator_.update_input(JoypadButton::Down, IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
-    emulator_.update_input(JoypadButton::Left, IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
-    emulator_.update_input(JoypadButton::Right, IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
-    emulator_.update_input(JoypadButton::Select, IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
-    emulator_.update_input(JoypadButton::Start, IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
-    emulator_.update_input(JoypadButton::B, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
-    emulator_.update_input(JoypadButton::A, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
+    emulator_.UpdateInput(JoypadButton::Up, IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
+    emulator_.UpdateInput(JoypadButton::Down, IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
+    emulator_.UpdateInput(JoypadButton::Left, IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
+    emulator_.UpdateInput(JoypadButton::Right, IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
+    emulator_.UpdateInput(JoypadButton::Select, IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
+    emulator_.UpdateInput(JoypadButton::Start, IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
+    emulator_.UpdateInput(JoypadButton::B, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
+    emulator_.UpdateInput(JoypadButton::A, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
 
-    emulator_.update(frame_time);
+    emulator_.Update(frame_time);
 
     BeginDrawing();
     ClearBackground(DARKGRAY);
@@ -399,7 +399,7 @@ void Interface::Run() {
     EndDrawing();
 
     if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
-      auto &samples = emulator_.audio_samples();
+      auto &samples = emulator_.GetAudioSamples();
       UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
     }
   }
@@ -461,13 +461,13 @@ void Interface::LoadCartRom(const std::string &file_path) {
     return;
   }
 
-  emulator_.load_cartridge(std::move(load_result.value()));
+  emulator_.LoadCartBytes(std::move(load_result.value()));
   spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
 
   fs::path rom_path{path};
   SetWindowTitle(std::format("{} - {}", kWindowTitle, rom_path.stem().string()).c_str());
 
-  emulator_.toggle_channel(AudioChannelID::MASTER, config_.settings.enable_audio);
+  emulator_.ToggleChannel(AudioChannelID::MASTER, config_.settings.enable_audio);
 
   if (config_.settings.auto_start) {
     Play();
@@ -484,7 +484,7 @@ void Interface::RenderLCD() {
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   ImGui::Begin("LCD", &config_.settings.show_lcd);
   {
-    rlImGuiImageTextureFit(&emulator_.target_lcd(), true);
+    rlImGuiImageTextureFit(&emulator_.GetTargetLCD(), true);
   }
   ImGui::End();
 }
@@ -496,7 +496,7 @@ void Interface::RenderTiles() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Tile Data", &config_.settings.show_tiles)) {
-    auto &target = emulator_.target_tiles();
+    auto &target = emulator_.GetTargetTiles();
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 3;
@@ -512,7 +512,7 @@ void Interface::RenderTilemap1() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("TileMap 1", &config_.settings.show_tilemap1)) {
-    auto &target = emulator_.target_tilemap(0);
+    auto &target = emulator_.GetTargetTilemap(0);
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -528,7 +528,7 @@ void Interface::RenderTilemap2() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("TileMap 2", &config_.settings.show_tilemap2)) {
-    auto &target = emulator_.target_tilemap(1);
+    auto &target = emulator_.GetTargetTilemap(1);
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -544,7 +544,7 @@ void Interface::RenderSprites() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Sprites", &config_.settings.show_sprites)) {
-    auto &target = emulator_.target_sprites();
+    auto &target = emulator_.GetTargetSprites();
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -560,7 +560,7 @@ void Interface::RenderRegisters() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Registers", &config_.settings.show_cpu_registers)) {
-    const auto &regs = emulator_.registers();
+    const auto &regs = emulator_.GetRegisters();
 
     auto a = regs.get(Reg8::A);
     auto f = regs.get(Reg8::F);
@@ -585,7 +585,7 @@ void Interface::RenderRegisters() {
     ImGui::Text("AF=%04X BC=%04X DE=%04X HL=%04X", af, bc, de, hl);
     ImGui::Text("Flags Z=%d N=%d H=%d C=%d", zero, neg, half_carry, carry);
 
-    const auto &state = emulator_.state();
+    const auto &state = emulator_.GetState();
     ImGui::Text("State IME=%d HALT=%d STOP=%d HARD_LOCK=%d", state.ime, state.halt, state.stop, state.hard_lock);
   }
   ImGui::End();
@@ -627,18 +627,18 @@ void Interface::RenderInput() {
 
     alignForWidth(288);
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
-    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Up), []() {
+    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Up), []() {
       ImGui::Button(ICON_FA_CARET_UP, { 32, 32 });
     });
 
     ImGui::SameLine(0, 32);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
-    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Select), []() {
+    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Select), []() {
       ImGui::Button("select");
     });
     ImGui::SameLine(0, 4);
-    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Start), []() {
+    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Start), []() {
       ImGui::Button("start");
     });
     ImGui::PopStyleVar();
@@ -646,21 +646,21 @@ void Interface::RenderInput() {
 
     ImGui::NewLine();
     alignForWidth(288);
-    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Left), []() {
+    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Left), []() {
       ImGui::Button(ICON_FA_CARET_LEFT, { 32, 32 });
     });
     ImGui::SameLine(0, 32);
-    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Right), []() {
+    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Right), []() {
       ImGui::Button(ICON_FA_CARET_RIGHT, { 32, 32 });
     });
 
     ImGui::SameLine(0, 64);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 24.0f);
-    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::B), []() {
+    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::B), []() {
       ImGui::Button("B", { 32, 32 });
     });
     ImGui::SameLine();
-    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::A), []() {
+    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::A), []() {
       ImGui::Button("A", { 32, 32 });
     });
     ImGui::PopStyleVar();
@@ -668,7 +668,7 @@ void Interface::RenderInput() {
     ImGui::NewLine();
     alignForWidth(288);
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
-    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Down), []() {
+    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Down), []() {
       ImGui::Button(ICON_FA_CARET_DOWN, { 32, 32 });
     });
 
@@ -755,17 +755,17 @@ void Interface::RenderMainMenu() {
   if (ImGui::BeginMenu("Emulator")) {
     ImGui::MenuItem("Auto-Start", nullptr, &config_.settings.auto_start);
     if (ImGui::MenuItem("Skip Boot ROM", nullptr, &config_.settings.skip_boot_rom)) {
-      emulator_.set_skip_bootrom(config_.settings.skip_boot_rom);
+      emulator_.SetSkipBootRom(config_.settings.skip_boot_rom);
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator_.is_playing())) {
+    if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator_.IsPlaying())) {
       Play();
     }
-    if (ImGui::MenuItem("Stop", nullptr, nullptr, emulator_.is_playing())) {
+    if (ImGui::MenuItem("Stop", nullptr, nullptr, emulator_.IsPlaying())) {
       Stop();
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("Step", nullptr, nullptr, !emulator_.is_playing())) {
+    if (ImGui::MenuItem("Step", nullptr, nullptr, !emulator_.IsPlaying())) {
       Step();
     }
     ImGui::Separator();
@@ -788,7 +788,7 @@ void Interface::RenderMainMenu() {
     }
     if (ImGui::BeginMenu("APU")) {
       if (ImGui::MenuItem("Enable Sound", nullptr, &config_.settings.enable_audio)) {
-        emulator_.toggle_channel(AudioChannelID::MASTER, config_.settings.enable_audio);
+        emulator_.ToggleChannel(AudioChannelID::MASTER, config_.settings.enable_audio);
       }
       if (ImGui::BeginMenu("Volume")) {
         auto volume = GetMasterVolume() * 100;
@@ -805,16 +805,16 @@ void Interface::RenderMainMenu() {
       }
       if (ImGui::BeginMenu("Channels")) {
         if (ImGui::MenuItem("CH1 - Square", nullptr, &config_.settings.enable_ch1)) {
-          emulator_.toggle_channel(AudioChannelID::CH1, config_.settings.enable_ch1);
+          emulator_.ToggleChannel(AudioChannelID::CH1, config_.settings.enable_ch1);
         }
         if (ImGui::MenuItem("CH2 - Square", nullptr, &config_.settings.enable_ch2)) {
-          emulator_.toggle_channel(AudioChannelID::CH2, config_.settings.enable_ch2);
+          emulator_.ToggleChannel(AudioChannelID::CH2, config_.settings.enable_ch2);
         }
         if (ImGui::MenuItem("CH3 - Wave", nullptr, &config_.settings.enable_ch3)) {
-          emulator_.toggle_channel(AudioChannelID::CH3, config_.settings.enable_ch3);
+          emulator_.ToggleChannel(AudioChannelID::CH3, config_.settings.enable_ch3);
         }
         if (ImGui::MenuItem("CH4 - Noise", nullptr, &config_.settings.enable_ch4)) {
-          emulator_.toggle_channel(AudioChannelID::CH4, config_.settings.enable_ch4);
+          emulator_.ToggleChannel(AudioChannelID::CH4, config_.settings.enable_ch4);
         }
         ImGui::EndMenu();
       }
@@ -881,14 +881,14 @@ void Interface::Cleanup() {
 }
 
 void Interface::Play() {
-  emulator_.play();
+  emulator_.Play();
   SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
   stream = LoadAudioStream(kAudioSampleRate, kAudioSampleSize, kAudioNumChannels);
   PlayAudioStream(stream);
 }
 
 void Interface::Stop() {
-  emulator_.stop();
+  emulator_.Stop();
   if (IsAudioStreamValid(stream)) {
     StopAudioStream(stream);
     UnloadAudioStream(stream);
@@ -897,11 +897,11 @@ void Interface::Stop() {
 }
 
 void Interface::Step() {
-  emulator_.step();
+  emulator_.Step();
 }
 
 void Interface::Reset() {
-  emulator_.reset();
+  emulator_.Reset();
   StopAudioStream(stream);
 }
 

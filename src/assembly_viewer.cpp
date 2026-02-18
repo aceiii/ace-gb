@@ -37,7 +37,7 @@ void AssemblyViewer::Draw() {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
-    const auto& regs = emulator_->registers();
+    const auto& regs = emulator_->GetRegisters();
 
     g_visited.fill(false);
 
@@ -64,7 +64,7 @@ void AssemblyViewer::Draw() {
         }
 
         ImGui::SameLine();
-        ImGui::TextUnformatted(std::format(" | {:02X}", emulator_->read8(addr)).c_str());
+        ImGui::TextUnformatted(std::format(" | {:02X}", emulator_->Read8(addr)).c_str());
 
         ImGui::SameLine();
         ImGui::TextUnformatted("  ");
@@ -431,6 +431,6 @@ std::string AssemblyViewer::DecodePrefixed(uint8_t op) const {
 }
 
 std::string AssemblyViewer::GetInstruction(uint16_t addr) const {
-  uint8_t op = emulator_->read8(addr);
+  uint8_t op = emulator_->Read8(addr);
   return Decode(op);
 }

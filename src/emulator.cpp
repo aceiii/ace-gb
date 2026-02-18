@@ -14,38 +14,38 @@
 // NOTE: not sure why, but my emulator seems to be 4x slower than it should be...
 constexpr auto kStaticSpeedMultiplier = 4;
 
-Emulator::Emulator(audio_config cfg):cpu{mmu, interrupts}, ppu{mmu, interrupts}, serial_device{interrupts}, timer{interrupts}, input_device{interrupts}, audio{timer, cfg} {
-  serial_device.on_line([] (const std::string &str) {
+Emulator::Emulator(audio_config cfg):cpu_{mmu_, interrupts_}, ppu_{mmu_, interrupts_}, serial_device_{interrupts_}, timer_{interrupts_}, input_device_{interrupts_}, audio_{timer_, cfg} {
+  serial_device_.on_line([] (const std::string &str) {
     spdlog::info("Serial: {}", str);
   });
 
-  sample_bufffer.resize(cfg.num_channels * cfg.buffer_size);
+  sample_bufffer_.resize(cfg.num_channels * cfg.buffer_size);
 }
 
-void Emulator::init() {
-  ppu.init();
+void Emulator::Init() {
+  ppu_.init();
 
-  mmu.clear_devices();
-  mmu.add_device(&boot);
-  mmu.add_device(&cart);
-  mmu.add_device(&wram);
-  mmu.add_device(&ppu);
-  mmu.add_device(&hram);
-  mmu.add_device(&audio);
-  mmu.add_device(&timer);
-  mmu.add_device(&input_device);
-  mmu.add_device(&serial_device);
-  mmu.add_device(&interrupts);
-  mmu.add_device(&null_device);
+  mmu_.clear_devices();
+  mmu_.add_device(&boot_);
+  mmu_.add_device(&cart_);
+  mmu_.add_device(&wram_);
+  mmu_.add_device(&ppu_);
+  mmu_.add_device(&hram_);
+  mmu_.add_device(&audio_);
+  mmu_.add_device(&timer_);
+  mmu_.add_device(&input_device_);
+  mmu_.add_device(&serial_device_);
+  mmu_.add_device(&interrupts_);
+  mmu_.add_device(&null_device_);
 
-  cpu.add_synced(&timer);
-  cpu.add_synced(&ppu);
-  cpu.add_synced(&audio);
-  cpu.add_synced(&serial_device);
+  cpu_.add_synced(&timer_);
+  cpu_.add_synced(&ppu_);
+  cpu_.add_synced(&audio_);
+  cpu_.add_synced(&serial_device_);
 }
 
-void Emulator::update(float dt) {
-  if (!running && !cpu.state.halt) {
+void Emulator::Update(float dt) {
+  if (!running_ && !cpu_.state.halt) {
     return;
   }
 
@@ -53,209 +53,209 @@ void Emulator::update(float dt) {
   static int current_cycles = 0;
 
   do {
-    auto cycles = cpu.execute();
+    auto cycles = cpu_.execute();
     current_cycles += cycles;
-    num_cycles += cycles;
+    num_cycles_ += cycles;
 
-    if (breakpoints.contains(cpu.regs.pc)) {
-      running = false;
+    if (breakpoints_.contains(cpu_.regs.pc)) {
+      running_ = false;
       break;
     }
   } while (current_cycles < target_cycles_per_frame);
   current_cycles -= target_cycles_per_frame;
 
-  ppu.update_render_targets();
+  ppu_.update_render_targets();
 }
 
-void Emulator::cleanup() {
-  ppu.cleanup();
+void Emulator::Cleanup() {
+  ppu_.cleanup();
 }
 
-void Emulator::load_cartridge(std::vector<uint8_t> &&bytes) {
-  cart_bytes = std::move(bytes);
-  reset();
+void Emulator::LoadCartBytes(std::vector<uint8_t> &&bytes) {
+  cart_bytes_ = std::move(bytes);
+  Reset();
 }
 
-void Emulator::reset() {
-  num_cycles = 0;
-  running = false;
+void Emulator::Reset() {
+  num_cycles_ = 0;
+  running_ = false;
 
-  cpu.reset();
-  mmu.reset_devices();
-  boot.load_bytes(boot_rom);
-  cart.load_cartridge(cart_bytes);
+  cpu_.reset();
+  mmu_.reset_devices();
+  boot_.load_bytes(boot_rom_);
+  cart_.load_cartridge(cart_bytes_);
 
-  if (_skip_bootrom) {
-    cpu.regs.set(Reg8::A, 0x01);
-    cpu.regs.set(Reg8::F, 0xb0);
-    cpu.regs.set(Reg8::B, 0x00);
-    cpu.regs.set(Reg8::C, 0x13);
-    cpu.regs.set(Reg8::D, 0x00);
-    cpu.regs.set(Reg8::E, 0xd8);
-    cpu.regs.set(Reg8::H, 0x01);
-    cpu.regs.set(Reg8::L, 0x4d);
-    cpu.regs.sp = 0xfffe;
-    cpu.regs.pc = 0x0100;
+  if (skip_bootrom_) {
+    cpu_.regs.set(Reg8::A, 0x01);
+    cpu_.regs.set(Reg8::F, 0xb0);
+    cpu_.regs.set(Reg8::B, 0x00);
+    cpu_.regs.set(Reg8::C, 0x13);
+    cpu_.regs.set(Reg8::D, 0x00);
+    cpu_.regs.set(Reg8::E, 0xd8);
+    cpu_.regs.set(Reg8::H, 0x01);
+    cpu_.regs.set(Reg8::L, 0x4d);
+    cpu_.regs.sp = 0xfffe;
+    cpu_.regs.pc = 0x0100;
 
-    mmu.write8(std::to_underlying(IO::P1), 0xcf);
-    mmu.write8(std::to_underlying(IO::SB), 0x00);
-    mmu.write8(std::to_underlying(IO::SC), 0x7e);
-    mmu.write8(std::to_underlying(IO::DIV), 0xab);
-    mmu.write8(std::to_underlying(IO::TIMA), 0x00);
-    mmu.write8(std::to_underlying(IO::TMA), 0x00);
-    mmu.write8(std::to_underlying(IO::TAC), 0xf8);
-    mmu.write8(std::to_underlying(IO::IF), 0xE1);
-    mmu.write8(std::to_underlying(IO::NR10), 0x80);
-    mmu.write8(std::to_underlying(IO::NR11), 0xbf);
-    mmu.write8(std::to_underlying(IO::NR12), 0xf3);
-    mmu.write8(std::to_underlying(IO::NR13), 0xff);
-    mmu.write8(std::to_underlying(IO::NR14), 0xbf);
-    mmu.write8(std::to_underlying(IO::NR21), 0x3f);
-    mmu.write8(std::to_underlying(IO::NR22), 0x00);
-    mmu.write8(std::to_underlying(IO::NR23), 0xff);
-    mmu.write8(std::to_underlying(IO::NR24), 0xbf);
-    mmu.write8(std::to_underlying(IO::NR30), 0x7f);
-    mmu.write8(std::to_underlying(IO::NR31), 0xff);
-    mmu.write8(std::to_underlying(IO::NR32), 0x9f);
-    mmu.write8(std::to_underlying(IO::NR33), 0xff);
-    mmu.write8(std::to_underlying(IO::NR34), 0xbf);
-    mmu.write8(std::to_underlying(IO::NR41), 0xff);
-    mmu.write8(std::to_underlying(IO::NR42), 0x00);
-    mmu.write8(std::to_underlying(IO::NR43), 0x00);
-    mmu.write8(std::to_underlying(IO::NR44), 0xbf);
-    mmu.write8(std::to_underlying(IO::NR50), 0x77);
-    mmu.write8(std::to_underlying(IO::NR51), 0xf3);
-    mmu.write8(std::to_underlying(IO::NR52), 0xf0);
-    mmu.write8(std::to_underlying(IO::LCDC), 0x91);
-    mmu.write8(std::to_underlying(IO::STAT), 0x85);
-    mmu.write8(std::to_underlying(IO::LYC), 0x00);
-    mmu.write8(std::to_underlying(IO::DMA), 0xff);
-    mmu.write8(std::to_underlying(IO::BGP), 0xfc);
-    mmu.write8(std::to_underlying(IO::WX), 0x00);
-    mmu.write8(std::to_underlying(IO::WY), 0x00);
-    mmu.write8(std::to_underlying(IO::IE), 0x00);
+    mmu_.write8(std::to_underlying(IO::P1), 0xcf);
+    mmu_.write8(std::to_underlying(IO::SB), 0x00);
+    mmu_.write8(std::to_underlying(IO::SC), 0x7e);
+    mmu_.write8(std::to_underlying(IO::DIV), 0xab);
+    mmu_.write8(std::to_underlying(IO::TIMA), 0x00);
+    mmu_.write8(std::to_underlying(IO::TMA), 0x00);
+    mmu_.write8(std::to_underlying(IO::TAC), 0xf8);
+    mmu_.write8(std::to_underlying(IO::IF), 0xE1);
+    mmu_.write8(std::to_underlying(IO::NR10), 0x80);
+    mmu_.write8(std::to_underlying(IO::NR11), 0xbf);
+    mmu_.write8(std::to_underlying(IO::NR12), 0xf3);
+    mmu_.write8(std::to_underlying(IO::NR13), 0xff);
+    mmu_.write8(std::to_underlying(IO::NR14), 0xbf);
+    mmu_.write8(std::to_underlying(IO::NR21), 0x3f);
+    mmu_.write8(std::to_underlying(IO::NR22), 0x00);
+    mmu_.write8(std::to_underlying(IO::NR23), 0xff);
+    mmu_.write8(std::to_underlying(IO::NR24), 0xbf);
+    mmu_.write8(std::to_underlying(IO::NR30), 0x7f);
+    mmu_.write8(std::to_underlying(IO::NR31), 0xff);
+    mmu_.write8(std::to_underlying(IO::NR32), 0x9f);
+    mmu_.write8(std::to_underlying(IO::NR33), 0xff);
+    mmu_.write8(std::to_underlying(IO::NR34), 0xbf);
+    mmu_.write8(std::to_underlying(IO::NR41), 0xff);
+    mmu_.write8(std::to_underlying(IO::NR42), 0x00);
+    mmu_.write8(std::to_underlying(IO::NR43), 0x00);
+    mmu_.write8(std::to_underlying(IO::NR44), 0xbf);
+    mmu_.write8(std::to_underlying(IO::NR50), 0x77);
+    mmu_.write8(std::to_underlying(IO::NR51), 0xf3);
+    mmu_.write8(std::to_underlying(IO::NR52), 0xf0);
+    mmu_.write8(std::to_underlying(IO::LCDC), 0x91);
+    mmu_.write8(std::to_underlying(IO::STAT), 0x85);
+    mmu_.write8(std::to_underlying(IO::LYC), 0x00);
+    mmu_.write8(std::to_underlying(IO::DMA), 0xff);
+    mmu_.write8(std::to_underlying(IO::BGP), 0xfc);
+    mmu_.write8(std::to_underlying(IO::WX), 0x00);
+    mmu_.write8(std::to_underlying(IO::WY), 0x00);
+    mmu_.write8(std::to_underlying(IO::IE), 0x00);
 
-    boot.set_disable(0xff);
+    boot_.set_disable(0xff);
   }
 }
 
-void Emulator::step() {
-  if (running) {
+void Emulator::Step() {
+  if (running_) {
     return;
   }
-  num_cycles += cpu.execute();
+  num_cycles_ += cpu_.execute();
 }
 
-void Emulator::play() {
-  running = true;
+void Emulator::Play() {
+  running_ = true;
 }
 
-void Emulator::stop() {
-  running = false;
+void Emulator::Stop() {
+  running_ = false;
 }
 
-bool Emulator::is_playing() const {
-  return running;
+bool Emulator::IsPlaying() const {
+  return running_;
 }
 
-const Registers& Emulator::registers() const {
-  return cpu.regs;
+const Registers& Emulator::GetRegisters() const {
+  return cpu_.regs;
 }
 
-const State& Emulator::state() const {
-  return cpu.state;
+const State& Emulator::GetState() const {
+  return cpu_.state;
 }
 
-size_t Emulator::cycles() const {
-  return num_cycles;
+size_t Emulator::GetCycles() const {
+  return num_cycles_;
 }
 
-PPUMode Emulator::mode() const {
-  return ppu.mode();
+PPUMode Emulator::GetMode() const {
+  return ppu_.mode();
 }
 
-Instruction Emulator::instr() const {
-  auto byte = mmu.read8(cpu.regs.pc);
+Instruction Emulator::GetCurrentInstruction() const {
+  auto byte = mmu_.read8(cpu_.regs.pc);
   auto instr = Decoder::decode(byte);
   if (instr.opcode == Opcode::PREFIX) {
-    byte = mmu.read8(cpu.regs.pc + 1);
+    byte = mmu_.read8(cpu_.regs.pc + 1);
     instr = Decoder::decode_prefixed(byte);
   }
   return instr;
 }
 
-uint8_t Emulator::read8(uint16_t addr) const {
-  return mmu.read8(addr);
+uint8_t Emulator::Read8(uint16_t addr) const {
+  return mmu_.read8(addr);
 }
 
 void Emulator::write8(uint16_t addr, uint8_t byte) {
-  mmu.write8(addr, byte);
+  mmu_.write8(addr, byte);
 }
 
-const Texture2D& Emulator::target_lcd() const {
-  return ppu.lcd();
+const Texture2D& Emulator::GetTargetLCD() const {
+  return ppu_.lcd();
 }
 
-const RenderTexture2D& Emulator::target_tiles() const {
-  return ppu.tiles();
+const RenderTexture2D& Emulator::GetTargetTiles() const {
+  return ppu_.tiles();
 }
 
-const RenderTexture2D& Emulator::target_tilemap(uint8_t idx) const {
+const RenderTexture2D& Emulator::GetTargetTilemap(uint8_t idx) const {
   if (idx == 0) {
-    return ppu.tilemap1();
+    return ppu_.tilemap1();
   } else if (idx == 1) {
-    return ppu.tilemap2();
+    return ppu_.tilemap2();
   }
   std::unreachable();
 }
 
-const RenderTexture2D& Emulator::target_sprites() const {
-  return ppu.sprites();
+const RenderTexture2D& Emulator::GetTargetSprites() const {
+  return ppu_.sprites();
 }
 
-void Emulator::add_breakpoint(uint16_t addr) {
-  breakpoints.insert(addr);
+void Emulator::AddBreakPoint(uint16_t addr) {
+  breakpoints_.insert(addr);
 }
 
-void Emulator::remove_breakpoint(uint16_t addr) {
-  breakpoints.erase(addr);
+void Emulator::RemoveBreakPoint(uint16_t addr) {
+  breakpoints_.erase(addr);
 }
 
-void Emulator::clear_breakpoints() {
-  breakpoints.clear();
+void Emulator::ClearBreakPoints() {
+  breakpoints_.clear();
 }
 
-void Emulator::update_input(JoypadButton btn, bool pressed) {
-  input_device.update(btn, pressed);
+void Emulator::UpdateInput(JoypadButton btn, bool pressed) {
+  input_device_.update(btn, pressed);
 }
 
-bool Emulator::is_pressed(JoypadButton btn) const {
-  return input_device.is_pressed(btn);
+bool Emulator::IsButtonPressed(JoypadButton btn) const {
+  return input_device_.is_pressed(btn);
 }
 
-void Emulator::set_skip_bootrom(bool skip) {
-  _skip_bootrom = skip;
+void Emulator::SetSkipBootRom(bool skip) {
+  skip_bootrom_ = skip;
 }
 
-bool Emulator::skip_bootrom() const {
-  return _skip_bootrom;
+bool Emulator::ShouldSkipBootRom() const {
+  return skip_bootrom_;
 }
 
-void Emulator::toggle_channel(AudioChannelID channel, bool enable) {
-  audio.toggle_channel(channel, enable);
+void Emulator::ToggleChannel(AudioChannelID channel, bool enable) {
+  audio_.toggle_channel(channel, enable);
 }
 
-bool Emulator::channel_enabled(AudioChannelID channel) const {
-  return audio.channel_enabled(channel);
+bool Emulator::IsChannelEnabled(AudioChannelID channel) const {
+  return audio_.channel_enabled(channel);
 }
 
-std::vector<float>& Emulator::audio_samples() {
-  audio.get_samples(sample_bufffer);
-  return sample_bufffer;
+std::vector<float>& Emulator::GetAudioSamples() {
+  audio_.get_samples(sample_bufffer_);
+  return sample_bufffer_;
 }
 
 std::expected<void, std::string> Emulator::SetBootRomPath(std::string_view path) {
-  boot_rom.fill(0);
+  boot_rom_.fill(0);
   boot_rom_path_ = path;
 
   auto result = load_bin(boot_rom_path_);
@@ -264,7 +264,7 @@ std::expected<void, std::string> Emulator::SetBootRomPath(std::string_view path)
   }
 
   const auto &bytes = result.value();
-  std::copy_n(bytes.begin(), std::min(bytes.size(), boot_rom.size()), boot_rom.begin());
+  std::copy_n(bytes.begin(), std::min(bytes.size(), boot_rom_.size()), boot_rom_.begin());
 
   return {};
 }

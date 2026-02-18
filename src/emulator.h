@@ -24,72 +24,74 @@
 class Emulator {
 public:
   explicit Emulator(audio_config cfg);
+  Emulator() = delete;
+  Emulator(const Emulator&) = delete;
   ~Emulator() = default;
 
-  void init();
-  void cleanup();
-  void update(float dt);
-  void reset();
-  void step();
-  void play();
-  void stop();
+  void Init();
+  void Cleanup();
+  void Update(float dt);
+  void Reset();
+  void Step();
+  void Play();
+  void Stop();
 
-  void load_cartridge(std::vector<uint8_t> &&bytes);
-  [[nodiscard]] bool is_playing() const;
-  void set_skip_bootrom(bool skip);
-  [[nodiscard]] bool skip_bootrom() const;
+  void LoadCartBytes(std::vector<uint8_t> &&bytes);
+  [[nodiscard]] bool IsPlaying() const;
+  void SetSkipBootRom(bool skip);
+  [[nodiscard]] bool ShouldSkipBootRom() const;
 
-  [[nodiscard]] const Registers& registers() const;
-  [[nodiscard]] const State& state() const;
-  [[nodiscard]] size_t cycles() const;
-  [[nodiscard]] PPUMode mode() const;
-  [[nodiscard]] Instruction instr() const;
-  [[nodiscard]] uint8_t read8(uint16_t addr) const;
+  [[nodiscard]] const Registers& GetRegisters() const;
+  [[nodiscard]] const State& GetState() const;
+  [[nodiscard]] size_t GetCycles() const;
+  [[nodiscard]] PPUMode GetMode() const;
+  [[nodiscard]] Instruction GetCurrentInstruction() const;
+  [[nodiscard]] uint8_t Read8(uint16_t addr) const;
   void write8(uint16_t addr, uint8_t byte);
 
-  [[nodiscard]] const Texture2D& target_lcd() const;
-  [[nodiscard]] const RenderTexture2D& target_tiles() const;
-  [[nodiscard]] const RenderTexture2D& target_tilemap(uint8_t id) const;
-  [[nodiscard]] const RenderTexture2D& target_sprites() const;
+  [[nodiscard]] const Texture2D& GetTargetLCD() const;
+  [[nodiscard]] const RenderTexture2D& GetTargetTiles() const;
+  [[nodiscard]] const RenderTexture2D& GetTargetTilemap(uint8_t id) const;
+  [[nodiscard]] const RenderTexture2D& GetTargetSprites() const;
 
-  void add_breakpoint(uint16_t addr);
-  void remove_breakpoint(uint16_t addr);
-  void clear_breakpoints();
+  void AddBreakPoint(uint16_t addr);
+  void RemoveBreakPoint(uint16_t addr);
+  void ClearBreakPoints();
 
-  void update_input(JoypadButton btn, bool pressed);
-  bool is_pressed(JoypadButton btn) const;
+  void UpdateInput(JoypadButton btn, bool pressed);
+  bool IsButtonPressed(JoypadButton btn) const;
 
-  void toggle_channel(AudioChannelID channel, bool enable);
-  bool channel_enabled(AudioChannelID channel) const;
-  std::vector<float>& audio_samples();
+  void ToggleChannel(AudioChannelID channel, bool enable);
+  bool IsChannelEnabled(AudioChannelID channel) const;
+  std::vector<float>& GetAudioSamples();
 
   std::expected<void, std::string> SetBootRomPath(std::string_view path);
   std::string GetBootRomPath() const;
 
 private:
-  Mmu mmu;
-  Cpu cpu;
-  Ppu ppu;
-  BootRomDevice boot;
-  CartDevice cart;
-  WramDevice wram;
-  HramDevice hram;
-  Timer timer;
-  InterruptDevice interrupts;
-  Audio audio;
-  NullDevice null_device;
-  InputDevice input_device;
-  SerialDevice serial_device;
+  Mmu mmu_;
+  Cpu cpu_;
+  Ppu ppu_;
+  BootRomDevice boot_;
+  CartDevice cart_;
+  WramDevice wram_;
+  HramDevice hram_;
+  Timer timer_;
+  InterruptDevice interrupts_;
+  Audio audio_;
+  NullDevice null_device_;
+  InputDevice input_device_;
+  SerialDevice serial_device_;
 
-  std::array<uint8_t, kBootRomSize> boot_rom;
-  std::vector<uint8_t> cart_bytes;
-  std::set<uint16_t> breakpoints;
+  std::array<uint8_t, kBootRomSize> boot_rom_;
+  std::vector<uint8_t> cart_bytes_;
+  std::set<uint16_t> breakpoints_;
 
-  std::vector<float> sample_bufffer {};
+  std::vector<float> sample_bufffer_ {};
 
-  size_t num_cycles = 0;
-  bool running = false;
+  size_t num_cycles_ = 0;
+  bool running_ = false;
 
   std::string boot_rom_path_;
-  bool _skip_bootrom = true;
+  bool skip_bootrom_ = true;
 };
