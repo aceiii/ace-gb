@@ -16,7 +16,7 @@
 #include <toml++/toml.hpp>
 
 #include "interface.hpp"
-#include "emulator.h"
+#include "emulator.hpp"
 #include "file.h"
 
 

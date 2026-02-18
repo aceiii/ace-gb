@@ -7,7 +7,7 @@
 #include <imgui.h>
 #include <rlImGui.h>
 
-#include "emulator.h"
+#include "emulator.hpp"
 #include "file.h"
 #include "mmu.h"
 

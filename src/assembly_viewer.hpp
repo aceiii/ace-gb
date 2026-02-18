@@ -1,6 +1,6 @@
 #pragma once
 
-#include "emulator.h"
+#include "emulator.hpp"
 
 
 class AssemblyViewer {

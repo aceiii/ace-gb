@@ -21,8 +21,8 @@ set(SOURCE_FILES
         src/interface.cpp
     src/cpu.h
     src/cpu.cpp
-    src/emulator.h
-    src/emulator.cpp
+        src/emulator.hpp
+        src/emulator.cpp
     src/decoder.h
     src/decoder.cpp
     src/instructions.h

@@ -6,7 +6,7 @@
 
 #include "args.h"
 #include "config.h"
-#include "emulator.h"
+#include "emulator.hpp"
 #include "recent_files.hpp"
 #include "assembly_viewer.hpp"
 #include "applog.hpp"
