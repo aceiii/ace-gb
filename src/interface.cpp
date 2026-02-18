@@ -614,6 +614,10 @@ void Interface::load_cart_rom(const std::string &file_path) {
 }
 
 void Interface::render_lcd(bool &show_window) {
+  if (!show_window) {
+    return;
+  }
+
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   ImGui::Begin("GameBoy", &show_window);
   {
