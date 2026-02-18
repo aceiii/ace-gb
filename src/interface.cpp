@@ -336,8 +336,8 @@ void Interface::Run() {
     emulator_.update_input(JoypadButton::Right, IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
     emulator_.update_input(JoypadButton::Select, IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
     emulator_.update_input(JoypadButton::Start, IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
-    emulator_.update_input(JoypadButton::A, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
-    emulator_.update_input(JoypadButton::B, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
+    emulator_.update_input(JoypadButton::B, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
+    emulator_.update_input(JoypadButton::A, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
 
     emulator_.update(frame_time);
 
