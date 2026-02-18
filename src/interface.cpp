@@ -77,6 +77,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "y", settings.screen_y },
         { "width", settings.screen_width },
         { "height", settings.screen_height },
+        { "reset_view", settings.reset_view },
       },
     },
     {
@@ -120,6 +121,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
 }
 
 static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSettings& settings) -> void {
+  settings.reset_view = table["window"]["reset_view"].value_or(true);
   settings.screen_x = table["window"]["x"].value_or(-1);
   settings.screen_y = table["window"]["y"].value_or(-1);
 
@@ -346,6 +348,35 @@ void Interface::Run() {
 
     ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
+    if (config_.settings.reset_view) {
+      config_.settings.reset_view = false;
+
+      ImGui::DockBuilderRemoveNode(dockspace_id);
+      ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+      ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+
+      ImGuiID main = dockspace_id;
+      ImGuiID right = ImGui::DockBuilderSplitNode(right, ImGuiDir_Right, 0.28f, nullptr, &main);
+      ImGuiID right_bottom = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.4f, nullptr, &right);
+      ImGuiID right_center = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.32f, nullptr, &right);
+      ImGuiID bottom = ImGui::DockBuilderSplitNode(main, ImGuiDir_Down, 0.32f, nullptr, &main);
+      ImGuiID center_top = ImGui::DockBuilderSplitNode(main, ImGuiDir_Right, 0.33f, nullptr, &main);
+      ImGuiID center_bottom = ImGui::DockBuilderSplitNode(center_top, ImGuiDir_Down, 0.45f, nullptr, &center_top);
+      ImGuiID left = ImGui::DockBuilderSplitNode(main, ImGuiDir_Down, 0.28f, nullptr, &main);
+
+      ImGui::DockBuilderDockWindow("LCD", main);
+      ImGui::DockBuilderDockWindow("Logs", bottom);
+      ImGui::DockBuilderDockWindow("Input", left);
+      ImGui::DockBuilderDockWindow("TileMap 2", center_top);
+      ImGui::DockBuilderDockWindow("TileMap 1", center_top);
+      ImGui::DockBuilderDockWindow("Tile Data", center_top);
+      ImGui::DockBuilderDockWindow("Sprites", center_bottom);
+      ImGui::DockBuilderDockWindow("Memory", right);
+      ImGui::DockBuilderDockWindow("Registers", right_center);
+      ImGui::DockBuilderDockWindow("Instructions", right_bottom);
+      ImGui::DockBuilderFinish(dockspace_id);
+    }
+
     RenderLCD();
     RenderTiles();
     RenderTilemap1();
@@ -368,11 +399,6 @@ void Interface::Run() {
     EndDrawing();
 
     if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
-      // static auto prev = std::chrono::high_resolution_clock::now();
-      // auto current = std::chrono::high_resolution_clock::now();
-      // auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - prev);
-      // prev = current;
-
       auto &samples = emulator_.audio_samples();
       UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
     }
@@ -452,7 +478,7 @@ void Interface::RenderLCD() {
     return;
   }
 
-  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   ImGui::Begin("LCD", &config_.settings.show_lcd);
   {
     rlImGuiImageTextureFit(&emulator_.target_lcd(), true);
@@ -465,7 +491,7 @@ void Interface::RenderTiles() {
     return;
   }
 
-  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Tile Data", &config_.settings.show_tiles)) {
     auto &target = emulator_.target_tiles();
     auto width = target.texture.width;
@@ -481,7 +507,7 @@ void Interface::RenderTilemap1() {
     return;
   }
 
-  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("TileMap 1", &config_.settings.show_tilemap1)) {
     auto &target = emulator_.target_tilemap(0);
     auto width = target.texture.width;
@@ -497,7 +523,7 @@ void Interface::RenderTilemap2() {
     return;
   }
 
-  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("TileMap 2", &config_.settings.show_tilemap2)) {
     auto &target = emulator_.target_tilemap(1);
     auto width = target.texture.width;
@@ -513,7 +539,7 @@ void Interface::RenderSprites() {
     return;
   }
 
-  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Sprites", &config_.settings.show_sprites)) {
     auto &target = emulator_.target_sprites();
     auto width = target.texture.width;
@@ -529,7 +555,7 @@ void Interface::RenderRegisters() {
     return;
   }
 
-  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Registers", &config_.settings.show_cpu_registers)) {
     const auto &regs = emulator_.registers();
 
@@ -567,7 +593,7 @@ void Interface::RenderInput() {
     return;
   }
 
-  ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
+  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Input", &config_.settings.show_input)) {
 
     static constexpr auto alignForWidth = [](float width, float alignment = 0.5f) {
@@ -653,7 +679,8 @@ void Interface::RenderMemory() {
   if (!config_.settings.show_memory) {
     return;
   }
-  ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
+
+  // ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Memory", &config_.settings.show_memory)) {
     mem_editor_.DrawContents(nullptr, 1<<16);
   }
@@ -665,7 +692,7 @@ void Interface::RenderInstructions() {
     return;
   }
 
-  ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
+  // ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Instructions", &config_.settings.show_instructions)) {
     assembly_viewer_.Draw();
   }
@@ -792,11 +819,17 @@ void Interface::RenderMainMenu() {
     }
     ImGui::Separator();
     ImGui::MenuItem("Memory", nullptr, &config_.settings.show_memory);
+    ImGui::MenuItem("Registers", nullptr, &config_.settings.show_cpu_registers);
     ImGui::MenuItem("Instructions", nullptr, &config_.settings.show_instructions);
     ImGui::EndMenu();
   }
   if (ImGui::BeginMenu("View")) {
+    ImGui::MenuItem("Input", nullptr, &config_.settings.show_input);
     ImGui::MenuItem("Logs", nullptr, &config_.settings.show_logs);
+    ImGui::Separator();
+    if (ImGui::MenuItem("Reset View")) {
+      ResetView();
+    }
     ImGui::EndMenu();
   }
   ImGui::EndMainMenuBar();
@@ -867,4 +900,18 @@ void Interface::Step() {
 void Interface::Reset() {
   emulator_.reset();
   StopAudioStream(stream);
+}
+
+void Interface::ResetView() {
+  config_.settings.reset_view = true;
+  config_.settings.show_lcd = true;
+  config_.settings.show_tiles = true;
+  config_.settings.show_tilemap1 = true;
+  config_.settings.show_tilemap2 = true;
+  config_.settings.show_sprites = true;
+  config_.settings.show_cpu_registers = true;
+  config_.settings.show_input = true;
+  config_.settings.show_memory = true;
+  config_.settings.show_instructions = true;
+  config_.settings.show_logs = true;
 }

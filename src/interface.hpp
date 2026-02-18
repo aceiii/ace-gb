@@ -22,6 +22,7 @@ struct InterfaceSettings {
   int screen_x;
   int screen_y;
   RecentFiles recent_files{kMaxRecentFiles};
+  bool reset_view;
 
   // Emulator
   bool auto_start;
@@ -80,6 +81,7 @@ private:
   void RenderLogs();
   void RenderMainMenu();
   void RenderSettingsPopup();
+  void ResetView();
 
   Args args_;
   Emulator emulator_;
@@ -91,6 +93,7 @@ private:
 
   bool should_close_ = false;
   bool show_settings_ = false;
+  bool init_dock_ = false;
 };
 
 }
