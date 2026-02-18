@@ -2,6 +2,7 @@
 #include <string>
 #include <raylib.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 #include <nfd.h>
 #include <rlImGui.h>
@@ -10,7 +11,6 @@
 #include <spdlog/details/log_msg.h>
 #include <spdlog/logger.h>
 #include <spdlog/pattern_formatter.h>
-#include <spdlog/sinks/base_sink.h>
 #include <spdlog/sinks/callback_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <toml++/toml.hpp>
@@ -206,16 +206,16 @@ static uint32_t MemEditorCustomBgColor(const uint8_t* data, size_t offset, void*
 }
 
 Interface::Interface(Args args)
-    : args{args},
-      emulator{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
-      config{.serialize=SerializeInterfaceSettings, .deserialize=DeserializeInterfaceSettings}
+    : args_{args},
+      emulator_{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
+      config_{.serialize=SerializeInterfaceSettings, .deserialize=DeserializeInterfaceSettings}
 {
-  mem_editor.ReadFn = MemEditorCustomRead;
-  mem_editor.WriteFn = MemEditorCustomWrite;
-  mem_editor.BgColorFn = MemEditorCustomBgColor;
-  mem_editor.UserData = static_cast<void*>(&emulator);
+  mem_editor_.ReadFn = MemEditorCustomRead;
+  mem_editor_.WriteFn = MemEditorCustomWrite;
+  mem_editor_.BgColorFn = MemEditorCustomBgColor;
+  mem_editor_.UserData = static_cast<void*>(&emulator_);
 
-  assembly_viewer.Initialize(&emulator);
+  assembly_viewer_.Initialize(&emulator_);
 
   SetTraceLogCallback(SpdLogTraceLog);
 
@@ -241,7 +241,7 @@ Interface::Interface(Args args)
 
   spdlog::info("Initializing interface");
 
-  if (auto res = config.Load(args.settings_filename); !res.has_value()) {
+  if (auto res = config_.Load(args.settings_filename); !res.has_value()) {
     spdlog::warn("Failed to load settings file '{}': {}", args.settings_filename, res.error());
   }
 
@@ -249,13 +249,13 @@ Interface::Interface(Args args)
 
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
-  InitWindow(config.settings.screen_width, config.settings.screen_height, kWindowTitle);
-  if (config.settings.screen_x >= 0 && config.settings.screen_y >= 0) {
-    SetWindowPosition(config.settings.screen_x, config.settings.screen_y);
+  InitWindow(config_.settings.screen_width, config_.settings.screen_height, kWindowTitle);
+  if (config_.settings.screen_x >= 0 && config_.settings.screen_y >= 0) {
+    SetWindowPosition(config_.settings.screen_x, config_.settings.screen_y);
   }
 
   InitAudioDevice();
-  SetMasterVolume(config.settings.master_volume / 100.0f);
+  SetMasterVolume(config_.settings.master_volume / 100.0f);
 
   SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
   stream = LoadAudioStream(kAudioSampleRate, kAudioSampleSize, kAudioNumChannels);
@@ -273,11 +273,11 @@ Interface::Interface(Args args)
   auto &io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-  emulator.init();
+  emulator_.init();
 
-  if (auto result = emulator.SetBootRomPath(config.settings.boot_rom_path); !result) {
+  if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
     spdlog::error("Failed to set boot rom path");
-    error_message = result.error();
+    error_message_ = result.error();
   }
 
   while (!IsWindowReady()) {
@@ -288,7 +288,7 @@ Interface::Interface(Args args)
 Interface::~Interface() {
   spdlog::info("Cleaning up interface");
 
-  emulator.cleanup();
+  emulator_.cleanup();
 
   rlImGuiShutdown();
 
@@ -296,27 +296,23 @@ Interface::~Interface() {
   CloseWindow();
 }
 
-void Interface::run() {
-  reset();
+void Interface::Run() {
+  Reset();
 
   spdlog::info("Running...");
 
-  emulator.set_skip_bootrom(config.settings.skip_boot_rom);
-
-  static bool should_close = false;
-  static bool enable_audio = true;
-  static bool show_settings = false;
+  emulator_.set_skip_bootrom(config_.settings.skip_boot_rom);
 
   auto &io = ImGui::GetIO();
 
-  while (!should_close) {
+  while (!should_close_) {
     if (WindowShouldClose()) {
-      should_close = true;
+      should_close_ = true;
     }
 
     const auto frame_time = GetFrameTime();
-    config.settings.screen_width = GetScreenWidth();
-    config.settings.screen_height = GetScreenHeight();
+    config_.settings.screen_width = GetScreenWidth();
+    config_.settings.screen_height = GetScreenHeight();
 
     if (IsFileDropped()) {
       FilePathList dropped_files = LoadDroppedFiles();
@@ -327,21 +323,21 @@ void Interface::run() {
 
       auto idx = dropped_files.count - 1;
       std::string file_path { dropped_files.paths[idx] };
-      load_cart_rom(file_path);
+      LoadCartRom(file_path);
 
       UnloadDroppedFiles(dropped_files);
     }
 
-    emulator.update_input(JoypadButton::Up, IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
-    emulator.update_input(JoypadButton::Down, IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
-    emulator.update_input(JoypadButton::Left, IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
-    emulator.update_input(JoypadButton::Right, IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
-    emulator.update_input(JoypadButton::Select, IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
-    emulator.update_input(JoypadButton::Start, IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
-    emulator.update_input(JoypadButton::A, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
-    emulator.update_input(JoypadButton::B, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
+    emulator_.update_input(JoypadButton::Up, IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
+    emulator_.update_input(JoypadButton::Down, IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
+    emulator_.update_input(JoypadButton::Left, IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
+    emulator_.update_input(JoypadButton::Right, IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
+    emulator_.update_input(JoypadButton::Select, IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
+    emulator_.update_input(JoypadButton::Start, IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
+    emulator_.update_input(JoypadButton::A, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
+    emulator_.update_input(JoypadButton::B, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
 
-    emulator.update(frame_time);
+    emulator_.update(frame_time);
 
     BeginDrawing();
     ClearBackground(DARKGRAY);
@@ -350,186 +346,24 @@ void Interface::run() {
 
     ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
-    render_lcd(config.settings.show_lcd);
-    render_tiles(config.settings.show_tiles);
-    render_tilemap1(config.settings.show_tilemap1);
-    render_tilemap2(config.settings.show_tilemap2);
-    render_sprites(config.settings.show_sprites);
-    render_registers(config.settings.show_cpu_registers);
-    render_input(config.settings.show_input);
-
-    if (config.settings.show_memory) {
-      ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
-      if (ImGui::Begin("Memory", &config.settings.show_memory)) {
-        mem_editor.DrawContents(nullptr, 1<<16);
-      }
-      ImGui::End();
-    }
-
-    if (config.settings.show_instructions) {
-      ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
-      if (ImGui::Begin("Instructions", &config.settings.show_instructions)) {
-        assembly_viewer.Draw();
-      }
-      ImGui::End();
-    }
-
-    if (config.settings.show_logs) {
-      if (ImGui::Begin("Logs", &config.settings.show_logs)) {
-        app_log_.Draw();
-      }
-      ImGui::End();
-    }
-
-    ImGui::BeginMainMenuBar();
-    if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem("Load Cartridge")) {
-        spdlog::info("Loading cart...");
-        load_cartridge();
-      }
-
-      auto& recent_files = config.settings.recent_files;
-      if (ImGui::BeginMenu("Recent files", !recent_files.IsEmpty())) {
-        for (auto &file : recent_files) {
-          if (ImGui::MenuItem(fs::relative(file).c_str())) {
-            spdlog::debug("Pressed recent file: '{}'", file);
-            load_cart_rom(file);
-          }
-        }
-        ImGui::Separator();
-        if (ImGui::MenuItem("Clear Recent")) {
-          spdlog::debug("Clearing recent files");
-          recent_files.Clear();
-        }
-        ImGui::EndMenu();
-      }
-
-      ImGui::Separator();
-      if (ImGui::MenuItem("Settings...")) {
-        spdlog::debug("Open settings...");
-        show_settings = true;
-      }
-
-      ImGui::Separator();
-      if (ImGui::MenuItem("Exit")) {
-        spdlog::info("Exiting...");
-        should_close = true;
-      }
-
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Emulator")) {
-      ImGui::MenuItem("Auto-Start", nullptr, &config.settings.auto_start);
-      if (ImGui::MenuItem("Skip Boot ROM", nullptr, &config.settings.skip_boot_rom)) {
-        emulator.set_skip_bootrom(config.settings.skip_boot_rom);
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator.is_playing())) {
-        play();
-      }
-      if (ImGui::MenuItem("Stop", nullptr, nullptr, emulator.is_playing())) {
-        stop();
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem("Step", nullptr, nullptr, !emulator.is_playing())) {
-        step();
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem("Reset")) {
-        reset();
-        if (config.settings.auto_start) {
-          play();
-        }
-      }
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Hardware")) {
-      if (ImGui::BeginMenu("PPU")) {
-        ImGui::MenuItem("LCD", nullptr, &config.settings.show_lcd);
-        ImGui::MenuItem("TileMap 1", nullptr, &config.settings.show_tilemap1);
-        ImGui::MenuItem("TileMap 2", nullptr, &config.settings.show_tilemap2);
-        ImGui::MenuItem("Sprites", nullptr, &config.settings.show_sprites);
-        ImGui::MenuItem("Tiles", nullptr, &config.settings.show_tiles);
-        ImGui::EndMenu();
-      }
-      if (ImGui::BeginMenu("APU")) {
-        if (ImGui::MenuItem("Enable Sound", nullptr, &config.settings.enable_audio)) {
-          emulator.toggle_channel(AudioChannelID::MASTER, config.settings.enable_audio);
-        }
-        if (ImGui::BeginMenu("Volume")) {
-          auto volume = GetMasterVolume() * 100;
-          ImGui::Text("%d%%", static_cast<int>(volume));
-          if (ImGui::MenuItem("Up")) {
-            volume = std::clamp(volume + 10, 0.f, 100.f);
-            SetMasterVolume(volume / 100.f);
-          }
-          if (ImGui::MenuItem("Down")) {
-            volume = std::clamp(volume - 10, 0.0f, 100.0f);
-            SetMasterVolume(volume / 100.f);
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Channels")) {
-          if (ImGui::MenuItem("CH1 - Square", nullptr, &config.settings.enable_ch1)) {
-            emulator.toggle_channel(AudioChannelID::CH1, config.settings.enable_ch1);
-          }
-          if (ImGui::MenuItem("CH2 - Square", nullptr, &config.settings.enable_ch2)) {
-            emulator.toggle_channel(AudioChannelID::CH2, config.settings.enable_ch2);
-          }
-          if (ImGui::MenuItem("CH3 - Wave", nullptr, &config.settings.enable_ch3)) {
-            emulator.toggle_channel(AudioChannelID::CH3, config.settings.enable_ch3);
-          }
-          if (ImGui::MenuItem("CH4 - Noise", nullptr, &config.settings.enable_ch4)) {
-            emulator.toggle_channel(AudioChannelID::CH4, config.settings.enable_ch4);
-          }
-          ImGui::EndMenu();
-        }
-        ImGui::EndMenu();
-      }
-      ImGui::Separator();
-      ImGui::MenuItem("Memory", nullptr, &config.settings.show_memory);
-      ImGui::MenuItem("Instructions", nullptr, &config.settings.show_instructions);
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("View")) {
-      ImGui::MenuItem("Logs", nullptr, &config.settings.show_logs);
-      ImGui::EndMenu();
-    }
-    ImGui::EndMainMenuBar();
-
-    if (show_settings) {
-      ImGui::OpenPopup("Settings");
-      show_settings = false;
-    }
-
-    if (ImGui::BeginPopupModal("Settings", nullptr, ImGuiWindowFlags_Modal | ImGuiWindowFlags_AlwaysAutoResize)) {
-      static std::string boot_rom_path = config.settings.boot_rom_path;
-      ImGui::InputText("Boot ROM Path", &boot_rom_path);
-
-      if (ImGui::Button("OK", ImVec2(120, 0))) {
-        ImGui::CloseCurrentPopup();
-        spdlog::debug("Set boot rom path: {}", boot_rom_path);
-        config.settings.boot_rom_path = boot_rom_path;
-        if (auto result = emulator.SetBootRomPath(config.settings.boot_rom_path); !result) {
-          error_message = std::format("Failed to load boot rom: {}", result.error());
-        } else {
-          error_message = "";
-        }
-      }
-      ImGui::SameLine();
-      if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-        ImGui::CloseCurrentPopup();
-        boot_rom_path = config.settings.boot_rom_path;
-      }
-
-      ImGui::EndPopup();
-    }
+    RenderLCD();
+    RenderTiles();
+    RenderTilemap1();
+    RenderTilemap2();
+    RenderSprites();
+    RenderRegisters();
+    RenderInput();
+    RenderMemory();
+    RenderInstructions();
+    RenderLogs();
+    RenderMainMenu();
+    RenderSettingsPopup();
 
     rlImGuiEnd();
 
-    render_error();
+    RenderError();
 
-    DrawFPS(10, config.settings.screen_height - 24);
+    DrawFPS(10, config_.settings.screen_height - 24);
 
     EndDrawing();
 
@@ -539,32 +373,32 @@ void Interface::run() {
       // auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - prev);
       // prev = current;
 
-      auto &samples = emulator.audio_samples();
+      auto &samples = emulator_.audio_samples();
       UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
     }
   }
 
-  cleanup();
+  Cleanup();
 
   spdlog::info("Shutting down...");
 }
 
-void Interface::render_error() {
-  if (error_message.empty()) {
+void Interface::RenderError() {
+  if (error_message_.empty()) {
     return;
   }
 
-  auto text_width = MeasureText(error_message.c_str(), 15);
+  auto text_width = MeasureText(error_message_.c_str(), 15);
   auto text_height = 20;
-  auto text_x = (config.settings.screen_width - text_width) / 2;
-  auto text_y = (config.settings.screen_height / 2) - (text_height / 2);
+  auto text_x = (config_.settings.screen_width - text_width) / 2;
+  auto text_y = (config_.settings.screen_height / 2) - (text_height / 2);
   auto padding = 10;
 
   DrawRectangle(text_x - padding, text_y - padding, text_width + padding + padding, text_height + padding + padding, Color { 32, 32, 32, 127 });
-  DrawText(error_message.c_str(), text_x, text_y, 15, RED);
+  DrawText(error_message_.c_str(), text_x, text_y, 15, RED);
 }
 
-void Interface::load_cartridge() {
+void Interface::LoadCartridge() {
   nfdchar_t *file_path = nullptr;
   std::array<nfdfilteritem_t, 3> filter_items = {{
     { .name="GB", .spec="gb" },
@@ -574,7 +408,7 @@ void Interface::load_cartridge() {
 
   nfdresult_t result = NFD_OpenDialog(&file_path, filter_items.data(), filter_items.size(), nullptr);
   if (result == NFD_OKAY) {
-    load_cart_rom(file_path);
+    LoadCartRom(file_path);
   } else if (result == NFD_CANCEL) {
     spdlog::info("Load cancelled by user.");
   } else {
@@ -582,58 +416,58 @@ void Interface::load_cartridge() {
   }
 }
 
-void Interface::load_cart_rom(const std::string &file_path) {
-  stop();
+void Interface::LoadCartRom(const std::string &file_path) {
+  Stop();
 
   fs::path path { file_path };
   auto ext = path.extension();
   if (ext != ".gb" && ext != ".bin" && ext != ".rom") {
-    config.settings.recent_files.Remove(path);
+    config_.settings.recent_files.Remove(path);
     spdlog::error("Invalid file extension: {}. Only supports loading .gb, .bin, .rom", ext.string());
     return;
   }
 
   auto load_result = load_bin(path.string());
   if (!load_result) {
-    config.settings.recent_files.Remove(path);
-    error_message = std::format("Failed to load cart: {}", load_result.error());
-    spdlog::error("Failed to load cart: {}", error_message);
+    config_.settings.recent_files.Remove(path);
+    error_message_ = std::format("Failed to load cart: {}", load_result.error());
+    spdlog::error("Failed to load cart: {}", error_message_);
     return;
   }
 
-  emulator.load_cartridge(std::move(load_result.value()));
+  emulator_.load_cartridge(std::move(load_result.value()));
   spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
 
-  emulator.toggle_channel(AudioChannelID::MASTER, config.settings.enable_audio);
+  emulator_.toggle_channel(AudioChannelID::MASTER, config_.settings.enable_audio);
 
-  if (config.settings.auto_start) {
-    play();
+  if (config_.settings.auto_start) {
+    Play();
   }
 
-  config.settings.recent_files.Push(path.string());
+  config_.settings.recent_files.Push(path.string());
 }
 
-void Interface::render_lcd(bool &show_window) {
-  if (!show_window) {
+void Interface::RenderLCD() {
+  if (!config_.settings.show_lcd) {
     return;
   }
 
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  ImGui::Begin("GameBoy", &show_window);
+  ImGui::Begin("LCD", &config_.settings.show_lcd);
   {
-    rlImGuiImageTextureFit(&emulator.target_lcd(), true);
+    rlImGuiImageTextureFit(&emulator_.target_lcd(), true);
   }
   ImGui::End();
 }
 
-void Interface::render_tiles(bool &show_window) {
-  if (!show_window) {
+void Interface::RenderTiles() {
+  if (!config_.settings.show_tiles) {
     return;
   }
 
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  if (ImGui::Begin("Tile Data", &show_window)) {
-    auto &target = emulator.target_tiles();
+  if (ImGui::Begin("Tile Data", &config_.settings.show_tiles)) {
+    auto &target = emulator_.target_tiles();
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 3;
@@ -642,14 +476,14 @@ void Interface::render_tiles(bool &show_window) {
   ImGui::End();
 }
 
-void Interface::render_tilemap1(bool &show_window) {
-  if (!show_window) {
+void Interface::RenderTilemap1() {
+  if (!config_.settings.show_tilemap1) {
     return;
   }
 
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  if (ImGui::Begin("TileMap 1", &show_window)) {
-    auto &target = emulator.target_tilemap(0);
+  if (ImGui::Begin("TileMap 1", &config_.settings.show_tilemap1)) {
+    auto &target = emulator_.target_tilemap(0);
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -658,14 +492,14 @@ void Interface::render_tilemap1(bool &show_window) {
   ImGui::End();
 }
 
-void Interface::render_tilemap2(bool &show_window) {
-  if (!show_window) {
+void Interface::RenderTilemap2() {
+  if (!config_.settings.show_tilemap2) {
     return;
   }
 
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  if (ImGui::Begin("TileMap 2", &show_window)) {
-    auto &target = emulator.target_tilemap(1);
+  if (ImGui::Begin("TileMap 2", &config_.settings.show_tilemap2)) {
+    auto &target = emulator_.target_tilemap(1);
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -674,14 +508,14 @@ void Interface::render_tilemap2(bool &show_window) {
   ImGui::End();
 }
 
-void Interface::render_sprites(bool &show_window) {
-  if (!show_window) {
+void Interface::RenderSprites() {
+  if (!config_.settings.show_sprites) {
     return;
   }
 
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  if (ImGui::Begin("Sprites", &show_window)) {
-    auto &target = emulator.target_sprites();
+  if (ImGui::Begin("Sprites", &config_.settings.show_sprites)) {
+    auto &target = emulator_.target_sprites();
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -690,14 +524,14 @@ void Interface::render_sprites(bool &show_window) {
   ImGui::End();
 }
 
-void Interface::render_registers(bool &show_window) {
-  if (!show_window) {
+void Interface::RenderRegisters() {
+  if (!config_.settings.show_cpu_registers) {
     return;
   }
 
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  if (ImGui::Begin("Registers", &show_window)) {
-    const auto &regs = emulator.registers();
+  if (ImGui::Begin("Registers", &config_.settings.show_cpu_registers)) {
+    const auto &regs = emulator_.registers();
 
     auto a = regs.get(Reg8::A);
     auto f = regs.get(Reg8::F);
@@ -722,19 +556,19 @@ void Interface::render_registers(bool &show_window) {
     ImGui::Text("AF=%04X BC=%04X DE=%04X HL=%04X", af, bc, de, hl);
     ImGui::Text("Flags Z=%d N=%d H=%d C=%d", zero, neg, half_carry, carry);
 
-    const auto &state = emulator.state();
+    const auto &state = emulator_.state();
     ImGui::Text("State IME=%d HALT=%d STOP=%d HARD_LOCK=%d", state.ime, state.halt, state.stop, state.hard_lock);
   }
   ImGui::End();
 }
 
-void Interface::render_input(bool &show_window) {
-  if (!show_window) {
+void Interface::RenderInput() {
+  if (!config_.settings.show_input) {
     return;
   }
 
   ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  if (ImGui::Begin("Input", &show_window)) {
+  if (ImGui::Begin("Input", &config_.settings.show_input)) {
 
     static constexpr auto alignForWidth = [](float width, float alignment = 0.5f) {
       ImGuiStyle& style = ImGui::GetStyle();
@@ -764,18 +598,18 @@ void Interface::render_input(bool &show_window) {
 
     alignForWidth(288);
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
-    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Up), []() {
+    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Up), []() {
       ImGui::Button(ICON_FA_CARET_UP, { 32, 32 });
     });
 
     ImGui::SameLine(0, 32);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
-    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Select), []() {
+    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Select), []() {
       ImGui::Button("select");
     });
     ImGui::SameLine(0, 4);
-    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Start), []() {
+    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Start), []() {
       ImGui::Button("start");
     });
     ImGui::PopStyleVar();
@@ -783,21 +617,21 @@ void Interface::render_input(bool &show_window) {
 
     ImGui::NewLine();
     alignForWidth(288);
-    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Left), []() {
+    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Left), []() {
       ImGui::Button(ICON_FA_CARET_LEFT, { 32, 32 });
     });
     ImGui::SameLine(0, 32);
-    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Right), []() {
+    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Right), []() {
       ImGui::Button(ICON_FA_CARET_RIGHT, { 32, 32 });
     });
 
     ImGui::SameLine(0, 64);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 24.0f);
-    drawMaybeDisabled(emulator.is_pressed(JoypadButton::B), []() {
+    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::B), []() {
       ImGui::Button("B", { 32, 32 });
     });
     ImGui::SameLine();
-    drawMaybeDisabled(emulator.is_pressed(JoypadButton::A), []() {
+    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::A), []() {
       ImGui::Button("A", { 32, 32 });
     });
     ImGui::PopStyleVar();
@@ -805,7 +639,7 @@ void Interface::render_input(bool &show_window) {
     ImGui::NewLine();
     alignForWidth(288);
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
-    drawMaybeDisabled(emulator.is_pressed(JoypadButton::Down), []() {
+    drawMaybeDisabled(emulator_.is_pressed(JoypadButton::Down), []() {
       ImGui::Button(ICON_FA_CARET_DOWN, { 32, 32 });
     });
 
@@ -815,29 +649,210 @@ void Interface::render_input(bool &show_window) {
   ImGui::End();
 }
 
-void Interface::cleanup() {
-  config.settings.boot_rom_path = emulator.GetBootRomPath();
+void Interface::RenderMemory() {
+  if (!config_.settings.show_memory) {
+    return;
+  }
+  ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Memory", &config_.settings.show_memory)) {
+    mem_editor_.DrawContents(nullptr, 1<<16);
+  }
+  ImGui::End();
+}
 
-  auto window_pos = GetWindowPosition();
-  config.settings.screen_x = static_cast<int>(window_pos.x);
-  config.settings.screen_y = static_cast<int>(window_pos.y);
+void Interface::RenderInstructions() {
+  if (!config_.settings.show_instructions) {
+    return;
+  }
 
-  config.settings.master_volume = GetMasterVolume() * 100.0f;
+  ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Instructions", &config_.settings.show_instructions)) {
+    assembly_viewer_.Draw();
+  }
+  ImGui::End();
+}
 
-  if (auto res = config.Save(args.settings_filename); !res.has_value()) {
-    spdlog::warn("Failed to save settings to file '{}': {}", args.settings_filename, res.error());
+void Interface::RenderLogs() {
+  if (!config_.settings.show_logs) {
+    return;
+  }
+
+  if (ImGui::Begin("Logs", &config_.settings.show_logs)) {
+    app_log_.Draw();
+  }
+  ImGui::End();
+}
+
+void Interface::RenderMainMenu() {
+  ImGui::BeginMainMenuBar();
+
+  if (ImGui::BeginMenu("File")) {
+    if (ImGui::MenuItem("Load Cartridge")) {
+      spdlog::info("Loading cart...");
+      LoadCartridge();
+    }
+
+    auto& recent_files = config_.settings.recent_files;
+    if (ImGui::BeginMenu("Recent files", !recent_files.IsEmpty())) {
+      for (auto &file : recent_files) {
+        if (ImGui::MenuItem(fs::relative(file).c_str())) {
+          spdlog::debug("Pressed recent file: '{}'", file);
+          LoadCartRom(file);
+        }
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Clear Recent")) {
+        spdlog::debug("Clearing recent files");
+        recent_files.Clear();
+      }
+      ImGui::EndMenu();
+    }
+
+    ImGui::Separator();
+    if (ImGui::MenuItem("Settings...")) {
+      spdlog::debug("Open settings...");
+      show_settings_ = true;
+    }
+
+    ImGui::Separator();
+    if (ImGui::MenuItem("Exit")) {
+      spdlog::info("Exiting...");
+      should_close_ = true;
+    }
+
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("Emulator")) {
+    ImGui::MenuItem("Auto-Start", nullptr, &config_.settings.auto_start);
+    if (ImGui::MenuItem("Skip Boot ROM", nullptr, &config_.settings.skip_boot_rom)) {
+      emulator_.set_skip_bootrom(config_.settings.skip_boot_rom);
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator_.is_playing())) {
+      Play();
+    }
+    if (ImGui::MenuItem("Stop", nullptr, nullptr, emulator_.is_playing())) {
+      Stop();
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Step", nullptr, nullptr, !emulator_.is_playing())) {
+      Step();
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Reset")) {
+      Reset();
+      if (config_.settings.auto_start) {
+        Play();
+      }
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("Hardware")) {
+    if (ImGui::BeginMenu("PPU")) {
+      ImGui::MenuItem("LCD", nullptr, &config_.settings.show_lcd);
+      ImGui::MenuItem("TileMap 1", nullptr, &config_.settings.show_tilemap1);
+      ImGui::MenuItem("TileMap 2", nullptr, &config_.settings.show_tilemap2);
+      ImGui::MenuItem("Sprites", nullptr, &config_.settings.show_sprites);
+      ImGui::MenuItem("Tiles", nullptr, &config_.settings.show_tiles);
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("APU")) {
+      if (ImGui::MenuItem("Enable Sound", nullptr, &config_.settings.enable_audio)) {
+        emulator_.toggle_channel(AudioChannelID::MASTER, config_.settings.enable_audio);
+      }
+      if (ImGui::BeginMenu("Volume")) {
+        auto volume = GetMasterVolume() * 100;
+        ImGui::Text("%d%%", static_cast<int>(volume));
+        if (ImGui::MenuItem("Up")) {
+          volume = std::clamp(volume + 10, 0.f, 100.f);
+          SetMasterVolume(volume / 100.f);
+        }
+        if (ImGui::MenuItem("Down")) {
+          volume = std::clamp(volume - 10, 0.0f, 100.0f);
+          SetMasterVolume(volume / 100.f);
+        }
+        ImGui::EndMenu();
+      }
+      if (ImGui::BeginMenu("Channels")) {
+        if (ImGui::MenuItem("CH1 - Square", nullptr, &config_.settings.enable_ch1)) {
+          emulator_.toggle_channel(AudioChannelID::CH1, config_.settings.enable_ch1);
+        }
+        if (ImGui::MenuItem("CH2 - Square", nullptr, &config_.settings.enable_ch2)) {
+          emulator_.toggle_channel(AudioChannelID::CH2, config_.settings.enable_ch2);
+        }
+        if (ImGui::MenuItem("CH3 - Wave", nullptr, &config_.settings.enable_ch3)) {
+          emulator_.toggle_channel(AudioChannelID::CH3, config_.settings.enable_ch3);
+        }
+        if (ImGui::MenuItem("CH4 - Noise", nullptr, &config_.settings.enable_ch4)) {
+          emulator_.toggle_channel(AudioChannelID::CH4, config_.settings.enable_ch4);
+        }
+        ImGui::EndMenu();
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::Separator();
+    ImGui::MenuItem("Memory", nullptr, &config_.settings.show_memory);
+    ImGui::MenuItem("Instructions", nullptr, &config_.settings.show_instructions);
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("View")) {
+    ImGui::MenuItem("Logs", nullptr, &config_.settings.show_logs);
+    ImGui::EndMenu();
+  }
+  ImGui::EndMainMenuBar();
+}
+
+void Interface::RenderSettingsPopup() {
+  if (show_settings_) {
+    ImGui::OpenPopup("Settings");
+    show_settings_ = false;
+  }
+
+  if (ImGui::BeginPopupModal("Settings", nullptr, ImGuiWindowFlags_Modal | ImGuiWindowFlags_AlwaysAutoResize)) {
+    static std::string boot_rom_path = config_.settings.boot_rom_path;
+    ImGui::InputText("Boot ROM Path", &boot_rom_path);
+
+    if (ImGui::Button("OK", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+      spdlog::debug("Set boot rom path: {}", boot_rom_path);
+      config_.settings.boot_rom_path = boot_rom_path;
+      if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
+        error_message_ = std::format("Failed to load boot rom: {}", result.error());
+      } else {
+        error_message_ = "";
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+      boot_rom_path = config_.settings.boot_rom_path;
+    }
+
+    ImGui::EndPopup();
   }
 }
 
-void Interface::play() {
-  emulator.play();
+void Interface::Cleanup() {
+  auto window_pos = GetWindowPosition();
+  config_.settings.screen_x = static_cast<int>(window_pos.x);
+  config_.settings.screen_y = static_cast<int>(window_pos.y);
+  config_.settings.master_volume = GetMasterVolume() * 100.0f;
+  config_.settings.boot_rom_path = emulator_.GetBootRomPath();
+
+  if (auto res = config_.Save(args_.settings_filename); !res.has_value()) {
+    spdlog::warn("Failed to save settings to file '{}': {}", args_.settings_filename, res.error());
+  }
+}
+
+void Interface::Play() {
+  emulator_.play();
   SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
   stream = LoadAudioStream(kAudioSampleRate, kAudioSampleSize, kAudioNumChannels);
   PlayAudioStream(stream);
 }
 
-void Interface::stop() {
-  emulator.stop();
+void Interface::Stop() {
+  emulator_.stop();
   if (IsAudioStreamValid(stream)) {
     StopAudioStream(stream);
     UnloadAudioStream(stream);
@@ -845,11 +860,11 @@ void Interface::stop() {
   }
 }
 
-void Interface::step() {
-  emulator.step();
+void Interface::Step() {
+  emulator_.step();
 }
 
-void Interface::reset() {
-  emulator.reset();
+void Interface::Reset() {
+  emulator_.reset();
   StopAudioStream(stream);
 }

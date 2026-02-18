@@ -16,6 +16,6 @@ auto main(int argc, char *argv[]) -> int {
   }
 
   app::Interface interface(args.value());
-  interface.run();
+  interface.Run();
   return 0;
 }

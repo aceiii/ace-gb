@@ -2,7 +2,6 @@
 
 #include <string>
 #include <imgui.h>
-#include <imgui_internal.h>
 #include <imgui_memory_editor/imgui_memory_editor.h>
 
 #include "args.h"
@@ -52,36 +51,46 @@ struct InterfaceSettings {
 class Interface {
 public:
   explicit Interface(Args args);
+  Interface() = delete;
+  Interface(const Interface&) = delete;
   ~Interface();
 
-  void run();
-  void load_cartridge();
-  void load_cart_rom(const std::string &path);
+  void Run();
+  void LoadCartridge();
+  void LoadCartRom(const std::string &path);
 
 private:
-  Args args;
-  Emulator emulator;
-  AssemblyViewer assembly_viewer;
-  Config<InterfaceSettings> config;
-  MemoryEditor mem_editor;
-  std::string error_message;
+  void Cleanup();
+
+  void Play();
+  void Stop();
+  void Step();
+  void Reset();
+
+  void RenderError();
+  void RenderLCD();
+  void RenderTiles();
+  void RenderTilemap1();
+  void RenderTilemap2();
+  void RenderSprites();
+  void RenderRegisters();
+  void RenderInput();
+  void RenderMemory();
+  void RenderInstructions();
+  void RenderLogs();
+  void RenderMainMenu();
+  void RenderSettingsPopup();
+
+  Args args_;
+  Emulator emulator_;
+  AssemblyViewer assembly_viewer_;
+  Config<InterfaceSettings> config_;
+  MemoryEditor mem_editor_;
   AppLog app_log_;
+  std::string error_message_;
 
-  void cleanup();
-
-  void play();
-  void stop();
-  void step();
-  void reset();
-
-  void render_error();
-  void render_lcd(bool &show_window);
-  void render_tiles(bool &show_window);
-  void render_tilemap1(bool &show_window);
-  void render_tilemap2(bool &show_window);
-  void render_sprites(bool &show_window);
-  void render_registers(bool &show_window);
-  void render_input(bool &show_window);
+  bool should_close_ = false;
+  bool show_settings_ = false;
 };
 
 }
