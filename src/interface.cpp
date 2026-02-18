@@ -464,6 +464,9 @@ void Interface::LoadCartRom(const std::string &file_path) {
   emulator_.load_cartridge(std::move(load_result.value()));
   spdlog::info("Loaded cartridge: '{}'", fs::absolute(path).string());
 
+  fs::path rom_path{path};
+  SetWindowTitle(std::format("{} - {}", kWindowTitle, rom_path.stem().string()).c_str());
+
   emulator_.toggle_channel(AudioChannelID::MASTER, config_.settings.enable_audio);
 
   if (config_.settings.auto_start) {
