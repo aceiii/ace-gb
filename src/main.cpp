@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "args.h"
-#include "interface.h"
+#include "interface.hpp"
 
 namespace {
   const char* kAppName = "ace-gb";

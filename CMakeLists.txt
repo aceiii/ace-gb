@@ -17,8 +17,8 @@ set(SOURCE_FILES
     src/args.cpp
     src/args.h
     src/main.cpp
-    src/interface.h
-    src/interface.cpp
+        src/interface.hpp
+        src/interface.cpp
     src/cpu.h
     src/cpu.cpp
     src/emulator.h

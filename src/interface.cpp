@@ -15,7 +15,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <toml++/toml.hpp>
 
-#include "interface.h"
+#include "interface.hpp"
 #include "emulator.h"
 #include "file.h"
 
