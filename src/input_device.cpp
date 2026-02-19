@@ -16,7 +16,7 @@ void InputDevice::Write8(uint16_t addr, uint8_t byte) {
   reg_buttons.select = (byte >> 4) & 0b11;
 }
 
-[[nodiscard]] uint8_t InputDevice::read8(uint16_t addr) const {
+[[nodiscard]] uint8_t InputDevice::Read8(uint16_t addr) const {
   uint8_t buttons = 0;
   if (reg_buttons.sel_buttons) {
     buttons |= ~reg_buttons.buttons;

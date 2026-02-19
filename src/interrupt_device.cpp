@@ -25,7 +25,7 @@ void InterruptDevice::Write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-uint8_t InterruptDevice::read8(uint16_t addr) const {
+uint8_t InterruptDevice::Read8(uint16_t addr) const {
   switch (addr) {
     case std::to_underlying(IO::IF):
       return flag.val | 0b11100000;

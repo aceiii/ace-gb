@@ -38,31 +38,31 @@ public:
 
   [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
   void Write8(uint16_t addr, uint8_t byte) override;
-  [[nodiscard]] uint8_t read8(uint16_t addr) const override;
+  [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
   void Reset() override;
-  void poweroff();
+  void PowerOff();
 
   void OnTick() override;
 
-  void get_samples(std::vector<float> &out_buffer);
+  void GetSamples(std::vector<float> &out_buffer);
 
-  bool channel_enabled(AudioChannelID channel) const;
-  void toggle_channel(AudioChannelID channel, bool enable);
-
-private:
-  std::tuple<float, float> sample() const;
+  bool IsChannelEnabled(AudioChannelID channel) const;
+  void ToggleChannel(AudioChannelID channel, bool enable);
 
 private:
-  Timer &timer;
-  audio_config config;
+  std::tuple<float, float> Sample() const;
 
-  uint8_t frame_sequencer {};
-  uint16_t frame_sequencer_counter {};
-  uint16_t sample_timer {};
-  std::array<bool, 5> enable_channel {{ true, true, true, true, true }};
-  std::array<float, kSampleBufferMaxSize> sample_buffer {};
-  uint16_t buffer_write_idx {};
-  uint16_t buffer_read_idx {};
+private:
+  Timer &timer_;
+  audio_config config_;
+
+  uint8_t frame_sequencer_ {};
+  uint16_t frame_sequencer_counter_ {};
+  uint16_t sample_timer_ {};
+  std::array<bool, 5> enable_channel_ {{ true, true, true, true, true }};
+  std::array<float, kSampleBufferMaxSize> sample_buffer_ {};
+  uint16_t buffer_write_idx_ {};
+  uint16_t buffer_read_idx_ {};
 
   union {
     uint8_t val;
@@ -72,7 +72,7 @@ private:
       uint8_t left_volume: 3;
       uint8_t vin_left: 1;
     };
-  } nr50 {};
+  } nr50_ {};
 
   union {
     uint8_t val;
@@ -86,7 +86,7 @@ private:
       uint8_t ch3_left: 1;
       uint8_t ch4_left: 1;
     };
-  } nr51 {};
+  } nr51_ {};
 
   union {
     uint8_t val;
@@ -98,11 +98,11 @@ private:
       uint8_t unused: 3;
       uint8_t audio: 1;
     };
-  } nr52 {};
+  } nr52_ {};
 
-  SquareChannel ch1 {true};
-  SquareChannel ch2 {false};
-  WaveChannel ch3 {};
-  NoiseChannel ch4 {};
+  SquareChannel ch1_ {true};
+  SquareChannel ch2_ {false};
+  WaveChannel ch3_ {};
+  NoiseChannel ch4_ {};
 
 };

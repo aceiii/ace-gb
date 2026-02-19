@@ -14,7 +14,7 @@ void BootRomDevice::Write8(uint16_t addr, uint8_t byte) {
   disable = byte;
 }
 
-[[nodiscard]] uint8_t BootRomDevice::read8(uint16_t addr) const {
+[[nodiscard]] uint8_t BootRomDevice::Read8(uint16_t addr) const {
   if (addr < rom.size()) {
     return rom[addr];
   }

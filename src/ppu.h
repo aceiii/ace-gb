@@ -125,7 +125,7 @@ public:
 
   [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
   void Write8(uint16_t addr, uint8_t byte) override;
-  [[nodiscard]] uint8_t read8(uint16_t addr) const override;
+  [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
   void Reset() override;
 
   [[nodiscard]] PPUMode mode() const;

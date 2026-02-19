@@ -242,15 +242,15 @@ bool Emulator::ShouldSkipBootRom() const {
 }
 
 void Emulator::ToggleChannel(AudioChannelID channel, bool enable) {
-  audio_.toggle_channel(channel, enable);
+  audio_.ToggleChannel(channel, enable);
 }
 
 bool Emulator::IsChannelEnabled(AudioChannelID channel) const {
-  return audio_.channel_enabled(channel);
+  return audio_.IsChannelEnabled(channel);
 }
 
 std::vector<float>& Emulator::GetAudioSamples() {
-  audio_.get_samples(sample_bufffer_);
+  audio_.GetSamples(sample_bufffer_);
   return sample_bufffer_;
 }
 

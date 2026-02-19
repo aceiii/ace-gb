@@ -21,7 +21,7 @@ void WramDevice::Write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-uint8_t WramDevice::read8(uint16_t addr) const {
+uint8_t WramDevice::Read8(uint16_t addr) const {
   auto wram_addr = addr - kWramStart;
   if (wram_addr < wram.size()) {
     return wram[wram_addr];

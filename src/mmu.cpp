@@ -23,7 +23,7 @@ void Mmu::write8(uint16_t addr, uint8_t byte) {
 uint8_t Mmu::read8(uint16_t addr) const {
   for (const auto &device : devices) {
     if (device->IsValidFor(addr)) {
-      return device->read8(addr);
+      return device->Read8(addr);
     }
   }
   std::unreachable();

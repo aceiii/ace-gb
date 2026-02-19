@@ -531,7 +531,7 @@ void Ppu::Write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-uint8_t Ppu::read8(uint16_t addr) const {
+uint8_t Ppu::Read8(uint16_t addr) const {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     return vram.bytes[addr - kVRAMAddrStart];
   }
