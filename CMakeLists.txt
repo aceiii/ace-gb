@@ -26,7 +26,7 @@ set(SOURCE_FILES
         src/decoder.hpp
     src/decoder.cpp
         src/instructions.hpp
-    src/opcodes.h
+        src/opcodes.hpp
     src/overloaded.h
         src/registers.hpp
         src/util.hpp
@@ -129,7 +129,7 @@ if(BUILD_TESTS)
             src/decoder.hpp
         src/decoder.cpp
             src/instructions.hpp
-        src/opcodes.h
+            src/opcodes.hpp
         src/overloaded.h
             src/registers.hpp
             src/util.hpp

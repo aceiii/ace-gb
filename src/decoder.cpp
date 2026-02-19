@@ -2,7 +2,7 @@
 
 #include "decoder.hpp"
 #include "instructions.hpp"
-#include "opcodes.h"
+#include "opcodes.hpp"
 #include "registers.hpp"
 
 

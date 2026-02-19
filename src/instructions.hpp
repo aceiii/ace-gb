@@ -8,7 +8,7 @@
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
-#include "opcodes.h"
+#include "opcodes.hpp"
 #include "overloaded.h"
 #include "registers.hpp"
 

@@ -3,7 +3,7 @@
 #include <magic_enum/magic_enum.hpp>
 
 #include "cpu.hpp"
-#include "opcodes.h"
+#include "opcodes.hpp"
 #include "overloaded.h"
 #include "instructions.hpp"
 
