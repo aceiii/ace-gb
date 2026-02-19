@@ -83,7 +83,7 @@ void Emulator::Reset() {
   cpu_.reset();
   mmu_.reset_devices();
   boot_.LoadBytes(boot_rom_);
-  cart_.load_cartridge(cart_bytes_);
+  cart_.LoadCartBytes(cart_bytes_);
 
   if (skip_bootrom_) {
     cpu_.regs.set(Reg8::A, 0x01);

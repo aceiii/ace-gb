@@ -62,7 +62,7 @@ set(SOURCE_FILES
     src/joypad.h
     src/cart_header.h
     src/memory_bank_controller.h
-    src/cart_info.h
+        src/CartInfo.h
     src/no_mbc.cpp
     src/no_mbc.h
     src/mbc1.cpp

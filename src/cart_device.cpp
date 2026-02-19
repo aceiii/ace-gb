@@ -17,29 +17,29 @@ bool CartDevice::IsValidFor(uint16_t addr) const {
 
 void CartDevice::Write8(uint16_t addr, uint8_t byte) {
   if (addr >= kExtRamStart && addr <= kExtRamEnd) {
-    return mbc->write_ram(addr, byte);
+    return mbc_->write_ram(addr, byte);
   }
-  return mbc->write_reg(addr, byte);
+  return mbc_->write_reg(addr, byte);
 }
 
 uint8_t CartDevice::Read8(uint16_t addr) const {
   if (addr <= kRomBank00End) {
-    return mbc->read_rom0(addr);
+    return mbc_->read_rom0(addr);
   }
 
   if (addr <= kRomBank01End) {
-    return mbc->read_rom1(addr);
+    return mbc_->read_rom1(addr);
   }
 
-  return mbc->read_ram(addr);
+  return mbc_->read_ram(addr);
 }
 
 void CartDevice::Reset() {
-  info.reset();
-  mbc = std::make_unique<NoMbc>();
+  info_.Reset();
+  mbc_ = std::make_unique<NoMbc>();
 }
 
-void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
+void CartDevice::LoadCartBytes(const std::vector<uint8_t> &bytes) {
   if (bytes.empty()) {
     return Reset();
   }
@@ -79,13 +79,13 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
       ram_banks = 0;
   }
 
-  info.title = title;
-  info.type = cart_type;
-  info.rom_size_bytes = rom_size_kb * 1024;
-  info.rom_num_banks = rom_banks;
-  info.ram_type = ram_type;
-  info.ram_num_banks = ram_banks;
-  info.ram_size_bytes = ram_size;
+  info_.title = title;
+  info_.type = cart_type;
+  info_.rom_size_bytes = rom_size_kb * 1024;
+  info_.rom_num_banks = rom_banks;
+  info_.ram_type = ram_type;
+  info_.ram_num_banks = ram_banks;
+  info_.ram_size_bytes = ram_size;
 
   spdlog::info("Loaded cartridge");
   spdlog::info("Title: {}", title);
@@ -100,7 +100,7 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
     case CartType::ROM_ONLY:
     case CartType::ROM_RAM:
     case CartType::ROM_RAM_BATTERY:
-      mbc = std::make_unique<NoMbc>(bytes);
+      mbc_ = std::make_unique<NoMbc>(bytes);
       break;
     case CartType::MBC1_RAM_BATTERY:
       has_battery = true;
@@ -109,19 +109,19 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
       has_ram = true;
       [[fallthrough]];
     case CartType::MBC1:
-      mbc = std::make_unique<Mbc1>(bytes, info, has_ram, has_battery);
+      mbc_ = std::make_unique<Mbc1>(bytes, info_, has_ram, has_battery);
       break;
     case CartType::MBC2_BATTERY:
       has_battery = true;
       [[fallthrough]];
     case CartType::MBC2:
-      mbc = std::make_unique<Mbc2>(bytes, info, has_ram, has_battery);
+      mbc_ = std::make_unique<Mbc2>(bytes, info_, has_ram, has_battery);
       break;
     case CartType::MBC3_TIMER_RAM_BATTERY:
       has_ram = true;
       [[fallthrough]];
     case CartType::MBC3_TIMER_BATTERY:
-      mbc = std::make_unique<Mbc3>(bytes, info, has_ram, true, true);
+      mbc_ = std::make_unique<Mbc3>(bytes, info_, has_ram, true, true);
       break;
     case CartType::MBC3_RAM_BATTERY:
       has_battery = true;
@@ -130,7 +130,7 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
       has_ram = true;
       [[fallthrough]];
     case CartType::MBC3:
-      mbc = std::make_unique<Mbc3>(bytes, info, has_ram, has_battery, false);
+      mbc_ = std::make_unique<Mbc3>(bytes, info_, has_ram, has_battery, false);
       break;
     case CartType::MBC5_RUMBLE_RAM_BATTERY:
       has_battery = true;
@@ -139,7 +139,7 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
       has_ram = true;
       [[fallthrough]];
     case CartType::MBC5_RUMBLE:
-      mbc = std::make_unique<Mbc5>(bytes, info, has_ram, has_battery, true);
+      mbc_ = std::make_unique<Mbc5>(bytes, info_, has_ram, has_battery, true);
       break;
     case CartType::MBC5_RAM_BATTERY:
       has_battery = true;
@@ -148,7 +148,7 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
       has_ram = true;
       [[fallthrough]];
     case CartType::MBC5:
-      mbc = std::make_unique<Mbc5>(bytes, info, has_ram, has_battery, false);
+      mbc_ = std::make_unique<Mbc5>(bytes, info_, has_ram, has_battery, false);
       break;
     case CartType::MMM01:
     case CartType::MMM01_RAM:
@@ -165,6 +165,6 @@ void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
   }
 }
 
-const cart_info& CartDevice::cartridge_info() const {
-  return info;
+const CartInfo& CartDevice::GetCartridgeInfo() const {
+  return info_;
 }

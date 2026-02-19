@@ -3,12 +3,12 @@
 #include <cstdint>
 #include <vector>
 
-#include "cart_info.h"
+#include "CartInfo.h"
 #include "memory_bank_controller.h"
 
 class Mbc2 : public MemoryBankController {
 public:
-  explicit Mbc2(const std::vector<uint8_t> &bytes, cart_info info, bool has_ram, bool has_battery);
+  explicit Mbc2(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool has_battery);
 
   [[nodiscard]] uint8_t read_rom0(uint16_t addr) const override;
   [[nodiscard]] uint8_t read_rom1(uint16_t addr) const override;
@@ -22,7 +22,7 @@ private:
 
   std::array<rom_bank, 16> rom {};
   std::array<uint8_t, 512> ram {};
-  cart_info info;
+  CartInfo info;
 
   bool ram_enable = false;
   uint16_t rom_bank_number = 1;

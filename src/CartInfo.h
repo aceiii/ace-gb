@@ -2,6 +2,7 @@
 
 #include <string>
 
+
 enum class CartType : uint8_t {
   ROM_ONLY = 0x00,
   MBC1 = 0x01,
@@ -42,7 +43,7 @@ enum class RamType : uint8_t {
   BANKS_8 = 0X05,
 };
 
-struct cart_info {
+struct CartInfo {
   std::string title;
   CartType type;
   RamType ram_type;
@@ -51,7 +52,7 @@ struct cart_info {
   size_t ram_size_bytes;
   size_t ram_num_banks;
 
-  inline void reset() {
+  void Reset() {
     title = "";
     type = CartType::ROM_ONLY;
     ram_type = RamType::NO_RAM;
