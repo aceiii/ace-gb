@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "mmu_device.h"
+#include "mmu_device.hpp"
 
 constexpr int kHramStart = 0xff80;
 constexpr int kHramEnd = 0xfffe;

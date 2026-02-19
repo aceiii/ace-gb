@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "mmu_device.h"
+#include "mmu_device.hpp"
 
 class Mmu {
 public:

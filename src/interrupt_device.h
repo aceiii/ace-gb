@@ -1,7 +1,7 @@
 #pragma once
 
 #include "io.h"
-#include "mmu_device.h"
+#include "mmu_device.hpp"
 #include "interrupt.h"
 
 struct interrupt_register {

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "mmu_device.h"
+#include "mmu_device.hpp"
 #include "interrupt_device.h"
 #include "synced_device.hpp"
 

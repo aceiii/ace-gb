@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "cart_info.h"
-#include "mmu_device.h"
+#include "mmu_device.hpp"
 #include "memory_bank_controller.h"
 #include "no_mbc.h"
 

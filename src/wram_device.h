@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "mmu_device.h"
+#include "mmu_device.hpp"
 
 class WramDevice : public MmuDevice {
   [[nodiscard]] bool IsValidFor(uint16_t addr) const override;

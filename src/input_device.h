@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mmu_device.h"
+#include "mmu_device.hpp"
 #include "joypad.h"
 #include "interrupt_device.h"
 

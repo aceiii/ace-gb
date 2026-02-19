@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "io.h"
-#include "mmu_device.h"
+#include "mmu_device.hpp"
 #include "synced_device.hpp"
 #include "timer.h"
 #include "square_channel.h"
