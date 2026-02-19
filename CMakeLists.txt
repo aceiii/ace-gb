@@ -28,7 +28,7 @@ set(SOURCE_FILES
         src/instructions.hpp
     src/opcodes.h
     src/overloaded.h
-    src/registers.h
+        src/registers.hpp
         src/util.hpp
         src/mmu.hpp
     src/mmu.cpp
@@ -131,7 +131,7 @@ if(BUILD_TESTS)
             src/instructions.hpp
         src/opcodes.h
         src/overloaded.h
-        src/registers.h
+            src/registers.hpp
             src/util.hpp
             src/io.hpp
             src/mmu.hpp

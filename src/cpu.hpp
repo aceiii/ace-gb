@@ -1,7 +1,7 @@
 #pragma once
 
 #include "decoder.hpp"
-#include "registers.h"
+#include "registers.hpp"
 #include "memory.h"
 #include "mmu.hpp"
 #include "io.hpp"

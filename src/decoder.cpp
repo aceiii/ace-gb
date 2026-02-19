@@ -3,7 +3,7 @@
 #include "decoder.hpp"
 #include "instructions.hpp"
 #include "opcodes.h"
-#include "registers.h"
+#include "registers.hpp"
 
 
 namespace Decoder {

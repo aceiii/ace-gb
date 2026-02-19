@@ -1,7 +1,7 @@
 #pragma once
 
 #include "instructions.hpp"
-#include "registers.h"
+#include "registers.hpp"
 
 
 namespace Decoder {

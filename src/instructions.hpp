@@ -10,7 +10,7 @@
 
 #include "opcodes.h"
 #include "overloaded.h"
-#include "registers.h"
+#include "registers.hpp"
 
 
 enum class Cond {

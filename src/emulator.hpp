@@ -9,7 +9,7 @@
 
 #include "cpu.hpp"
 #include "ppu.hpp"
-#include "registers.h"
+#include "registers.hpp"
 #include "boot_rom_device.hpp"
 #include "cart_device.hpp"
 #include "wram_device.hpp"
