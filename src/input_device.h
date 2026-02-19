@@ -4,7 +4,7 @@
 #include "joypad.h"
 #include "interrupt_device.h"
 
-struct input_register {
+struct InputRegister {
   union {
     struct {
       union {
@@ -42,12 +42,12 @@ public:
   [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
   void Reset() override;
 
-  void update(JoypadButton button, bool pressed);
-  bool is_pressed(JoypadButton button) const;
+  void Update(JoypadButton button, bool pressed);
+  bool IsPressed(JoypadButton button) const;
 
 private:
-  InterruptDevice &interrupts;
+  InterruptDevice &interrupts_;
 
-  input_register reg_buttons;
-  input_register reg_dpad;
+  InputRegister reg_buttons_;
+  InputRegister reg_dpad_;
 };

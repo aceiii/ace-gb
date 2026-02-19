@@ -226,11 +226,11 @@ void Emulator::ClearBreakPoints() {
 }
 
 void Emulator::UpdateInput(JoypadButton btn, bool pressed) {
-  input_device_.update(btn, pressed);
+  input_device_.Update(btn, pressed);
 }
 
 bool Emulator::IsButtonPressed(JoypadButton btn) const {
-  return input_device_.is_pressed(btn);
+  return input_device_.IsPressed(btn);
 }
 
 void Emulator::SetSkipBootRom(bool skip) {
