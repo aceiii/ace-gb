@@ -1,7 +1,7 @@
 #include <utility>
 #include <spdlog/spdlog.h>
 
-#include "mbc3.h"
+#include "mbc3.hpp"
 
 Mbc3::Mbc3(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool has_battery, bool has_timer): info_ {std::move(info)} {
   size_t size_left = bytes.size();

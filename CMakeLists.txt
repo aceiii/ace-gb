@@ -70,7 +70,7 @@ set(SOURCE_FILES
     src/mbc2.cpp
         src/mbc2.hpp
     src/mbc3.cpp
-    src/mbc3.h
+        src/mbc3.hpp
     src/mbc5.cpp
     src/mbc5.h
     src/square_channel.cpp

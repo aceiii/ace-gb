@@ -8,7 +8,7 @@
 #include "no_mbc.h"
 #include "mbc1.hpp"
 #include "mbc2.hpp"
-#include "mbc3.h"
+#include "mbc3.hpp"
 #include "mbc5.h"
 
 bool CartDevice::IsValidFor(uint16_t addr) const {
