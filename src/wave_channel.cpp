@@ -150,7 +150,7 @@ void WaveChannel::TickLength() {
   }
 }
 
-void WaveChannel::TickEvenlope() {
+void WaveChannel::TickEnvenlope() {
 }
 
 void WaveChannel::TickSweep() {

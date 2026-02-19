@@ -183,7 +183,7 @@ void SquareChannel::TickLength() {
   }
 }
 
-void SquareChannel::TickEvenlope() {
+void SquareChannel::TickEnvenlope() {
   if (!nrx2.envelope_sweep_pace) {
     return;
   }

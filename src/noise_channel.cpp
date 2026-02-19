@@ -132,7 +132,7 @@ void NoiseChannel::TickLength() {
   }
 }
 
-void NoiseChannel::TickEvenlope() {
+void NoiseChannel::TickEnvenlope() {
   if (!nrx2.sweep_pace) {
     return;
   }

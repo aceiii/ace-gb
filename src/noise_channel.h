@@ -19,7 +19,7 @@ public:
 
 private:
   void TickLength() override;
-  void TickEvenlope() override;
+  void TickEnvenlope() override;
   void TickSweep() override;
 
 private:

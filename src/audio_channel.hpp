@@ -26,7 +26,7 @@ public:
 
   void Clock(uint8_t sequence) {
     if (sequence == 7) {
-      TickEvenlope();
+      TickEnvenlope();
     } else if (sequence == 2 || sequence == 6) {
       TickLength();
       TickSweep();
@@ -37,6 +37,6 @@ public:
 
 private:
   virtual void TickLength() = 0;
-  virtual void TickEvenlope() = 0;
+  virtual void TickEnvenlope() = 0;
   virtual void TickSweep() = 0;
 };
