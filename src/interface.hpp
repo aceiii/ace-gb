@@ -4,7 +4,7 @@
 #include <imgui.h>
 #include <imgui_memory_editor/imgui_memory_editor.h>
 
-#include "args.h"
+#include "args.hpp"
 #include "config.h"
 #include "emulator.hpp"
 #include "recent_files.hpp"

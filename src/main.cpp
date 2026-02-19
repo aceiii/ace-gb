@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "args.h"
+#include "args.hpp"
 #include "interface.hpp"
 
 namespace {

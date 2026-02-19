@@ -14,8 +14,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(TOML_EXCEPTIONS=0)
 
 set(SOURCE_FILES
-    src/args.cpp
-    src/args.h
+        src/args.cpp
+        src/args.hpp
     src/main.cpp
         src/interface.hpp
         src/interface.cpp
@@ -88,6 +88,7 @@ set(SOURCE_FILES
     src/assembly_viewer.hpp
     src/applog.cpp
     src/applog.hpp
+        src/mmu_device.hpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
