@@ -4,7 +4,11 @@
 #include <string>
 #include <vector>
 
-using byte_buffer = std::vector<uint8_t>;
-using load_file_result = std::expected<byte_buffer, std::string>;
+namespace File {
 
-load_file_result load_bin(const std::string &path);
+using U8Buffer = std::vector<uint8_t>;
+using LoadFileResult = std::expected<U8Buffer, std::string>;
+
+LoadFileResult LoadBin(const std::string &path);
+
+}
