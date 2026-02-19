@@ -84,7 +84,7 @@ void Timer::execute(uint8_t cycles) {
       regs.tima += 1;
       if (regs.tima == 0) {
         regs.tima = regs.tma;
-        interrupts.request_interrupt(Interrupt::Timer);
+        interrupts.RequestInterrupt(Interrupt::Timer);
       }
       overflows -= 1;
     }

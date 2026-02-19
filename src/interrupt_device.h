@@ -4,7 +4,7 @@
 #include "mmu_device.hpp"
 #include "interrupt.hpp"
 
-struct interrupt_register {
+struct InterruptRegister {
   union {
     struct {
       uint8_t vblank: 1;
@@ -28,14 +28,14 @@ public:
   [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
   void Reset() override;
 
-  void enable_interrupt(Interrupt interrupt);
-  void disable_interrupt(Interrupt interrupt);
-  void request_interrupt(Interrupt interrupt);
-  void clear_interrupt(Interrupt interrupt);
+  void EnableInterrupt(Interrupt interrupt);
+  void DisableInterrupt(Interrupt interrupt);
+  void RequestInterrupt(Interrupt interrupt);
+  void ClearInterrupt(Interrupt interrupt);
 
-  [[nodiscard]] bool is_requested(Interrupt interrupt) const;
+  [[nodiscard]] bool IsInterruptRequested(Interrupt interrupt) const;
 
 private:
-  interrupt_register flag;
-  interrupt_register enable;
+  InterruptRegister flag_;
+  InterruptRegister enable_;
 };

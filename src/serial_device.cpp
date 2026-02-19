@@ -90,7 +90,7 @@ void SerialDevice::step() {
     }
 
     sc.transfer_enable = 0;
-    interrupts.request_interrupt(Interrupt::Serial);
+    interrupts.RequestInterrupt(Interrupt::Serial);
   }
 }
 

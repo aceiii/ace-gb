@@ -1285,14 +1285,14 @@ uint8_t Cpu::ExecuteInterrupts() {
 
   for (int i = 0; i < std::to_underlying(Interrupt::Count); i++) {
     Interrupt interrupt { i };
-    if (interrupts.is_requested(interrupt)) {
+    if (interrupts.IsInterruptRequested(interrupt)) {
       state.halt = false;
       if (!state.ime) {
         return 0;
       }
 
       state.ime = false;
-      interrupts.clear_interrupt(interrupt);
+      interrupts.ClearInterrupt(interrupt);
 
       Tick();
       Tick();

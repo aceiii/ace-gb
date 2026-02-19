@@ -74,7 +74,7 @@ void InputDevice::Update(JoypadButton button, bool pressed) {
   }
 
   if (flipped) {
-    interrupts_.request_interrupt(Interrupt::Joypad);
+    interrupts_.RequestInterrupt(Interrupt::Joypad);
   }
 }
 
