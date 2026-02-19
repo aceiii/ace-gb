@@ -1,6 +1,6 @@
 #include <utility>
 
-#include "decoder.h"
+#include "decoder.hpp"
 #include "instructions.h"
 #include "opcodes.h"
 #include "registers.h"

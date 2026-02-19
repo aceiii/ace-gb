@@ -1,6 +1,6 @@
 #pragma once
 
-#include "decoder.h"
+#include "decoder.hpp"
 #include "registers.h"
 #include "memory.h"
 #include "mmu.h"

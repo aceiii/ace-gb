@@ -23,7 +23,7 @@ set(SOURCE_FILES
     src/cpu.cpp
         src/emulator.hpp
         src/emulator.cpp
-    src/decoder.h
+        src/decoder.hpp
     src/decoder.cpp
     src/instructions.h
     src/opcodes.h
@@ -126,7 +126,7 @@ if(BUILD_TESTS)
         src/test.cpp
             src/cpu.hpp
         src/cpu.cpp
-        src/decoder.h
+            src/decoder.hpp
         src/decoder.cpp
         src/instructions.h
         src/opcodes.h
