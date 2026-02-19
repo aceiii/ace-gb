@@ -82,7 +82,7 @@ void Emulator::Reset() {
 
   cpu_.reset();
   mmu_.reset_devices();
-  boot_.load_bytes(boot_rom_);
+  boot_.LoadBytes(boot_rom_);
   cart_.load_cartridge(cart_bytes_);
 
   if (skip_bootrom_) {
@@ -135,7 +135,7 @@ void Emulator::Reset() {
     mmu_.write8(std::to_underlying(IO::WY), 0x00);
     mmu_.write8(std::to_underlying(IO::IE), 0x00);
 
-    boot_.set_disable(0xff);
+    boot_.SetDisable(0xff);
   }
 }
 

@@ -7,20 +7,20 @@
 
 constexpr size_t kBootRomSize = 256;
 
-using rom_buffer = std::array<uint8_t, kBootRomSize>;
+using RomBuffer = std::array<uint8_t, kBootRomSize>;
 
 class BootRomDevice : public MmuDevice {
 public:
-  void load_bytes(const rom_buffer &bytes);
+  void LoadBytes(const RomBuffer &bytes);
 
   [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
   void Write8(uint16_t addr, uint8_t byte) override;
   [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
   void Reset() override;
 
-  void set_disable(uint8_t byte);
+  void SetDisable(uint8_t byte);
 
 private:
-  rom_buffer rom;
-  uint8_t disable = 0;
+  RomBuffer rom_ {};
+  uint8_t disable_ = 0;
 };
