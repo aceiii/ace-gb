@@ -21,16 +21,16 @@ private:
   using rom_bank = std::array<uint8_t, 16384>;
   using ram_bank = std::array<uint8_t, 8192>;
 
-  std::array<rom_bank, 128> rom {};
-  std::array<ram_bank, 4> ram {};
+  std::array<rom_bank, 128> rom_ {};
+  std::array<ram_bank, 4> ram_ {};
 
-  CartInfo info;
-  bool mbc1m = false;
-  bool ram_enable = false;
+  CartInfo info_;
+  bool mbc1m_ = false;
+  bool ram_enable_ = false;
 
   struct {
     uint8_t rom_bank_number : 5 = 0;
     uint8_t ram_bank_number : 2 = 0;
   };
-  uint8_t banking_mode = 0;
+  uint8_t banking_mode_ = 0;
 };
