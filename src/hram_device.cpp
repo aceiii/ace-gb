@@ -1,4 +1,4 @@
-#include "hram_device.h"
+#include "hram_device.hpp"
 
 bool HramDevice::IsValidFor(uint16_t addr) const {
   return addr >= kHramStart && addr <= kHramEnd;

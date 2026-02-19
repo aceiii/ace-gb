@@ -13,7 +13,7 @@
 #include "boot_rom_device.hpp"
 #include "cart_device.hpp"
 #include "wram_device.h"
-#include "hram_device.h"
+#include "hram_device.hpp"
 #include "timer.h"
 #include "audio.hpp"
 #include "null_device.h"

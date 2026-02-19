@@ -49,7 +49,7 @@ set(SOURCE_FILES
     src/interrupt_device.h
     src/interrupt.h
     src/hram_device.cpp
-    src/hram_device.h
+        src/hram_device.hpp
         src/audio.cpp
         src/audio.hpp
     src/null_device.cpp
