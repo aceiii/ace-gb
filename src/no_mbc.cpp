@@ -1,4 +1,4 @@
-#include "no_mbc.h"
+#include "no_mbc.hpp"
 #include <algorithm>
 
 NoMbc::NoMbc(const std::vector<uint8_t> &bytes) {

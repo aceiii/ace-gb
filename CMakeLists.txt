@@ -64,7 +64,7 @@ set(SOURCE_FILES
         src/memory_bank_controller.hpp
         src/cart_info.hpp
     src/no_mbc.cpp
-    src/no_mbc.h
+        src/no_mbc.hpp
     src/mbc1.cpp
         src/mbc1.hpp
     src/mbc2.cpp
