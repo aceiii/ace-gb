@@ -15,7 +15,7 @@ bool Audio::IsValidFor(uint16_t addr) const {
 
 void Audio::Write8(uint16_t addr, uint8_t byte) {
   if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
-    ch3_.set_wave(addr - kWaveRamStart, byte);
+    ch3_.SetWave(addr - kWaveRamStart, byte);
   } else if (addr == std::to_underlying(IO::NR52)) {
     uint8_t enable_audio = byte >> 7;
     nr52_.val = byte;
@@ -49,7 +49,7 @@ void Audio::Write8(uint16_t addr, uint8_t byte) {
 
 uint8_t Audio::Read8(uint16_t addr) const {
   if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
-    return ch3_.read_wave(addr - kWaveRamStart);
+    return ch3_.ReadWave(addr - kWaveRamStart);
   }
 
   if (addr == std::to_underlying(IO::NR50)) {

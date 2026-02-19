@@ -17,28 +17,28 @@ public:
   void Trigger() override;
   bool IsEnabled() const override;
 
-  uint8_t read_wave(uint8_t idx) const;
-  void set_wave(uint8_t idx, uint8_t byte);
+  uint8_t ReadWave(uint8_t idx) const;
+  void SetWave(uint8_t idx, uint8_t byte);
 
 private:
   void TickLength() override;
   void TickEnvenlope() override;
   void TickSweep() override;
 
-  uint16_t frequency() const;
-  void set_frequency(uint16_t freq);
+  uint16_t SetFrequency() const;
+  void SetFrequency(uint16_t freq);
 
 private:
-  bool enable_channel {};
-  uint16_t length_counter {};
-  uint16_t timer {};
-  uint8_t volume {};
-  uint8_t wave_index {};
-  uint8_t buffer {};
-  uint16_t last_read {};
+  bool enable_channel_ {};
+  uint16_t length_counter_ {};
+  uint16_t timer_ {};
+  uint8_t volume_ {};
+  uint8_t wave_index_ {};
+  uint8_t buffer_ {};
+  uint16_t last_read_ {};
 
-  std::array<uint8_t, 16> wave_pattern_ram;
-  std::array<uint8_t, 5> masks;
+  std::array<uint8_t, 16> wave_pattern_ram_;
+  std::array<uint8_t, 5> masks_;
 
   union {
     std::array<uint8_t, 5> regs {};
