@@ -36,6 +36,6 @@ public:
   [[nodiscard]] bool IsInterruptRequested(Interrupt interrupt) const;
 
 private:
-  InterruptRegister flag_;
-  InterruptRegister enable_;
+  InterruptRegister flag_ {};
+  InterruptRegister enable_ {};
 };

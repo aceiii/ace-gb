@@ -6,7 +6,7 @@
 #include "mmu.h"
 #include "io.h"
 #include "interrupt.hpp"
-#include "interrupt_device.h"
+#include "interrupt_device.hpp"
 #include "synced_device.hpp"
 
 #include <memory>

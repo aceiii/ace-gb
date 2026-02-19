@@ -4,7 +4,7 @@
 #include <raylib.h>
 
 #include "mmu.h"
-#include "interrupt_device.h"
+#include "interrupt_device.hpp"
 #include "synced_device.hpp"
 
 constexpr int kNumTiles = 384;

@@ -46,7 +46,7 @@ set(SOURCE_FILES
     src/timer.cpp
     src/timer.h
     src/interrupt_device.cpp
-    src/interrupt_device.h
+        src/interrupt_device.hpp
         src/interrupt.hpp
     src/hram_device.cpp
         src/hram_device.hpp
@@ -137,7 +137,7 @@ if(BUILD_TESTS)
         src/mmu.h
         src/mmu.cpp
             src/interrupt.hpp
-        src/interrupt_device.h
+            src/interrupt_device.hpp
         src/interrupt_device.cpp
             src/synced_device.hpp
     )

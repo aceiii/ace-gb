@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mmu_device.hpp"
-#include "interrupt_device.h"
+#include "interrupt_device.hpp"
 #include "synced_device.hpp"
 
 struct timer_registers {

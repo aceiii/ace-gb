@@ -2,7 +2,7 @@
 
 #include "mmu_device.hpp"
 #include "joypad.h"
-#include "interrupt_device.h"
+#include "interrupt_device.hpp"
 
 struct InputRegister {
   union {
