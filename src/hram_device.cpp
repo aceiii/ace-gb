@@ -5,13 +5,13 @@ bool HramDevice::IsValidFor(uint16_t addr) const {
 }
 
 void HramDevice::Write8(uint16_t addr, uint8_t byte) {
-  ram[addr - kHramStart] = byte;
+  ram_[addr - kHramStart] = byte;
 }
 
 uint8_t HramDevice::Read8(uint16_t addr) const {
-  return ram[addr - kHramStart];
+  return ram_[addr - kHramStart];
 }
 
 void HramDevice::Reset() {
-  ram.fill(0);
+  ram_.fill(0);
 }

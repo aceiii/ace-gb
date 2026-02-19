@@ -4,6 +4,7 @@
 
 #include "mmu_device.hpp"
 
+
 constexpr int kHramStart = 0xff80;
 constexpr int kHramEnd = 0xfffe;
 constexpr int kHramSize = kHramEnd - kHramStart + 1;
@@ -16,5 +17,5 @@ public:
   void Reset() override;
 
 private:
-  std::array<uint8_t, kHramSize> ram;
+  std::array<uint8_t, kHramSize> ram_;
 };
