@@ -18,6 +18,6 @@ public:
   void WriteRam(uint16_t addr, uint8_t byte) override;
 
 private:
-  std::array<uint8_t, 32 * 1024> rom {};
-  std::array<uint8_t, 8 * 1024> ram {};
+  std::array<uint8_t, 32 * 1024> rom_ {};
+  std::array<uint8_t, 8 * 1024> ram_ {};
 };
