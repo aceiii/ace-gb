@@ -13,7 +13,7 @@ constexpr std::array<uint8_t, 5> kDefaultMasks {{ 0x7f, 0xff, 0x9f, 0xff, 0xbf }
 WaveChannel::WaveChannel(): wave_pattern_ram { kInitialWaveRam }, masks { kDefaultMasks } {
 }
 
-void WaveChannel::reset() {
+void WaveChannel::Reset() {
   enable_channel = false;
   length_counter = 0;
   timer = 0;
@@ -24,7 +24,7 @@ void WaveChannel::reset() {
   wave_pattern_ram = kInitialWaveRam;
 }
 
-void WaveChannel::poweroff() {
+void WaveChannel::PowerOff() {
   enable_channel = false;
   length_counter = 0;
   timer = 0;
@@ -34,7 +34,7 @@ void WaveChannel::poweroff() {
   regs.fill(0);
 }
 
-void WaveChannel::write(AudioRegister reg, uint8_t value) {
+void WaveChannel::Write(AudioRegister reg, uint8_t value) {
   const auto idx = std::to_underlying(reg);
   regs[idx] = value;
 
@@ -52,19 +52,19 @@ void WaveChannel::write(AudioRegister reg, uint8_t value) {
       break;
     case AudioRegister::NRx4:
       if (nrx4.trigger) {
-        trigger();
+        Trigger();
       }
       break;
     default: break;
   }
 }
 
-uint8_t WaveChannel::read(AudioRegister reg) const {
+uint8_t WaveChannel::Read(AudioRegister reg) const {
   const auto idx = std::to_underlying(reg);
   return regs[idx] | masks[idx];
 }
 
-float WaveChannel::sample() const {
+float WaveChannel::Sample() const {
   if (!enable_channel || !nrx0.dac) {
     return 0.0f;
   }
@@ -99,8 +99,8 @@ void WaveChannel::set_wave(uint8_t idx, uint8_t byte) {
   wave_pattern_ram[idx] = byte;
 }
 
-void WaveChannel::tick() {
-  if (!enabled()) {
+void WaveChannel::Tick() {
+  if (!IsEnabled()) {
     return;
   }
 
@@ -120,7 +120,7 @@ void WaveChannel::tick() {
   }
 }
 
-void WaveChannel::trigger() {
+void WaveChannel::Trigger() {
   enable_channel = nrx0.dac;
 
   if (length_counter == 0) {
@@ -132,11 +132,11 @@ void WaveChannel::trigger() {
   buffer = (wave_pattern_ram[0] >> 4) & 0xf;
 }
 
-bool WaveChannel::enabled() const {
+bool WaveChannel::IsEnabled() const {
   return enable_channel;
 }
 
-void WaveChannel::length_tick() {
+void WaveChannel::TickLength() {
   if (!nrx4.length_enable) {
     return;
   }
@@ -150,10 +150,10 @@ void WaveChannel::length_tick() {
   }
 }
 
-void WaveChannel::envelope_tick() {
+void WaveChannel::TickEvenlope() {
 }
 
-void WaveChannel::sweep_tick() {
+void WaveChannel::TickSweep() {
 }
 
 uint16_t WaveChannel::frequency() const {

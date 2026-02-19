@@ -26,13 +26,13 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
     }
   } else if (nr52.audio) {
     if (addr >= std::to_underlying(IO::NR10) && addr <= std::to_underlying(IO::NR14)) {
-      ch1.write(AudioRegister { addr - std::to_underlying(IO::NR10) }, byte);
+      ch1.Write(AudioRegister { addr - std::to_underlying(IO::NR10) }, byte);
     } else if (addr >= std::to_underlying(IO::NR20) && addr <= std::to_underlying(IO::NR24)) {
-      ch2.write(AudioRegister { addr - std::to_underlying(IO::NR20) }, byte);
+      ch2.Write(AudioRegister { addr - std::to_underlying(IO::NR20) }, byte);
     } else if (addr >= std::to_underlying(IO::NR30) && addr <= std::to_underlying(IO::NR34)) {
-      ch3.write(AudioRegister { addr - std::to_underlying(IO::NR30) }, byte);
+      ch3.Write(AudioRegister { addr - std::to_underlying(IO::NR30) }, byte);
     } else if (addr >= std::to_underlying(IO::NR40) && addr <= std::to_underlying(IO::NR44)) {
-      ch4.write(AudioRegister { addr - std::to_underlying(IO::NR40) }, byte);
+      ch4.Write(AudioRegister { addr - std::to_underlying(IO::NR40) }, byte);
     } else if (addr == std::to_underlying(IO::NR50)) {
       nr50.val = byte;
     } else if (addr == std::to_underlying(IO::NR51)) {
@@ -42,7 +42,7 @@ void Audio::write8(uint16_t addr, uint8_t byte) {
     }
   } else {
     if (addr == std::to_underlying(IO::NR41)) {
-      ch4.write(AudioRegister::NRx1, byte);
+      ch4.Write(AudioRegister::NRx1, byte);
     }
   }
 }
@@ -60,25 +60,25 @@ uint8_t Audio::read8(uint16_t addr) const {
   }
   if (addr == std::to_underlying(IO::NR52)) {
     auto hi = ((nr52.val | 0b01110000) & 0b11110000);
-    uint8_t lo = (ch1.enabled() & 0b1) | ((ch2.enabled() & 0b1) << 1) | ((ch3.enabled() & 0b1) << 2) | ((ch4.enabled() & 0b1) << 3);
+    uint8_t lo = (ch1.IsEnabled() & 0b1) | ((ch2.IsEnabled() & 0b1) << 1) | ((ch3.IsEnabled() & 0b1) << 2) | ((ch4.IsEnabled() & 0b1) << 3);
     spdlog::info("NR52: {:08b}, div_timer:{}", (hi | lo), timer.div());
     return hi | lo;
   }
 
   if (addr >= std::to_underlying(IO::NR10) && addr <= std::to_underlying(IO::NR14)) {
-    return ch1.read(AudioRegister { addr - std::to_underlying(IO::NR10) });
+    return ch1.Read(AudioRegister { addr - std::to_underlying(IO::NR10) });
   }
 
   if (addr >= std::to_underlying(IO::NR21) && addr <= std::to_underlying(IO::NR24)) {
-    return ch2.read(AudioRegister { addr - std::to_underlying(IO::NR20) });
+    return ch2.Read(AudioRegister { addr - std::to_underlying(IO::NR20) });
   }
 
   if (addr >= std::to_underlying(IO::NR30) && addr <= std::to_underlying(IO::NR34)) {
-    return ch3.read(AudioRegister { addr - std::to_underlying(IO::NR30) });
+    return ch3.Read(AudioRegister { addr - std::to_underlying(IO::NR30) });
   }
 
   if (addr >= std::to_underlying(IO::NR41) && addr <= std::to_underlying(IO::NR44)) {
-    return ch4.read(AudioRegister { addr - std::to_underlying(IO::NR40) });
+    return ch4.Read(AudioRegister { addr - std::to_underlying(IO::NR40) });
   }
 
   return 0xff;
@@ -89,10 +89,10 @@ void Audio::reset() {
   nr50.val = 0;
   nr51.val = 0;
   nr52.val = 0;
-  ch1.reset();
-  ch2.reset();
-  ch3.reset();
-  ch4.reset();
+  ch1.Reset();
+  ch2.Reset();
+  ch3.Reset();
+  ch4.Reset();
 }
 
 void Audio::poweroff() {
@@ -100,25 +100,25 @@ void Audio::poweroff() {
   nr50.val = 0;
   nr51.val = 0;
   nr52.val = 0;
-  ch1.poweroff();
-  ch2.poweroff();
-  ch3.poweroff();
-  ch4.poweroff();
+  ch1.PowerOff();
+  ch2.PowerOff();
+  ch3.PowerOff();
+  ch4.PowerOff();
 }
 
 void Audio::OnTick() {
-  ch1.tick();
-  ch2.tick();
-  ch3.tick();
-  ch4.tick();
+  ch1.Tick();
+  ch2.Tick();
+  ch3.Tick();
+  ch4.Tick();
 
   frame_sequencer_counter += 1;
   while (frame_sequencer_counter >= 8192) {
     frame_sequencer_counter -= 8192;
-    ch1.clock(frame_sequencer);
-    ch2.clock(frame_sequencer);
-    ch3.clock(frame_sequencer);
-    ch4.clock(frame_sequencer);
+    ch1.Clock(frame_sequencer);
+    ch2.Clock(frame_sequencer);
+    ch3.Clock(frame_sequencer);
+    ch4.Clock(frame_sequencer);
     frame_sequencer = (frame_sequencer + 1) % 8;
   }
 
@@ -151,10 +151,10 @@ std::tuple<float, float> Audio::sample() const {
   float right = 0.0f;
 
   if (nr52.audio && enable_channel[4]) {
-    auto s1 = ch1.sample();
-    auto s2 = ch2.sample();
-    auto s3 = ch3.sample();
-    auto s4 = ch4.sample();
+    auto s1 = ch1.Sample();
+    auto s2 = ch2.Sample();
+    auto s3 = ch3.Sample();
+    auto s4 = ch4.Sample();
 
     if (nr51.ch1_left && enable_channel[0]) {
       left += s1;

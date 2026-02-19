@@ -8,22 +8,22 @@ class WaveChannel : public AudioChannel {
 public:
   explicit WaveChannel();
 
-  void reset() override;
-  void poweroff() override;
-  void write(AudioRegister reg, uint8_t value) override;
-  uint8_t read(AudioRegister reg) const override;
-  float sample() const override;
-  void tick() override;
-  void trigger() override;
-  bool enabled() const override;
+  void Reset() override;
+  void PowerOff() override;
+  void Write(AudioRegister reg, uint8_t value) override;
+  uint8_t Read(AudioRegister reg) const override;
+  float Sample() const override;
+  void Tick() override;
+  void Trigger() override;
+  bool IsEnabled() const override;
 
   uint8_t read_wave(uint8_t idx) const;
   void set_wave(uint8_t idx, uint8_t byte);
 
 private:
-  void length_tick() override;
-  void envelope_tick() override;
-  void sweep_tick() override;
+  void TickLength() override;
+  void TickEvenlope() override;
+  void TickSweep() override;
 
   uint16_t frequency() const;
   void set_frequency(uint16_t freq);

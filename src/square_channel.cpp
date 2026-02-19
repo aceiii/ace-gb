@@ -23,7 +23,7 @@ constexpr auto kInitialLengthCounter = 64;
 SquareChannel::SquareChannel(bool sweep): enable_sweep { sweep }, masks { defaultMask(sweep) } {
 }
 
-void SquareChannel::reset() {
+void SquareChannel::Reset() {
   enable_channel = false;
   length_counter = 0;
   envelope_timer = 0;
@@ -37,7 +37,7 @@ void SquareChannel::reset() {
   regs.fill(0);
 }
 
-void SquareChannel::poweroff() {
+void SquareChannel::PowerOff() {
   enable_channel = false;
   length_counter = 0;
   envelope_timer = 0;
@@ -51,7 +51,7 @@ void SquareChannel::poweroff() {
   regs.fill(0);
 }
 
-void SquareChannel::write(AudioRegister reg, uint8_t value) {
+void SquareChannel::Write(AudioRegister reg, uint8_t value) {
   const auto idx = std::to_underlying(reg);
   const auto prev_direction = nrx0.period_sweep_direction;
   regs[idx] = value;
@@ -88,19 +88,19 @@ void SquareChannel::write(AudioRegister reg, uint8_t value) {
     case AudioRegister::NRx4:
 //      spdlog::info("NRx4: {:02x}, trigger:{}, length_enable:{}, period:{}", value, static_cast<uint8_t>(nrx4.trigger), static_cast<uint8_t>(nrx4.length_enable), static_cast<uint8_t>(nrx4.period));
       if (nrx4.trigger) {
-        trigger();
+        Trigger();
       }
       break;
     default: break;
   }
 }
 
-uint8_t SquareChannel::read(AudioRegister reg) const {
+uint8_t SquareChannel::Read(AudioRegister reg) const {
   const auto idx = std::to_underlying(reg);
   return regs[idx] | masks[idx];
 }
 
-float SquareChannel::sample() const {
+float SquareChannel::Sample() const {
   if (!enable_channel || !nrx2.dac) {
     return 0.0f;
   }
@@ -111,8 +111,8 @@ float SquareChannel::sample() const {
   return bit ? vol : -vol;
 }
 
-void SquareChannel::tick() {
-  if (!enabled()) {
+void SquareChannel::Tick() {
+  if (!IsEnabled()) {
     return;
   }
 
@@ -126,7 +126,7 @@ void SquareChannel::tick() {
   }
 }
 
-void SquareChannel::trigger() {
+void SquareChannel::Trigger() {
   enable_channel = nrx2.dac;
   envelope_timer = nrx2.envelope_sweep_pace;
   volume = nrx2.initial_volume;
@@ -160,12 +160,12 @@ void SquareChannel::trigger() {
   }
 }
 
-bool SquareChannel::enabled() const {
+bool SquareChannel::IsEnabled() const {
 //  spdlog::info("square:length_counter:{}, period_sweep_step:{}, period_sweep_pace:{}, enable_sweep:{}", length_counter, nrx0.period_sweep_step, nrx0.period_sweep_pace, enable_sweep);
   return enable_channel;
 }
 
-void SquareChannel::length_tick() {
+void SquareChannel::TickLength() {
   if (!nrx4.length_enable) {
     return;
   }
@@ -183,7 +183,7 @@ void SquareChannel::length_tick() {
   }
 }
 
-void SquareChannel::envelope_tick() {
+void SquareChannel::TickEvenlope() {
   if (!nrx2.envelope_sweep_pace) {
     return;
   }
@@ -208,7 +208,7 @@ void SquareChannel::envelope_tick() {
   }
 }
 
-void SquareChannel::sweep_tick() {
+void SquareChannel::TickSweep() {
   if (!enable_sweep) {
     return;
   }

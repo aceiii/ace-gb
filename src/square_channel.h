@@ -8,19 +8,19 @@ class SquareChannel : public AudioChannel {
 public:
   explicit SquareChannel(bool sweep);
 
-  void reset() override;
-  void poweroff() override;
-  void write(AudioRegister reg, uint8_t value) override;
-  uint8_t read(AudioRegister reg) const override;
-  float sample() const override;
-  void tick() override;
-  void trigger() override;
-  bool enabled() const override;
+  void Reset() override;
+  void PowerOff() override;
+  void Write(AudioRegister reg, uint8_t value) override;
+  uint8_t Read(AudioRegister reg) const override;
+  float Sample() const override;
+  void Tick() override;
+  void Trigger() override;
+  bool IsEnabled() const override;
 
 private:
-  void length_tick() override;
-  void envelope_tick() override;
-  void sweep_tick() override;
+  void TickLength() override;
+  void TickEvenlope() override;
+  void TickSweep() override;
 
   uint16_t calc_sweep();
   uint16_t frequency() const;

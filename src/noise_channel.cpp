@@ -17,7 +17,7 @@ uint8_t clock_divisor(uint8_t div) {
 NoiseChannel::NoiseChannel(): masks { kDefaultMasks } {
 }
 
-void NoiseChannel::reset() {
+void NoiseChannel::Reset() {
   enable_channel = false;
   length_counter = 0;
   envelope_timer = 0;
@@ -27,7 +27,7 @@ void NoiseChannel::reset() {
   regs.fill(0);
 }
 
-void NoiseChannel::poweroff() {
+void NoiseChannel::PowerOff() {
   enable_channel = false;
   length_counter = 0;
   envelope_timer = 0;
@@ -40,7 +40,7 @@ void NoiseChannel::poweroff() {
   nrx1.initial_length_timer = initial_length_timer;
 }
 
-void NoiseChannel::write(AudioRegister reg, uint8_t value) {
+void NoiseChannel::Write(AudioRegister reg, uint8_t value) {
   auto prev_clock_divider = nrx3.clock_divider;
 
   const auto idx = std::to_underlying(reg);
@@ -62,7 +62,7 @@ void NoiseChannel::write(AudioRegister reg, uint8_t value) {
       break;
     case AudioRegister::NRx4:
       if (nrx4.trigger) {
-        trigger();
+        Trigger();
       }
       break;
     default:
@@ -70,12 +70,12 @@ void NoiseChannel::write(AudioRegister reg, uint8_t value) {
   }
 }
 
-uint8_t NoiseChannel::read(AudioRegister reg) const {
+uint8_t NoiseChannel::Read(AudioRegister reg) const {
   const auto idx = std::to_underlying(reg);
   return regs[idx] | masks[idx];
 }
 
-float NoiseChannel::sample() const {
+float NoiseChannel::Sample() const {
   if (!enable_channel || !nrx2.dac) {
     return 0.0f;
   }
@@ -85,7 +85,7 @@ float NoiseChannel::sample() const {
   return bit ? -vol : vol;
 }
 
-void NoiseChannel::tick() {
+void NoiseChannel::Tick() {
   if (timer) {
     timer -= 1;
   }
@@ -101,7 +101,7 @@ void NoiseChannel::tick() {
   }
 }
 
-void NoiseChannel::trigger() {
+void NoiseChannel::Trigger() {
   enable_channel = nrx2.dac;
 
   if (length_counter == 0) {
@@ -114,11 +114,11 @@ void NoiseChannel::trigger() {
   lfsr.bytes = 0x7fff;
 }
 
-bool NoiseChannel::enabled() const {
+bool NoiseChannel::IsEnabled() const {
   return enable_channel;
 }
 
-void NoiseChannel::length_tick() {
+void NoiseChannel::TickLength() {
   if (!nrx4.length_enable) {
     return;
   }
@@ -132,7 +132,7 @@ void NoiseChannel::length_tick() {
   }
 }
 
-void NoiseChannel::envelope_tick() {
+void NoiseChannel::TickEvenlope() {
   if (!nrx2.sweep_pace) {
     return;
   }
@@ -151,5 +151,5 @@ void NoiseChannel::envelope_tick() {
   }
 }
 
-void NoiseChannel::sweep_tick() {
+void NoiseChannel::TickSweep() {
 }
