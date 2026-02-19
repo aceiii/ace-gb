@@ -12,7 +12,7 @@
 #include "registers.h"
 #include "boot_rom_device.hpp"
 #include "cart_device.hpp"
-#include "wram_device.h"
+#include "wram_device.hpp"
 #include "hram_device.hpp"
 #include "timer.hpp"
 #include "audio.hpp"

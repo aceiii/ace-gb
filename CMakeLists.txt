@@ -42,7 +42,7 @@ set(SOURCE_FILES
         src/cart_device.hpp
         src/cart_device.cpp
     src/wram_device.cpp
-    src/wram_device.h
+        src/wram_device.hpp
     src/timer.cpp
         src/timer.hpp
     src/interrupt_device.cpp

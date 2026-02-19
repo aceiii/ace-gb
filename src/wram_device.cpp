@@ -1,4 +1,4 @@
-#include "wram_device.h"
+#include "wram_device.hpp"
 #include <cstddef>
 
 namespace {
