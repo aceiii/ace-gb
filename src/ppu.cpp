@@ -606,6 +606,6 @@ void Ppu::start_dma() {
   }
 
   for (auto i = 0; i < oam.bytes.size(); i += 1) {
-    oam.bytes[i] = mmu.read8(source + i);
+    oam.bytes[i] = mmu.Read8(source + i);
   }
 }

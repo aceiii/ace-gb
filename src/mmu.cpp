@@ -2,16 +2,16 @@
 
 #include "mmu.h"
 
-void Mmu::clear_devices() {
-  devices.clear();
+void Mmu::ClearDevices() {
+  devices_.clear();
 }
 
-void Mmu::add_device(MmuDevicePtr device) {
-  devices.emplace_back(device);
+void Mmu::AddDevice(MmuDevicePtr device) {
+  devices_.emplace_back(device);
 }
 
-void Mmu::write8(uint16_t addr, uint8_t byte) {
-  for (auto &device : devices) {
+void Mmu::Write8(uint16_t addr, uint8_t byte) {
+  for (auto &device : devices_) {
     if (device->IsValidFor(addr)) {
       device->Write8(addr, byte);
       return;
@@ -20,8 +20,8 @@ void Mmu::write8(uint16_t addr, uint8_t byte) {
   spdlog::error("No device implemented for address: 0x{:02x}", addr);
 }
 
-uint8_t Mmu::read8(uint16_t addr) const {
-  for (const auto &device : devices) {
+uint8_t Mmu::Read8(uint16_t addr) const {
+  for (const auto &device : devices_) {
     if (device->IsValidFor(addr)) {
       return device->Read8(addr);
     }
@@ -29,8 +29,8 @@ uint8_t Mmu::read8(uint16_t addr) const {
   std::unreachable();
 }
 
-void Mmu::reset_devices() {
-  for (auto &device : devices) {
+void Mmu::ResetDevices() {
+  for (auto &device : devices_) {
     device->Reset();
   }
 }

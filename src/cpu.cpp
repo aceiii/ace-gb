@@ -1169,10 +1169,10 @@ uint8_t Cpu::Execute() {
     auto sp = regs.sp;
 
     auto mem = std::to_array<uint8_t>({
-      mmu.read8(pc),
-      mmu.read8(pc + 1),
-      mmu.read8(pc + 2),
-      mmu.read8(pc + 3),
+      mmu.Read8(pc),
+      mmu.Read8(pc + 1),
+      mmu.Read8(pc + 2),
+      mmu.Read8(pc + 3),
     });
 
     logger->info("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
@@ -1326,44 +1326,44 @@ void Cpu::Reset() {
 Cpu::Cpu(Mmu &mmu_, InterruptDevice &interrupts_):mmu{mmu_}, interrupts{interrupts_} {}
 
 uint8_t Cpu::Read8(uint16_t addr) {
-  auto result = mmu.read8(addr);
+  auto result = mmu.Read8(addr);
   Tick();
   return result;
 }
 
 void Cpu::Write8(uint16_t addr, uint8_t val) {
-  mmu.write8(addr, val);
+  mmu.Write8(addr, val);
   Tick();
 }
 
 
 uint16_t Cpu::Read16(uint16_t addr) {
-  uint8_t lo = mmu.read8(addr);
+  uint8_t lo = mmu.Read8(addr);
   Tick();
-  uint8_t hi = mmu.read8(addr + 1);
+  uint8_t hi = mmu.Read8(addr + 1);
   Tick();
   return lo | (hi << 8);
 }
 
 void Cpu::Write16(uint16_t addr, uint16_t word) {
-  mmu.write8(addr, word & 0xff);
+  mmu.Write8(addr, word & 0xff);
   Tick();
-  mmu.write8(addr + 1, word >> 8);
+  mmu.Write8(addr + 1, word >> 8);
   Tick();
 }
 
 
 void Cpu::Push16(uint16_t word) {
-  mmu.write8(--regs.sp, word >> 8);
+  mmu.Write8(--regs.sp, word >> 8);
   Tick();
-  mmu.write8(--regs.sp, word & 0xff);
+  mmu.Write8(--regs.sp, word & 0xff);
   Tick();
 }
 
 uint16_t Cpu::Pop16() {
-  uint8_t lo = mmu.read8(regs.sp++);
+  uint8_t lo = mmu.Read8(regs.sp++);
   Tick();
-  uint8_t hi = mmu.read8(regs.sp++);
+  uint8_t hi = mmu.Read8(regs.sp++);
   Tick();
   return lo | (hi << 8);
 }
