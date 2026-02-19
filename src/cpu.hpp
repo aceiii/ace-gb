@@ -4,7 +4,7 @@
 #include "registers.h"
 #include "memory.h"
 #include "mmu.h"
-#include "io.h"
+#include "io.hpp"
 #include "interrupt.hpp"
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"

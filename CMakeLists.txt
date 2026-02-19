@@ -34,7 +34,7 @@ set(SOURCE_FILES
     src/mmu.cpp
     src/ppu.h
     src/ppu.cpp
-    src/io.h
+        src/io.hpp
         src/file.hpp
     src/file.cpp
         src/boot_rom_device.hpp
@@ -59,7 +59,7 @@ set(SOURCE_FILES
     src/serial_device.cpp
     src/serial_device.h
         src/synced_device.hpp
-    src/joypad.h
+        src/joypad.hpp
         src/cart_header.hpp
     src/memory_bank_controller.h
         src/cart_info.hpp
@@ -133,7 +133,7 @@ if(BUILD_TESTS)
         src/overloaded.h
         src/registers.h
         src/util.h
-        src/io.h
+            src/io.hpp
         src/mmu.h
         src/mmu.cpp
             src/interrupt.hpp

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mmu_device.hpp"
-#include "joypad.h"
+#include "joypad.hpp"
 #include "interrupt_device.hpp"
 
 struct InputRegister {

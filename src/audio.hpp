@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "io.h"
+#include "io.hpp"
 #include "mmu_device.hpp"
 #include "synced_device.hpp"
 #include "timer.h"
