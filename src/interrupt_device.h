@@ -2,7 +2,7 @@
 
 #include "io.h"
 #include "mmu_device.hpp"
-#include "interrupt.h"
+#include "interrupt.hpp"
 
 struct interrupt_register {
   union {
