@@ -19,7 +19,7 @@ public:
   void reset() override;
 
   void step();
-  void on_tick() override;
+  void OnTick() override;
   void trigger_callbacks();
 
   std::string_view line_buffer() const;

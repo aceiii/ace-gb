@@ -106,7 +106,7 @@ void Audio::poweroff() {
   ch4.poweroff();
 }
 
-void Audio::on_tick() {
+void Audio::OnTick() {
   ch1.tick();
   ch2.tick();
   ch3.tick();

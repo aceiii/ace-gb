@@ -28,7 +28,7 @@ public:
   void reset() override;
 
   void execute(uint8_t cycles);
-  void on_tick() override;
+  void OnTick() override;
 
   uint16_t div() const;
 

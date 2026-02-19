@@ -91,7 +91,7 @@ void Timer::execute(uint8_t cycles) {
   }
 }
 
-void Timer::on_tick() {
+void Timer::OnTick() {
   execute(4);
 }
 

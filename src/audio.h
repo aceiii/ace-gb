@@ -42,7 +42,7 @@ public:
   void reset() override;
   void poweroff();
 
-  void on_tick() override;
+  void OnTick() override;
 
   void get_samples(std::vector<float> &out_buffer);
 

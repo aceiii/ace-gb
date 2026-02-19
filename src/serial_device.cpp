@@ -42,7 +42,7 @@ void SerialDevice::reset() {
   sc.unused = 0x1f;
 }
 
-void SerialDevice::on_tick() {
+void SerialDevice::OnTick() {
   step();
 }
 

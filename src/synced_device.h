@@ -1,6 +1,9 @@
 #pragma once
 
+
 class SyncedDevice {
 public:
-  virtual void on_tick() = 0;
+  virtual ~SyncedDevice() = default;
+
+  virtual void OnTick() = 0;
 };

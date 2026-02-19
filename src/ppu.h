@@ -121,7 +121,7 @@ public:
   void execute(uint8_t cycles);
   void step();
 
-  void on_tick() override;
+  void OnTick() override;
 
   [[nodiscard]] bool valid_for(uint16_t addr) const override;
   void write8(uint16_t addr, uint8_t byte) override;

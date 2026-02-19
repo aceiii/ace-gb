@@ -1374,7 +1374,7 @@ void Cpu::add_synced(SyncedDevice *device) {
 
 void Cpu::tick() {
   for (auto &device : synced_devices) {
-    device->on_tick();
+    device->OnTick();
   }
   tick_counter += 4;
 }

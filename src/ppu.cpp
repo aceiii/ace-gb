@@ -96,7 +96,7 @@ void Ppu::execute(uint8_t cycles) {
   } while(cycles);
 }
 
-void Ppu::on_tick() {
+void Ppu::OnTick() {
   step();
 }
 
