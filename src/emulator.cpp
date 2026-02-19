@@ -9,7 +9,7 @@
 
 #include "emulator.hpp"
 #include "file.hpp"
-#include "mmu.h"
+#include "mmu.hpp"
 
 // NOTE: not sure why, but my emulator seems to be 4x slower than it should be...
 constexpr auto kStaticSpeedMultiplier = 4;

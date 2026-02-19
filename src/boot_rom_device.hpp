@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 
-#include "mmu.h"
+#include "mmu.hpp"
 
 constexpr size_t kBootRomSize = 256;
 

@@ -3,7 +3,7 @@
 #include "decoder.hpp"
 #include "registers.h"
 #include "memory.h"
-#include "mmu.h"
+#include "mmu.hpp"
 #include "io.hpp"
 #include "interrupt.hpp"
 #include "interrupt_device.hpp"

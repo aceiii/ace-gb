@@ -30,7 +30,7 @@ set(SOURCE_FILES
     src/overloaded.h
     src/registers.h
     src/util.h
-    src/mmu.h
+        src/mmu.hpp
     src/mmu.cpp
     src/ppu.h
     src/ppu.cpp
@@ -134,7 +134,7 @@ if(BUILD_TESTS)
         src/registers.h
         src/util.h
             src/io.hpp
-        src/mmu.h
+            src/mmu.hpp
         src/mmu.cpp
             src/interrupt.hpp
             src/interrupt_device.hpp

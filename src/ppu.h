@@ -3,7 +3,7 @@
 #include <array>
 #include <raylib.h>
 
-#include "mmu.h"
+#include "mmu.hpp"
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
 

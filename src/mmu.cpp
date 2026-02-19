@@ -1,6 +1,6 @@
 #include <spdlog/spdlog.h>
 
-#include "mmu.h"
+#include "mmu.hpp"
 
 void Mmu::ClearDevices() {
   devices_.clear();
