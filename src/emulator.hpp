@@ -15,7 +15,7 @@
 #include "wram_device.h"
 #include "hram_device.h"
 #include "timer.h"
-#include "audio.h"
+#include "audio.hpp"
 #include "null_device.h"
 #include "input_device.h"
 #include "serial_device.h"

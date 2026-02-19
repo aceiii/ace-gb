@@ -50,8 +50,8 @@ set(SOURCE_FILES
     src/interrupt.h
     src/hram_device.cpp
     src/hram_device.h
-    src/audio.cpp
-    src/audio.h
+        src/audio.cpp
+        src/audio.hpp
     src/null_device.cpp
     src/null_device.h
     src/input_device.cpp

@@ -1,6 +1,6 @@
 #include <spdlog/spdlog.h>
 
-#include "audio.h"
+#include "audio.hpp"
 
 constexpr int kClockSpeed = 4194304;
 constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
