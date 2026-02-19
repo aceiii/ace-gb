@@ -76,7 +76,7 @@ set(SOURCE_FILES
     src/square_channel.cpp
         src/square_channel.hpp
     src/wave_channel.cpp
-    src/wave_channel.h
+        src/wave_channel.hpp
     src/noise_channel.cpp
     src/noise_channel.h
         src/audio_channel.hpp

@@ -2,7 +2,7 @@
 #include <utility>
 #include <spdlog/spdlog.h>
 
-#include "wave_channel.h"
+#include "wave_channel.hpp"
 
 constexpr  auto kInitialLengthCounter = 256;
 

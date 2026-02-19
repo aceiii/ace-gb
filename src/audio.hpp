@@ -11,7 +11,7 @@
 #include "timer.hpp"
 #include "square_channel.hpp"
 #include "noise_channel.h"
-#include "wave_channel.h"
+#include "wave_channel.hpp"
 
 enum class AudioChannelID {
   CH1,
