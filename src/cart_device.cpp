@@ -9,7 +9,7 @@
 #include "mbc1.hpp"
 #include "mbc2.hpp"
 #include "mbc3.hpp"
-#include "mbc5.h"
+#include "mbc5.hpp"
 
 bool CartDevice::IsValidFor(uint16_t addr) const {
   return addr <= kRomBank01End || (addr >= kExtRamStart && addr <= kExtRamEnd);
