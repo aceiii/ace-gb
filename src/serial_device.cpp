@@ -1,6 +1,6 @@
 #include <spdlog/spdlog.h>
 
-#include "serial_device.h"
+#include "serial_device.hpp"
 #include "io.hpp"
 
 SerialDevice::SerialDevice(InterruptDevice &interrupts):interrupts_{interrupts} {

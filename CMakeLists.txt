@@ -57,7 +57,7 @@ set(SOURCE_FILES
     src/input_device.cpp
         src/input_device.hpp
     src/serial_device.cpp
-    src/serial_device.h
+        src/serial_device.hpp
         src/synced_device.hpp
         src/joypad.hpp
         src/cart_header.hpp

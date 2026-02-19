@@ -18,7 +18,7 @@
 #include "audio.hpp"
 #include "null_device.h"
 #include "input_device.hpp"
-#include "serial_device.h"
+#include "serial_device.hpp"
 
 
 class Emulator {
