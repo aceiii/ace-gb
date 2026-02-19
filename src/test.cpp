@@ -21,26 +21,26 @@ using TestMemory = std::array<uint8_t, kTestMemSize>;
 
 class TestMemoryDevice : public MmuDevice {
 public:
-  explicit TestMemoryDevice(TestMemory &mem_):mem{mem_} {}
+  explicit TestMemoryDevice(TestMemory &mem_):mem_{mem_} {}
 
-  bool valid_for(uint16_t addr) const override {
+  bool IsValidFor(uint16_t addr) const override {
     return true;
   }
 
-  void write8(uint16_t addr, uint8_t byte) override {
-    mem[addr] = byte;
+  void Write8(uint16_t addr, uint8_t byte) override {
+    mem_[addr] = byte;
   }
 
-  [[nodiscard]] uint8_t read8(uint16_t addr) const override {
-    return mem[addr];
+  [[nodiscard]] uint8_t Read8(uint16_t addr) const override {
+    return mem_[addr];
   }
 
-  void reset() override {
-    mem.fill(0);
+  void Reset() override {
+    mem_.fill(0);
   }
 
 private:
-  TestMemory& mem;
+  TestMemory& mem_;
 };
 
 struct TestConfig {
@@ -57,7 +57,7 @@ struct TestResult {
   std::vector<TFailed> failed {};
 };
 
-void load_registers(const json &data, Registers &regs) {
+void LoadRegisters(const json &data, Registers &regs) {
   regs.set(Reg8::A, data.at("a").get<uint8_t>());
   regs.set(Reg8::B, data.at("b").get<uint8_t>());
   regs.set(Reg8::C, data.at("c").get<uint8_t>());
@@ -70,7 +70,7 @@ void load_registers(const json &data, Registers &regs) {
   regs.sp = data.at("sp").get<uint16_t>();
 }
 
-void load_memory(const json& data, TestMemory& mem) {
+void LoadMemory(const json& data, TestMemory& mem) {
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint16_t>();
@@ -79,7 +79,7 @@ void load_memory(const json& data, TestMemory& mem) {
   }
 }
 
-bool check_memory(const json &data, const TestMemory& mem) {
+bool CheckMemory(const json &data, const TestMemory& mem) {
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint8_t>();
@@ -90,7 +90,7 @@ bool check_memory(const json &data, const TestMemory& mem) {
   return true;
 }
 
-std::vector<std::tuple<std::string, uint8_t, uint8_t>> mismatched_registers(const Registers &regs, const Registers &target) {
+std::vector<std::tuple<std::string, uint8_t, uint8_t>> MismatchedRegisters(const Registers &regs, const Registers &target) {
   std::vector<std::tuple<std::string, uint8_t, uint8_t>> failed;
   for (int i = 0; i < std::to_underlying(Reg8::Count); i += 1) {
     Reg8 r {i};
@@ -112,7 +112,7 @@ std::vector<std::tuple<std::string, uint8_t, uint8_t>> mismatched_registers(cons
   return failed;
 }
 
-std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> mismatched_memory(const json& data, const TestMemory& mem) {
+std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> MismatchedMemory(const json& data, const TestMemory& mem) {
   std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> failed;
   for (const auto &ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
@@ -125,7 +125,7 @@ std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> mismatched_memory(const json
   return failed;
 }
 
-std::expected<TestResult<int, int>, std::string> run_test(const TestConfig &config) {
+std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig &config) {
   std::ifstream input(config.path);
   if (input.fail()) {
     return std::unexpected { std::format("Failed to open '{}': {}", config.path.string(), strerror(errno)) };
@@ -173,16 +173,16 @@ std::expected<TestResult<int, int>, std::string> run_test(const TestConfig &conf
     mmu.reset_devices();
 
     Registers &regs = cpu.regs;
-    load_registers(initial, regs);
+    LoadRegisters(initial, regs);
 
     Registers final_regs;
-    load_registers(final, final_regs);
-    load_memory(initial.at("ram"), mem);
+    LoadRegisters(final, final_regs);
+    LoadMemory(initial.at("ram"), mem);
 
     cpu.execute();
 
     auto reg_match = regs == final_regs;
-    auto ram_match = check_memory(final.at("ram"), mem);
+    auto ram_match = CheckMemory(final.at("ram"), mem);
     auto is_success = reg_match && ram_match;
     if (is_success) {
       result.succeeded.emplace_back(i);
@@ -194,13 +194,13 @@ std::expected<TestResult<int, int>, std::string> run_test(const TestConfig &conf
 
     if (!is_success && config.fail_details) {
       if (!reg_match) {
-        for (const auto &[reg, a, b] : mismatched_registers(regs, final_regs)) {
+        for (const auto &[reg, a, b] : MismatchedRegisters(regs, final_regs)) {
           spdlog::error("  reg[{}]: {} != {}", reg , a, b);
         }
       }
 
       if (!ram_match) {
-        for (const auto &[addr, a, b] : mismatched_memory(final.at("ram"), mem)) {
+        for (const auto &[addr, a, b] : MismatchedMemory(final.at("ram"), mem)) {
           spdlog::error("  mem[{}]: {} != {}", addr , a, b);
         }
       }
@@ -212,7 +212,7 @@ std::expected<TestResult<int, int>, std::string> run_test(const TestConfig &conf
   return result;
 }
 
-int run_all_tests(const TestConfig &config) {
+int RunAllTests(const TestConfig &config) {
   std::vector<fs::path> test_files;
   test_files.reserve(128);
 
@@ -230,7 +230,7 @@ int run_all_tests(const TestConfig &config) {
   for (const auto &path : test_files) {
     TestConfig test_config = config;
     test_config.path = path;
-    auto res = run_test(test_config);
+    auto res = RunTest(test_config);
     if (!res.has_value()) {
       total_results.failed.emplace_back(path, 0, 0);
       continue;
@@ -257,8 +257,8 @@ int run_all_tests(const TestConfig &config) {
   return total_results.failed.empty() ? 0 : 1;
 }
 
-int run_single_test(const TestConfig &config) {
-  if (auto res = run_test(config); res.has_value()) {
+int RunSingleTest(const TestConfig &config) {
+  if (auto res = RunTest(config); res.has_value()) {
     auto result = res.value();
     if (config.list_fails && !result.failed.empty()) {
       spdlog::error("Failed:");
@@ -277,17 +277,17 @@ int run_single_test(const TestConfig &config) {
   }
 }
 
-int run_cpu_tests(const TestConfig &config) {
+int RunCpuTests(const TestConfig &config) {
   if (fs::is_directory(config.path)) {
     spdlog::info("Running all .json test files at {}.", config.path.string());
-    return run_all_tests(config);
+    return RunAllTests(config);
   }
 
   spdlog::info("Running single test at {}.", config.path.string());
-  return run_single_test(config);
+  return RunSingleTest(config);
 }
 
-static bool set_logging_level(const std::string &level_name) {
+static bool SetLoggingLevel(const std::string &level_name) {
   auto level = magic_enum::enum_cast<spdlog::level::level_enum>(level_name);
   if (level.has_value()) {
     spdlog::set_level(level.value());
@@ -332,7 +332,7 @@ auto main(int argc, char *argv[]) -> int {
   }
 
   const std::string level = program.get("--log-level");
-  if (!set_logging_level(level)) {
+  if (!SetLoggingLevel(level)) {
     std::cerr << std::format("Invalid argument \"{}\" - allowed options: "
                              "{{trace, debug, info, warn, err, critical, off}}",
                              level)
@@ -347,5 +347,5 @@ auto main(int argc, char *argv[]) -> int {
   config.fail_details = program.get<bool>("--fail-details");
   config.only_cases = program.get<std::vector<size_t>>("--only-cases");
 
-  return run_cpu_tests(config);
+  return RunCpuTests(config);
 }
