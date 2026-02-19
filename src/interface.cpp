@@ -305,8 +305,6 @@ void Interface::Run() {
 
   emulator_.SetSkipBootRom(config_.settings.skip_boot_rom);
 
-  auto &io = ImGui::GetIO();
-
   while (!should_close_) {
     if (WindowShouldClose()) {
       should_close_ = true;
@@ -356,7 +354,7 @@ void Interface::Run() {
       ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
       ImGuiID main = dockspace_id;
-      ImGuiID right = ImGui::DockBuilderSplitNode(right, ImGuiDir_Right, 0.28f, nullptr, &main);
+      ImGuiID right = ImGui::DockBuilderSplitNode(main, ImGuiDir_Right, 0.28f, nullptr, &main);
       ImGuiID right_bottom = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.4f, nullptr, &right);
       ImGuiID right_center = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.32f, nullptr, &right);
       ImGuiID bottom = ImGui::DockBuilderSplitNode(main, ImGuiDir_Down, 0.32f, nullptr, &main);
