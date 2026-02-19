@@ -17,5 +17,5 @@ public:
   void Reset() override;
 
 private:
-  std::array<uint8_t, kHramSize> ram_;
+  std::array<uint8_t, kHramSize> ram_ {};
 };
