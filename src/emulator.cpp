@@ -86,14 +86,14 @@ void Emulator::Reset() {
   cart_.LoadCartBytes(cart_bytes_);
 
   if (skip_bootrom_) {
-    cpu_.regs.set(Reg8::A, 0x01);
-    cpu_.regs.set(Reg8::F, 0xb0);
-    cpu_.regs.set(Reg8::B, 0x00);
-    cpu_.regs.set(Reg8::C, 0x13);
-    cpu_.regs.set(Reg8::D, 0x00);
-    cpu_.regs.set(Reg8::E, 0xd8);
-    cpu_.regs.set(Reg8::H, 0x01);
-    cpu_.regs.set(Reg8::L, 0x4d);
+    cpu_.regs.Set(Reg8::A, 0x01);
+    cpu_.regs.Set(Reg8::F, 0xb0);
+    cpu_.regs.Set(Reg8::B, 0x00);
+    cpu_.regs.Set(Reg8::C, 0x13);
+    cpu_.regs.Set(Reg8::D, 0x00);
+    cpu_.regs.Set(Reg8::E, 0xd8);
+    cpu_.regs.Set(Reg8::H, 0x01);
+    cpu_.regs.Set(Reg8::L, 0x4d);
     cpu_.regs.sp = 0xfffe;
     cpu_.regs.pc = 0x0100;
 

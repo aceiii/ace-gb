@@ -562,22 +562,22 @@ void Interface::RenderRegisters() {
   if (ImGui::Begin("Registers", &config_.settings.show_cpu_registers)) {
     const auto &regs = emulator_.GetRegisters();
 
-    auto a = regs.get(Reg8::A);
-    auto f = regs.get(Reg8::F);
-    auto b = regs.get(Reg8::B);
-    auto c = regs.get(Reg8::C);
-    auto d = regs.get(Reg8::D);
-    auto e = regs.get(Reg8::E);
-    auto h = regs.get(Reg8::H);
-    auto l = regs.get(Reg8::L);
-    auto af = regs.get(Reg16::AF);
-    auto bc = regs.get(Reg16::BC);
-    auto de = regs.get(Reg16::DE);
-    auto hl = regs.get(Reg16::HL);
-    auto zero = regs.get(Flag::Z);
-    auto neg = regs.get(Flag::N);
-    auto half_carry = regs.get(Flag::H);
-    auto carry = regs.get(Flag::C);
+    auto a = regs.Get(Reg8::A);
+    auto f = regs.Get(Reg8::F);
+    auto b = regs.Get(Reg8::B);
+    auto c = regs.Get(Reg8::C);
+    auto d = regs.Get(Reg8::D);
+    auto e = regs.Get(Reg8::E);
+    auto h = regs.Get(Reg8::H);
+    auto l = regs.Get(Reg8::L);
+    auto af = regs.Get(Reg16::AF);
+    auto bc = regs.Get(Reg16::BC);
+    auto de = regs.Get(Reg16::DE);
+    auto hl = regs.Get(Reg16::HL);
+    auto zero = regs.Get(Flag::Z);
+    auto neg = regs.Get(Flag::N);
+    auto half_carry = regs.Get(Flag::H);
+    auto carry = regs.Get(Flag::C);
 
     ImGui::Text("PC=%04X (%d)", regs.pc, regs.pc);
     ImGui::Text("SP=%04X (%d)", regs.sp, regs.sp);

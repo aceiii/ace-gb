@@ -58,14 +58,14 @@ struct TestResult {
 };
 
 void LoadRegisters(const json &data, Registers &regs) {
-  regs.set(Reg8::A, data.at("a").get<uint8_t>());
-  regs.set(Reg8::B, data.at("b").get<uint8_t>());
-  regs.set(Reg8::C, data.at("c").get<uint8_t>());
-  regs.set(Reg8::D, data.at("d").get<uint8_t>());
-  regs.set(Reg8::E, data.at("e").get<uint8_t>());
-  regs.set(Reg8::F, data.at("f").get<uint8_t>());
-  regs.set(Reg8::H, data.at("h").get<uint8_t>());
-  regs.set(Reg8::L, data.at("l").get<uint8_t>());
+  regs.Set(Reg8::A, data.at("a").get<uint8_t>());
+  regs.Set(Reg8::B, data.at("b").get<uint8_t>());
+  regs.Set(Reg8::C, data.at("c").get<uint8_t>());
+  regs.Set(Reg8::D, data.at("d").get<uint8_t>());
+  regs.Set(Reg8::E, data.at("e").get<uint8_t>());
+  regs.Set(Reg8::F, data.at("f").get<uint8_t>());
+  regs.Set(Reg8::H, data.at("h").get<uint8_t>());
+  regs.Set(Reg8::L, data.at("l").get<uint8_t>());
   regs.pc = data.at("pc").get<uint16_t>();
   regs.sp = data.at("sp").get<uint16_t>();
 }
