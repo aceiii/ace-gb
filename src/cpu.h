@@ -13,6 +13,7 @@
 #include <valarray>
 #include <vector>
 
+
 constexpr size_t kClockSpeed = 4194304;
 constexpr float kFrameRate = 59.73;
 
@@ -22,7 +23,7 @@ struct State {
   bool stop = false;
   bool hard_lock = false;
 
-  inline void reset() {
+  inline void Reset() {
     ime = false;
     halt = false;
     stop = false;
@@ -35,21 +36,21 @@ public:
   Cpu() = delete;
   explicit Cpu(Mmu &mmu, InterruptDevice &interrupts);
 
-  void reset();
-  uint8_t execute();
-  uint8_t read_next8();
-  uint16_t read_next16();
+  void Reset();
+  uint8_t Execute();
+  uint8_t ReadNext8();
+  uint16_t ReadNext16();
 
-  uint8_t read8(uint16_t addr);
-  void write8(uint16_t addr, uint8_t val);
-  uint16_t read16(uint16_t addr);
-  void write16(uint16_t addr, uint16_t val);
-  void push16(uint16_t val);
-  uint16_t pop16();
+  uint8_t Read8(uint16_t addr);
+  void Write8(uint16_t addr, uint8_t val);
+  uint16_t Read16(uint16_t addr);
+  void Write16(uint16_t addr, uint16_t val);
+  void Push16(uint16_t val);
+  uint16_t Pop16();
 
-  void add_synced(SyncedDevice *device);
-  void tick();
-  uint64_t ticks() const;
+  void AddSyncedDevice(SyncedDevice *device);
+  void Tick();
+  uint64_t Ticks() const;
 
 public:
   Mmu &mmu;
@@ -61,5 +62,5 @@ public:
   uint64_t tick_counter = 0;
 
 private:
-  uint8_t execute_interrupts();
+  uint8_t ExecuteInterrupts();
 };

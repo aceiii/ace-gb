@@ -38,10 +38,10 @@ void Emulator::Init() {
   mmu_.add_device(&interrupts_);
   mmu_.add_device(&null_device_);
 
-  cpu_.add_synced(&timer_);
-  cpu_.add_synced(&ppu_);
-  cpu_.add_synced(&audio_);
-  cpu_.add_synced(&serial_device_);
+  cpu_.AddSyncedDevice(&timer_);
+  cpu_.AddSyncedDevice(&ppu_);
+  cpu_.AddSyncedDevice(&audio_);
+  cpu_.AddSyncedDevice(&serial_device_);
 }
 
 void Emulator::Update(float dt) {
@@ -53,7 +53,7 @@ void Emulator::Update(float dt) {
   static int current_cycles = 0;
 
   do {
-    auto cycles = cpu_.execute();
+    auto cycles = cpu_.Execute();
     current_cycles += cycles;
     num_cycles_ += cycles;
 
@@ -80,7 +80,7 @@ void Emulator::Reset() {
   num_cycles_ = 0;
   running_ = false;
 
-  cpu_.reset();
+  cpu_.Reset();
   mmu_.reset_devices();
   boot_.LoadBytes(boot_rom_);
   cart_.LoadCartBytes(cart_bytes_);
@@ -143,7 +143,7 @@ void Emulator::Step() {
   if (running_) {
     return;
   }
-  num_cycles_ += cpu_.execute();
+  num_cycles_ += cpu_.Execute();
 }
 
 void Emulator::Play() {
