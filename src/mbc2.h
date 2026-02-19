@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "cart_info.hpp"
-#include "memory_bank_controller.h"
+#include "memory_bank_controller.hpp"
 
 class Mbc2 : public MemoryBankController {
 public:

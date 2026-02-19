@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "cart_info.hpp"
-#include "memory_bank_controller.h"
+#include "memory_bank_controller.hpp"
 
 constexpr size_t kRamBankSize = 8192;
 

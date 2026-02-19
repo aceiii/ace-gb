@@ -5,7 +5,7 @@
 
 #include "cart_info.hpp"
 #include "mmu_device.hpp"
-#include "memory_bank_controller.h"
+#include "memory_bank_controller.hpp"
 #include "no_mbc.h"
 
 

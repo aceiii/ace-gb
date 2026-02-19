@@ -61,7 +61,7 @@ set(SOURCE_FILES
         src/synced_device.hpp
         src/joypad.hpp
         src/cart_header.hpp
-    src/memory_bank_controller.h
+        src/memory_bank_controller.hpp
         src/cart_info.hpp
     src/no_mbc.cpp
     src/no_mbc.h
