@@ -37,8 +37,8 @@ set(SOURCE_FILES
     src/io.h
     src/file.h
     src/file.cpp
-    src/boot_rom_device.h
-    src/boot_rom_device.cpp
+        src/boot_rom_device.hpp
+        src/boot_rom_device.cpp
     src/cart_device.h
     src/cart_device.cpp
     src/wram_device.cpp

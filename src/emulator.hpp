@@ -10,7 +10,7 @@
 #include "cpu.h"
 #include "ppu.h"
 #include "registers.h"
-#include "boot_rom_device.h"
+#include "boot_rom_device.hpp"
 #include "cart_device.h"
 #include "wram_device.h"
 #include "hram_device.h"

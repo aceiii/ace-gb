@@ -1,6 +1,6 @@
 #include <spdlog/spdlog.h>
 
-#include "boot_rom_device.h"
+#include "boot_rom_device.hpp"
 #include "io.h"
 
 bool BootRomDevice::IsValidFor(uint16_t addr) const {
