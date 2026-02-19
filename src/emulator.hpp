@@ -14,7 +14,7 @@
 #include "cart_device.hpp"
 #include "wram_device.h"
 #include "hram_device.hpp"
-#include "timer.h"
+#include "timer.hpp"
 #include "audio.hpp"
 #include "null_device.h"
 #include "input_device.hpp"

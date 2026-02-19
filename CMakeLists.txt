@@ -44,7 +44,7 @@ set(SOURCE_FILES
     src/wram_device.cpp
     src/wram_device.h
     src/timer.cpp
-    src/timer.h
+        src/timer.hpp
     src/interrupt_device.cpp
         src/interrupt_device.hpp
         src/interrupt.hpp

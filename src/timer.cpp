@@ -1,6 +1,6 @@
 #include <spdlog/spdlog.h>
 
-#include "timer.h"
+#include "timer.hpp"
 #include "cpu.hpp"
 
 namespace {
