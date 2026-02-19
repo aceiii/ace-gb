@@ -2,7 +2,7 @@
 #include <utility>
 #include <spdlog/spdlog.h>
 
-#include "square_channel.h"
+#include "square_channel.hpp"
 
 std::array<uint8_t, 4> waveforms {{
   0b00000001,
