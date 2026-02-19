@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include "cpu.h"
+#include "cpu.hpp"
 #include "opcodes.h"
 #include "overloaded.h"
 #include "instructions.h"

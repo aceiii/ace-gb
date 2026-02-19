@@ -19,7 +19,7 @@ set(SOURCE_FILES
     src/main.cpp
         src/interface.hpp
         src/interface.cpp
-    src/cpu.h
+        src/cpu.hpp
     src/cpu.cpp
         src/emulator.hpp
         src/emulator.cpp
@@ -124,7 +124,7 @@ target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})
 if(BUILD_TESTS)
     set(TEST_FILES
         src/test.cpp
-        src/cpu.h
+            src/cpu.hpp
         src/cpu.cpp
         src/decoder.h
         src/decoder.cpp

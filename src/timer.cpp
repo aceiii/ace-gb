@@ -1,7 +1,7 @@
 #include <spdlog/spdlog.h>
 
 #include "timer.h"
-#include "cpu.h"
+#include "cpu.hpp"
 
 namespace {
   constexpr uint16_t kTimerFreqs[] = {

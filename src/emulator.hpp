@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "cpu.h"
+#include "cpu.hpp"
 #include "ppu.h"
 #include "registers.h"
 #include "boot_rom_device.hpp"
