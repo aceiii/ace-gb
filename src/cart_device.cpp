@@ -4,7 +4,7 @@
 #include <magic_enum/magic_enum.hpp>
 
 #include "cart_device.hpp"
-#include "cart_header.h"
+#include "cart_header.hpp"
 #include "no_mbc.h"
 #include "mbc1.h"
 #include "mbc2.h"

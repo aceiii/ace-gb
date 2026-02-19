@@ -60,7 +60,7 @@ set(SOURCE_FILES
     src/serial_device.h
         src/synced_device.hpp
     src/joypad.h
-    src/cart_header.h
+        src/cart_header.hpp
     src/memory_bank_controller.h
         src/CartInfo.h
     src/no_mbc.cpp

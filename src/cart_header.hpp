@@ -2,7 +2,8 @@
 
 #include <array>
 
-struct cart_header {
+
+struct CartHeader {
   union {
     struct {
       std::array<uint8_t, 4> entry_point;
