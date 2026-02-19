@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "CartInfo.h"
+#include "cart_info.hpp"
 #include "mmu_device.hpp"
 #include "memory_bank_controller.h"
 #include "no_mbc.h"

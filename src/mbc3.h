@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "CartInfo.h"
+#include "cart_info.hpp"
 #include "memory_bank_controller.h"
 
 constexpr size_t kRamBankSize = 8192;

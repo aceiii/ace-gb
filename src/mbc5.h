@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "CartInfo.h"
+#include "cart_info.hpp"
 #include "memory_bank_controller.h"
 
 class Mbc5 : public MemoryBankController {
