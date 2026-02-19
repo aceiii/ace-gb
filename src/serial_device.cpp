@@ -1,7 +1,7 @@
 #include <spdlog/spdlog.h>
 
 #include "serial_device.h"
-#include "io.h"
+#include "io.hpp"
 
 SerialDevice::SerialDevice(InterruptDevice &interrupts):interrupts{interrupts} {
   sb = 0xff;

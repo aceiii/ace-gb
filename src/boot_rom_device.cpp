@@ -1,7 +1,7 @@
 #include <spdlog/spdlog.h>
 
 #include "boot_rom_device.hpp"
-#include "io.h"
+#include "io.hpp"
 
 bool BootRomDevice::IsValidFor(uint16_t addr) const {
   return addr == std::to_underlying(IO::BOOT) || (!disable_ && addr < rom_.size());

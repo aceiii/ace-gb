@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include "io.h"
+#include "io.hpp"
 #include "input_device.hpp"
 
 InputDevice::InputDevice(InterruptDevice &interrupts): interrupts_{interrupts} {
