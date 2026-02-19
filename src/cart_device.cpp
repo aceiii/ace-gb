@@ -6,7 +6,7 @@
 #include "cart_device.hpp"
 #include "cart_header.hpp"
 #include "no_mbc.h"
-#include "mbc1.h"
+#include "mbc1.hpp"
 #include "mbc2.h"
 #include "mbc3.h"
 #include "mbc5.h"

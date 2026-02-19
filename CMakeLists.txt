@@ -66,7 +66,7 @@ set(SOURCE_FILES
     src/no_mbc.cpp
     src/no_mbc.h
     src/mbc1.cpp
-    src/mbc1.h
+        src/mbc1.hpp
     src/mbc2.cpp
     src/mbc2.h
     src/mbc3.cpp

@@ -1,7 +1,7 @@
 #include <utility>
 #include <spdlog/spdlog.h>
 
-#include "mbc1.h"
+#include "mbc1.hpp"
 
 constexpr uint16_t kLogoStart = 0x0104;
 constexpr uint16_t kLogoEnd = 0x0133;
