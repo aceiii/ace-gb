@@ -23,14 +23,14 @@ private:
   using rom_bank = std::array<uint8_t, 16384>;
   using ram_bank = std::array<uint8_t, kRamBankSize>;
 
-  std::array<rom_bank, 256> rom {};
-  std::array<ram_bank, 8> ram {};
-  CartInfo info;
+  std::array<rom_bank, 256> rom_ {};
+  std::array<ram_bank, 8> ram_ {};
+  CartInfo info_;
 
-  bool ram_enable = false;
-  uint16_t rom_bank_number = 1;
-  std::array<uint8_t, 5> clock_regs;
+  bool ram_enable_ = false;
+  uint16_t rom_bank_number_ = 1;
+  std::array<uint8_t, 5> clock_regs_;
 
-  uint8_t *ram_or_clock = &ram[0][0];
-  size_t ram_or_clock_mod = kRamBankSize;
+  uint8_t *ram_or_clock_ = &ram_[0][0];
+  size_t ram_or_clock_mod_ = kRamBankSize;
 };
