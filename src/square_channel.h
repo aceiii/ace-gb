@@ -22,27 +22,27 @@ private:
   void TickEnvenlope() override;
   void TickSweep() override;
 
-  uint16_t calc_sweep();
-  uint16_t frequency() const;
-  void set_frequency(uint16_t freq);
+  uint16_t CalcSweep();
+  uint16_t GetFrequency() const;
+  void SetFrequency(uint16_t freq);
 
 private:
-  bool enable_sweep {};
-  bool enable_channel {};
-  uint16_t length_counter {};
-  uint16_t envelope_timer {};
-  uint16_t timer {};
-  uint8_t volume {};
-  uint8_t duty_step {};
+  bool enable_sweep_ {};
+  bool enable_channel_ {};
+  uint16_t length_counter_ {};
+  uint16_t envelope_timer_ {};
+  uint16_t timer_ {};
+  uint8_t volume_ {};
+  uint8_t duty_step_ {};
 
   struct {
     bool enabled;
     bool calculated;
     uint16_t timer;
     uint16_t current;
-  } period {};
+  } period_ {};
 
-  std::array<uint8_t, 5> masks;
+  std::array<uint8_t, 5> masks_;
 
   union {
     std::array<uint8_t, 5> regs {};

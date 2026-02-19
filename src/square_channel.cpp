@@ -20,34 +20,34 @@ constexpr std::array<uint8_t, 5> defaultMask(bool sweep) {
 
 constexpr auto kInitialLengthCounter = 64;
 
-SquareChannel::SquareChannel(bool sweep): enable_sweep { sweep }, masks { defaultMask(sweep) } {
+SquareChannel::SquareChannel(bool sweep): enable_sweep_ { sweep }, masks_ { defaultMask(sweep) } {
 }
 
 void SquareChannel::Reset() {
-  enable_channel = false;
-  length_counter = 0;
-  envelope_timer = 0;
-  timer = 0;
-  volume = 0;
-  duty_step = 0;
-  period.enabled = false;
-  period.timer = 0;
-  period.current = 0;
-  period.calculated = false;
+  enable_channel_ = false;
+  length_counter_ = 0;
+  envelope_timer_ = 0;
+  timer_ = 0;
+  volume_ = 0;
+  duty_step_ = 0;
+  period_.enabled = false;
+  period_.timer = 0;
+  period_.current = 0;
+  period_.calculated = false;
   regs.fill(0);
 }
 
 void SquareChannel::PowerOff() {
-  enable_channel = false;
-  length_counter = 0;
-  envelope_timer = 0;
-  timer = 0;
-  volume = 0;
-  duty_step = 0;
-  period.enabled = false;
-  period.timer = 0;
-  period.current = 0;
-  period.calculated = false;
+  enable_channel_ = false;
+  length_counter_ = 0;
+  envelope_timer_ = 0;
+  timer_ = 0;
+  volume_ = 0;
+  duty_step_ = 0;
+  period_.enabled = false;
+  period_.timer = 0;
+  period_.current = 0;
+  period_.calculated = false;
   regs.fill(0);
 }
 
@@ -58,28 +58,28 @@ void SquareChannel::Write(AudioRegister reg, uint8_t value) {
 
   switch (reg) {
     case AudioRegister::NRx0:
-      if (!nrx0.period_sweep_direction && prev_direction && period.calculated) {
-        enable_channel = false;
+      if (!nrx0.period_sweep_direction && prev_direction && period_.calculated) {
+        enable_channel_ = false;
       }
 
-      period.calculated = false;
-      period.enabled = nrx0.period_sweep_pace || nrx0.period_sweep_step;
-      if (!period.enabled) {
-        period.timer = 0;
-        period.current = 0;
+      period_.calculated = false;
+      period_.enabled = nrx0.period_sweep_pace || nrx0.period_sweep_step;
+      if (!period_.enabled) {
+        period_.timer = 0;
+        period_.current = 0;
       }
 //      spdlog::info("NRx0: {:02x}, sweep_step:{}, sweep_direction:{}, sweep_pace:{}, length_counter:{}", value, static_cast<uint8_t>(nrx0.period_sweep_step), static_cast<uint8_t>(nrx0.period_sweep_direction), static_cast<uint8_t>(nrx0.period_sweep_pace), length_counter);
       break;
     case AudioRegister::NRx1:
-      length_counter = kInitialLengthCounter - nrx1.initial_length_timer;
+      length_counter_ = kInitialLengthCounter - nrx1.initial_length_timer;
 //      spdlog::info("NRx1: {:02x}, initial_length_timer: {}, length_counter:{}", value, static_cast<uint8_t>(nrx1.initial_length_timer), length_counter);
       break;
     case AudioRegister::NRx2:
 //      spdlog::info("NRx2: {:02x}, initial_volume: {}, envelope_direction:{}, sweep_pace:{}", value, static_cast<uint8_t>(nrx2.initial_volume), static_cast<uint8_t>(nrx2.envelope_direction), static_cast<uint8_t>(nrx2.envelope_sweep_pace));
-      volume = nrx2.initial_volume;
-      envelope_timer = nrx2.envelope_sweep_pace;
+      volume_ = nrx2.initial_volume;
+      envelope_timer_ = nrx2.envelope_sweep_pace;
       if (!nrx2.dac) {
-        enable_channel = false;
+        enable_channel_ = false;
       }
       break;
     case AudioRegister::NRx3:
@@ -97,17 +97,17 @@ void SquareChannel::Write(AudioRegister reg, uint8_t value) {
 
 uint8_t SquareChannel::Read(AudioRegister reg) const {
   const auto idx = std::to_underlying(reg);
-  return regs[idx] | masks[idx];
+  return regs[idx] | masks_[idx];
 }
 
 float SquareChannel::Sample() const {
-  if (!enable_channel || !nrx2.dac) {
+  if (!enable_channel_ || !nrx2.dac) {
     return 0.0f;
   }
 
   const auto &waveform = waveforms[nrx1.wave_duty];
-  auto bit = (waveform >> (7 - duty_step)) & 0b1;
-  auto vol = static_cast<float>(volume) / 15.0f;
+  auto bit = (waveform >> (7 - duty_step_)) & 0b1;
+  auto vol = static_cast<float>(volume_) / 15.0f;
   return bit ? vol : -vol;
 }
 
@@ -116,53 +116,53 @@ void SquareChannel::Tick() {
     return;
   }
 
-  if (timer) {
-    timer -= 1;
+  if (timer_) {
+    timer_ -= 1;
   }
 
-  if (timer == 0) {
-    duty_step = (duty_step + 1) % 8;
-    timer = (2048 - frequency()) * 4;
+  if (timer_ == 0) {
+    duty_step_ = (duty_step_ + 1) % 8;
+    timer_ = (2048 - GetFrequency()) * 4;
   }
 }
 
 void SquareChannel::Trigger() {
-  enable_channel = nrx2.dac;
-  envelope_timer = nrx2.envelope_sweep_pace;
-  volume = nrx2.initial_volume;
-  timer = (2048 - frequency()) * 4;
-  duty_step = 0;
+  enable_channel_ = nrx2.dac;
+  envelope_timer_ = nrx2.envelope_sweep_pace;
+  volume_ = nrx2.initial_volume;
+  timer_ = (2048 - GetFrequency()) * 4;
+  duty_step_ = 0;
 
-  if (length_counter == 0) {
-    length_counter = kInitialLengthCounter;
+  if (length_counter_ == 0) {
+    length_counter_ = kInitialLengthCounter;
   }
 
-  if (!enable_sweep) {
+  if (!enable_sweep_) {
     return;
   }
 
-  period.enabled = nrx0.period_sweep_step || nrx0.period_sweep_pace;
-  period.calculated = false;
-  if (!period.enabled) {
-    period.timer = 0;
-    period.current = 0;
+  period_.enabled = nrx0.period_sweep_step || nrx0.period_sweep_pace;
+  period_.calculated = false;
+  if (!period_.enabled) {
+    period_.timer = 0;
+    period_.current = 0;
     return;
   }
 
-  period.current = frequency();
-  period.timer = nrx0.period_sweep_pace;
-  if (!period.timer) {
-    period.timer = 8;
+  period_.current = GetFrequency();
+  period_.timer = nrx0.period_sweep_pace;
+  if (!period_.timer) {
+    period_.timer = 8;
   }
 
   if (nrx0.period_sweep_step) {
-    calc_sweep();
+    CalcSweep();
   }
 }
 
 bool SquareChannel::IsEnabled() const {
 //  spdlog::info("square:length_counter:{}, period_sweep_step:{}, period_sweep_pace:{}, enable_sweep:{}", length_counter, nrx0.period_sweep_step, nrx0.period_sweep_pace, enable_sweep);
-  return enable_channel;
+  return enable_channel_;
 }
 
 void SquareChannel::TickLength() {
@@ -172,14 +172,14 @@ void SquareChannel::TickLength() {
 
 //  spdlog::info("length_tick:{}", length_counter);
 
-  if (length_counter) {
+  if (length_counter_) {
 //    spdlog::info("square channel length_tick: {} -> {}, enable_sweep:{}", length_counter, length_counter-1, enable_sweep);
-    length_counter -= 1;
+    length_counter_ -= 1;
   }
 
-  if (length_counter == 0 && enable_channel) {
+  if (length_counter_ == 0 && enable_channel_) {
 //    spdlog::info("disable square channel: enable_sweep:{}, length_counter:{}", enable_sweep, length_counter);
-    enable_channel = false;
+    enable_channel_ = false;
   }
 }
 
@@ -188,76 +188,76 @@ void SquareChannel::TickEnvenlope() {
     return;
   }
 
-  if (envelope_timer) {
-    envelope_timer -= 1;
+  if (envelope_timer_) {
+    envelope_timer_ -= 1;
   }
 
-  if (envelope_timer != 0) {
+  if (envelope_timer_ != 0) {
     return;
   }
 
-  if (nrx2.envelope_direction && volume < 0xf) {
-    volume += 1;
-  } else if (!nrx2.envelope_direction && volume > 0) {
-    volume -= 1;
+  if (nrx2.envelope_direction && volume_ < 0xf) {
+    volume_ += 1;
+  } else if (!nrx2.envelope_direction && volume_ > 0) {
+    volume_ -= 1;
   }
 
-  envelope_timer = nrx2.envelope_sweep_pace;
-  if (envelope_timer == 0) {
-    envelope_timer = 8;
+  envelope_timer_ = nrx2.envelope_sweep_pace;
+  if (envelope_timer_ == 0) {
+    envelope_timer_ = 8;
   }
 }
 
 void SquareChannel::TickSweep() {
-  if (!enable_sweep) {
+  if (!enable_sweep_) {
     return;
   }
 
-  if (period.timer) {
-    period.timer -= 1;
+  if (period_.timer) {
+    period_.timer -= 1;
   }
 
-  if (period.timer == 0) {
-    period.timer = nrx0.period_sweep_pace;
-    if (!period.timer) {
-      period.timer = 8;
+  if (period_.timer == 0) {
+    period_.timer = nrx0.period_sweep_pace;
+    if (!period_.timer) {
+      period_.timer = 8;
     }
 
     if (nrx0.period_sweep_pace) {
-      auto new_frequency = calc_sweep();
-      period.calculated = true;
+      auto new_frequency = CalcSweep();
+      period_.calculated = true;
       if (new_frequency <= 2047 && nrx0.period_sweep_step) {
-        period.current = new_frequency;
-        set_frequency(new_frequency);
-        calc_sweep();
+        period_.current = new_frequency;
+        SetFrequency(new_frequency);
+        CalcSweep();
       }
     }
   }
 }
 
-uint16_t SquareChannel::calc_sweep() {
+uint16_t SquareChannel::CalcSweep() {
 //  spdlog::info("square_channel calc_sweep: enable_sweep:{}, period_sweep_step:{}, period_sweep_pace:{}", enable_sweep, static_cast<uint8_t>(nrx0.period_sweep_step), static_cast<uint8_t>(nrx0.period_sweep_pace));
-  auto val = period.current >> nrx0.period_sweep_step;
+  auto val = period_.current >> nrx0.period_sweep_step;
   if (nrx0.period_sweep_direction) {
-    val = period.current - val;
+    val = period_.current - val;
   } else {
-    val = period.current + val;
+    val = period_.current + val;
   }
 
-  period.calculated = true;
+  period_.calculated = true;
 
   if (val > 2047) {
-    enable_channel = false;
+    enable_channel_ = false;
   }
 
   return val;
 }
 
-uint16_t SquareChannel::frequency() const {
+uint16_t SquareChannel::GetFrequency() const {
   return nrx3 | (nrx4.period << 8);
 }
 
-void SquareChannel::set_frequency(uint16_t freq) {
+void SquareChannel::SetFrequency(uint16_t freq) {
   nrx3 = freq & 0xff;
   nrx4.period = (freq >> 8) & 0b111;
 }
