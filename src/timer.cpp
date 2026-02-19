@@ -12,7 +12,7 @@ namespace {
   };
 }
 
-Timer::Timer(InterruptDevice &interrupts):interrupts{interrupts} {}
+Timer::Timer(InterruptDevice &interrupts):interrupts_{interrupts} {}
 
 bool Timer::IsValidFor(uint16_t addr) const {
   switch (addr) {
@@ -31,17 +31,17 @@ void Timer::Write8(uint16_t addr, uint8_t byte) {
 //    case std::to_underlying(IO::DIV)-1:
 //      return;
     case std::to_underlying(IO::DIV):
-      regs.div = 0;
+      regs_.div = 0;
       return;
     case std::to_underlying(IO::TIMA):
-      regs.tima = byte;
+      regs_.tima = byte;
       return;
     case std::to_underlying(IO::TMA):
-      regs.tma = byte;
-      tima_counter = 0;
+      regs_.tma = byte;
+      tima_counter_ = 0;
       return;
     case std::to_underlying(IO::TAC):
-      regs.tac = (byte & 0b111) | (0b11111000);
+      regs_.tac = (byte & 0b111) | (0b11111000);
       return;
     default: std::unreachable();
   }
@@ -54,37 +54,37 @@ uint8_t Timer::Read8(uint16_t addr) const {
     case std::to_underlying(IO::DIV):
       return div();
     case std::to_underlying(IO::TIMA):
-      return regs.tima;
+      return regs_.tima;
     case std::to_underlying(IO::TMA):
-      return regs.tma;
+      return regs_.tma;
     case std::to_underlying(IO::TAC):
-      return regs.tac;
+      return regs_.tac;
     default: std::unreachable();
   }
 }
 
 void Timer::Reset() {
-  regs.div = 0;
-  regs.tima = 0;
-  regs.tma = 0;
-  regs.tac = 0;
+  regs_.div = 0;
+  regs_.tima = 0;
+  regs_.tma = 0;
+  regs_.tac = 0;
 }
 
-void Timer::execute(uint8_t cycles) {
-  regs.div += cycles;
+void Timer::Execute(uint8_t cycles) {
+  regs_.div += cycles;
 
-  if (regs.enable_tima) {
-    tima_counter += cycles;
+  if (regs_.enable_tima) {
+    tima_counter_ += cycles;
 
-    const auto freq = kTimerFreqs[regs.clock_select];
-    auto overflows = tima_counter / freq;
-    tima_counter = tima_counter % freq;
+    const auto freq = kTimerFreqs[regs_.clock_select];
+    auto overflows = tima_counter_ / freq;
+    tima_counter_ = tima_counter_ % freq;
 
     while (overflows) {
-      regs.tima += 1;
-      if (regs.tima == 0) {
-        regs.tima = regs.tma;
-        interrupts.RequestInterrupt(Interrupt::Timer);
+      regs_.tima += 1;
+      if (regs_.tima == 0) {
+        regs_.tima = regs_.tma;
+        interrupts_.RequestInterrupt(Interrupt::Timer);
       }
       overflows -= 1;
     }
@@ -92,9 +92,9 @@ void Timer::execute(uint8_t cycles) {
 }
 
 void Timer::OnTick() {
-  execute(4);
+  Execute(4);
 }
 
 uint16_t Timer::div() const {
-  return regs.div >> 8;
+  return regs_.div >> 8;
 }

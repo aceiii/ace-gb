@@ -4,7 +4,8 @@
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
 
-struct timer_registers {
+
+struct TimerRegisters {
   uint16_t div;
   uint8_t tima;
   uint8_t tma;
@@ -27,13 +28,13 @@ public:
   [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
   void Reset() override;
 
-  void execute(uint8_t cycles);
+  void Execute(uint8_t cycles);
   void OnTick() override;
 
   uint16_t div() const;
 
 private:
-  InterruptDevice &interrupts;
-  uint16_t tima_counter;
-  timer_registers regs;
+  InterruptDevice &interrupts_;
+  uint16_t tima_counter_;
+  TimerRegisters regs_;
 };
