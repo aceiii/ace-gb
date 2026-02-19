@@ -16,7 +16,7 @@ enum class PPUMode : uint8_t {
   Draw = 3,
 };
 
-struct ppu_regs {
+struct PpuRegs {
   union {
     std::array<uint8_t, 12> bytes;
     struct {
@@ -70,7 +70,7 @@ struct ppu_regs {
   }
 };
 
-struct sprite {
+struct Sprite {
   uint8_t y;
   uint8_t x;
   uint8_t tile;
@@ -87,10 +87,10 @@ struct sprite {
   } attrs;
 };
 
-struct oam_memory {
+struct OamMemory {
   union {
     std::array<uint8_t, 160> bytes;
-    std::array<sprite, 40> sprites;
+    std::array<Sprite, 40> sprites;
   };
 
   inline void reset() {
@@ -98,7 +98,7 @@ struct oam_memory {
   }
 };
 
-struct vram_memory {
+struct VramMemory {
   union {
     std::array<uint8_t, 8192> bytes;
     struct {
@@ -116,10 +116,10 @@ class Ppu : public MmuDevice, public SyncedDevice {
 public:
   explicit Ppu(Mmu &mmu, InterruptDevice &interrupts);
 
-  void init();
-  void cleanup();
-  void execute(uint8_t cycles);
-  void step();
+  void Init();
+  void Cleanup();
+  void Execute(uint8_t cycles);
+  void Step();
 
   void OnTick() override;
 
@@ -128,39 +128,38 @@ public:
   [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
   void Reset() override;
 
-  [[nodiscard]] PPUMode mode() const;
-  [[nodiscard]] const Texture2D& lcd() const;
-  [[nodiscard]] const RenderTexture2D& tilemap1() const;
-  [[nodiscard]] const RenderTexture2D& tilemap2() const;
-  [[nodiscard]] const RenderTexture2D& sprites() const;
-  [[nodiscard]] const RenderTexture2D& tiles() const;
+  [[nodiscard]] PPUMode GetMode() const;
+  [[nodiscard]] const Texture2D& GetTextureLcd() const;
+  [[nodiscard]] const RenderTexture2D& GetTextureTilemap1() const;
+  [[nodiscard]] const RenderTexture2D& GetTextureTilemap2() const;
+  [[nodiscard]] const RenderTexture2D& GetTextureSprites() const;
+  [[nodiscard]] const RenderTexture2D& GetTextureTiles() const;
 
-  void clear_target_buffers();
-  void update_render_targets();
-
-private:
-  Mmu &mmu;
-  InterruptDevice &interrupts;
-  Texture2D target_lcd_front;
-  Image target_lcd_back;
-
-  RenderTexture2D target_tilemap1;
-  RenderTexture2D target_tilemap2;
-  RenderTexture2D target_sprites;
-  RenderTexture2D target_tiles;
-
-  vram_memory vram;
-  oam_memory oam;
-  ppu_regs regs;
-
-  uint16_t cycle_counter = 0;
-  uint8_t window_line_counter = 0;
-
-  bool log_doctor = false;
+  void ClearTargetBuffers();
+  void UpdateRenderTargets();
 
 private:
-  void set_mode(PPUMode mode);
-  void draw_lcd_row();
-  void swap_lcd_targets();
-  void start_dma();
+  void SetMode(PPUMode mode);
+  void DrawLcdRow();
+  void SwapLcdTargets();
+  void StartDma();
+
+  Mmu &mmu_;
+  InterruptDevice &interrupts_;
+  Texture2D target_lcd_front_;
+  Image target_lcd_back_;
+
+  RenderTexture2D target_tilemap1_;
+  RenderTexture2D target_tilemap2_;
+  RenderTexture2D target_sprites_;
+  RenderTexture2D target_tiles_;
+
+  VramMemory vram_;
+  OamMemory oam_;
+  PpuRegs regs_;
+
+  uint16_t cycle_counter_ = 0;
+  uint8_t window_line_counter_ = 0;
+
+  bool log_doctor_ = false;
 };

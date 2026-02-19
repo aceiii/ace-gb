@@ -3,7 +3,8 @@
 #include <iterator>
 #include <spdlog/spdlog.h>
 
-#include "file.h"
+#include "file.hpp"
+
 
 File::LoadFileResult File::LoadBin(const std::string &path) {
   std::ifstream input(path, std::ios::in | std::ios::binary);

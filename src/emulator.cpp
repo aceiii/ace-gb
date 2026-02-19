@@ -23,7 +23,7 @@ Emulator::Emulator(audio_config cfg):cpu_{mmu_, interrupts_}, ppu_{mmu_, interru
 }
 
 void Emulator::Init() {
-  ppu_.init();
+  ppu_.Init();
 
   mmu_.ClearDevices();
   mmu_.AddDevice(&boot_);
@@ -64,11 +64,11 @@ void Emulator::Update(float dt) {
   } while (current_cycles < target_cycles_per_frame);
   current_cycles -= target_cycles_per_frame;
 
-  ppu_.update_render_targets();
+  ppu_.UpdateRenderTargets();
 }
 
 void Emulator::Cleanup() {
-  ppu_.cleanup();
+  ppu_.Cleanup();
 }
 
 void Emulator::LoadCartBytes(std::vector<uint8_t> &&bytes) {
@@ -171,7 +171,7 @@ size_t Emulator::GetCycles() const {
 }
 
 PPUMode Emulator::GetMode() const {
-  return ppu_.mode();
+  return ppu_.GetMode();
 }
 
 Instruction Emulator::GetCurrentInstruction() const {
@@ -193,24 +193,24 @@ void Emulator::write8(uint16_t addr, uint8_t byte) {
 }
 
 const Texture2D& Emulator::GetTargetLCD() const {
-  return ppu_.lcd();
+  return ppu_.GetTextureLcd();
 }
 
 const RenderTexture2D& Emulator::GetTargetTiles() const {
-  return ppu_.tiles();
+  return ppu_.GetTextureTiles();
 }
 
 const RenderTexture2D& Emulator::GetTargetTilemap(uint8_t idx) const {
   if (idx == 0) {
-    return ppu_.tilemap1();
+    return ppu_.GetTextureTilemap1();
   } else if (idx == 1) {
-    return ppu_.tilemap2();
+    return ppu_.GetTextureTilemap2();
   }
   std::unreachable();
 }
 
 const RenderTexture2D& Emulator::GetTargetSprites() const {
-  return ppu_.sprites();
+  return ppu_.GetTextureSprites();
 }
 
 void Emulator::AddBreakPoint(uint16_t addr) {

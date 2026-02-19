@@ -1,6 +1,5 @@
 #pragma once
 
-#include "io.h"
 #include "mmu_device.hpp"
 #include "interrupt.hpp"
 
@@ -16,7 +15,7 @@ struct InterruptRegister {
     uint8_t val;
   };
 
-  inline void reset() {
+  void reset() {
     val = 0;
   }
 };

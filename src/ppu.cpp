@@ -1,7 +1,7 @@
-#include <cstdint>
 #include <utility>
 #include <spdlog/spdlog.h>
 
+#include "io.hpp"
 #include "ppu.h"
 
 namespace {
@@ -50,170 +50,170 @@ inline uint16_t addr_with_mode(uint8_t mode, uint8_t addr) {
 }
 
 Ppu::Ppu(Mmu &mmu, InterruptDevice &interrupts)
-:interrupts{interrupts}, mmu{mmu}
+:interrupts_{interrupts}, mmu_{mmu}
 {
   auto logger = spdlog::get("doctor_logger");
-  log_doctor = logger != nullptr;
+  log_doctor_ = logger != nullptr;
 }
 
-void Ppu::init() {
-  target_lcd_back = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
-  ImageFormat(&target_lcd_back, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+void Ppu::Init() {
+  target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
+  ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
 
-  target_lcd_front = LoadTextureFromImage(target_lcd_back);
+  target_lcd_front_ = LoadTextureFromImage(target_lcd_back_);
 
   constexpr int tiles_width = 16 * 8;
   constexpr int tiles_height = 24 * 8;
-  target_tiles = LoadRenderTexture(tiles_width, tiles_height);
+  target_tiles_ = LoadRenderTexture(tiles_width, tiles_height);
 
   constexpr int tilemap_width = 256;
   constexpr int tilemap_height = 256;
-  target_tilemap1 = LoadRenderTexture(tilemap_width, tilemap_height);
-  target_tilemap2 = LoadRenderTexture(tilemap_width, tilemap_height);
+  target_tilemap1_ = LoadRenderTexture(tilemap_width, tilemap_height);
+  target_tilemap2_ = LoadRenderTexture(tilemap_width, tilemap_height);
 
   constexpr int sprites_width = 8 * 8;
   constexpr int sprites_height = 5 * 16;
-  target_sprites = LoadRenderTexture(sprites_width, sprites_height);
+  target_sprites_ = LoadRenderTexture(sprites_width, sprites_height);
 
-  target_lcd_back = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
-  ImageFormat(&target_lcd_back, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+  target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
+  ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
 }
 
-void Ppu::cleanup() {
-  UnloadRenderTexture(target_tiles);
-  UnloadRenderTexture(target_tilemap1);
-  UnloadRenderTexture(target_tilemap2);
-  UnloadRenderTexture(target_sprites);
+void Ppu::Cleanup() {
+  UnloadRenderTexture(target_tiles_);
+  UnloadRenderTexture(target_tilemap1_);
+  UnloadRenderTexture(target_tilemap2_);
+  UnloadRenderTexture(target_sprites_);
 
-  UnloadImage(target_lcd_back);
-  UnloadTexture(target_lcd_front);
+  UnloadImage(target_lcd_back_);
+  UnloadTexture(target_lcd_front_);
 }
 
-void Ppu::execute(uint8_t cycles) {
+void Ppu::Execute(uint8_t cycles) {
   do {
-    step();
+    Step();
     cycles -= 4;
   } while(cycles);
 }
 
 void Ppu::OnTick() {
-  step();
+  Step();
 }
 
-inline void Ppu::step() {
-  if (!regs.lcdc.lcd_enable) {
+inline void Ppu::Step() {
+  if (!regs_.lcdc.lcd_enable) {
     return;
   }
 
-  auto mode = this->mode();
+  auto mode = this->GetMode();
 
-  if (++cycle_counter >= kDotsPerRow) {
-    regs.ly = (regs.ly + 1) % (kLCDHeight + 10);
-    regs.stat.coincidence_flag = regs.ly == regs.lyc;
-    if (regs.stat.coincidence_flag && regs.stat.stat_interrupt_lyc) {
-      interrupts.RequestInterrupt(Interrupt::Stat);
+  if (++cycle_counter_ >= kDotsPerRow) {
+    regs_.ly = (regs_.ly + 1) % (kLCDHeight + 10);
+    regs_.stat.coincidence_flag = regs_.ly == regs_.lyc;
+    if (regs_.stat.coincidence_flag && regs_.stat.stat_interrupt_lyc) {
+      interrupts_.RequestInterrupt(Interrupt::Stat);
     }
 
-    cycle_counter = 0;
+    cycle_counter_ = 0;
   }
 
-  if (regs.ly >= kLCDHeight) {
+  if (regs_.ly >= kLCDHeight) {
     if (mode != PPUMode::VBlank) {
-      window_line_counter = 0;
-      regs.stat.ppu_mode = std::to_underlying(PPUMode::VBlank);
-      interrupts.RequestInterrupt(Interrupt::VBlank);
-      if (regs.stat.stat_interrupt_mode0) {
-        interrupts.RequestInterrupt(Interrupt::Stat);
+      window_line_counter_ = 0;
+      regs_.stat.ppu_mode = std::to_underlying(PPUMode::VBlank);
+      interrupts_.RequestInterrupt(Interrupt::VBlank);
+      if (regs_.stat.stat_interrupt_mode0) {
+        interrupts_.RequestInterrupt(Interrupt::Stat);
       }
-      swap_lcd_targets();
+      SwapLcdTargets();
     }
-  } else if (cycle_counter < kDotsPerOAM) {
+  } else if (cycle_counter_ < kDotsPerOAM) {
     if (mode != PPUMode::OAM) {
-      regs.stat.ppu_mode = std::to_underlying(PPUMode::OAM);
-      if (regs.stat.stat_interrupt_mode2) {
-        interrupts.RequestInterrupt(Interrupt::Stat);
+      regs_.stat.ppu_mode = std::to_underlying(PPUMode::OAM);
+      if (regs_.stat.stat_interrupt_mode2) {
+        interrupts_.RequestInterrupt(Interrupt::Stat);
       }
     }
-  } else if (cycle_counter <= (kDotsPerOAM + kDotsPerDraw)) {
+  } else if (cycle_counter_ <= (kDotsPerOAM + kDotsPerDraw)) {
     if (mode != PPUMode::Draw) {
-      regs.stat.ppu_mode = std::to_underlying(PPUMode::Draw);
+      regs_.stat.ppu_mode = std::to_underlying(PPUMode::Draw);
     }
   } else {
     if (mode != PPUMode::HBlank) {
-      regs.stat.ppu_mode = std::to_underlying(PPUMode::HBlank);
-      if (regs.stat.stat_interrupt_mode0) {
-        interrupts.RequestInterrupt(Interrupt::Stat);
+      regs_.stat.ppu_mode = std::to_underlying(PPUMode::HBlank);
+      if (regs_.stat.stat_interrupt_mode0) {
+        interrupts_.RequestInterrupt(Interrupt::Stat);
       }
-      draw_lcd_row();
+      DrawLcdRow();
     }
   }
 }
 
-void Ppu::swap_lcd_targets() {
-  UpdateTexture(target_lcd_front, target_lcd_back.data);
+void Ppu::SwapLcdTargets() {
+  UpdateTexture(target_lcd_front_, target_lcd_back_.data);
 }
 
-void Ppu::draw_lcd_row() {
+void Ppu::DrawLcdRow() {
   static std::array<uint8_t, kLCDWidth> bg_win_pixels;
   bg_win_pixels.fill(0);
 
-  if (regs.lcdc.bg_window_enable) {
-    const bool enable_window_flag = regs.lcdc.window_enable &&
-      regs.wx >= 0 && regs.wx <= 166 && regs.wy >= 0 && regs.wy <= 143;
-    const uint8_t y = regs.ly;
+  if (regs_.lcdc.bg_window_enable) {
+    const bool enable_window_flag = regs_.lcdc.window_enable &&
+      regs_.wx >= 0 && regs_.wx <= 166 && regs_.wy >= 0 && regs_.wy <= 143;
+    const uint8_t y = regs_.ly;
 
-    uint8_t py = regs.scy + y;
+    uint8_t py = regs_.scy + y;
     uint8_t ty = (py >> 3 ) & 31;
     uint8_t row = py % 8;
 
     bool enable_window = false;
     for (auto x = 0; x < kLCDWidth; x += 1) {
-      if (!enable_window && enable_window_flag && x >= regs.wx - 7 && y >= regs.wy) {
+      if (!enable_window && enable_window_flag && x >= regs_.wx - 7 && y >= regs_.wy) {
         enable_window = true;
-        py = window_line_counter;// y - regs.wy;
+        py = window_line_counter_;// y - regs.wy;
         ty = (py >> 3 ) & 31;
         row = py % 8;
       }
 
-      auto &tilemap = vram.tile_map[enable_window ? regs.lcdc.window_tilemap_area : regs.lcdc.bg_tilemap_area];
+      auto &tilemap = vram_.tile_map[enable_window ? regs_.lcdc.window_tilemap_area : regs_.lcdc.bg_tilemap_area];
 
-      uint8_t px = enable_window ? x - (regs.wx - 7) : regs.scx + x;
+      uint8_t px = enable_window ? x - (regs_.wx - 7) : regs_.scx + x;
       uint8_t tx = (px >> 3) & 31;
       uint8_t sub_x = px % 8;
 
       auto map_idx = (ty * 32) + tx;
       auto tile_id = tilemap[map_idx];
-      auto tile_idx = (addr_with_mode(regs.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
-      auto tile = vram.tile_data[tile_idx];
+      auto tile_idx = (addr_with_mode(regs_.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+      auto tile = vram_.tile_data[tile_idx];
 
       uint16_t hi = (tile[row] >> 8) >> (7 - sub_x);
       uint8_t lo = tile[row] >> (7 - sub_x);
       uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
-      auto cid = get_palette_index(bits, regs.bgp);
+      auto cid = get_palette_index(bits, regs_.bgp);
       auto color = kLCDPalette[cid];
-      ImageDrawPixel(&target_lcd_back, x, y, color);
+      ImageDrawPixel(&target_lcd_back_, x, y, color);
       bg_win_pixels[x] = bits; // NOTE: might be cid...
     }
 
     if (enable_window) {
-      window_line_counter++;
+      window_line_counter_++;
     }
   } else {
-    auto cid = get_palette_index(0, regs.bgp);
+    auto cid = get_palette_index(0, regs_.bgp);
     auto color = kLCDPalette[cid];
-    ImageDrawLine(&target_lcd_back, 0, regs.ly, kLCDWidth -1, regs.ly,  color);
+    ImageDrawLine(&target_lcd_back_, 0, regs_.ly, kLCDWidth -1, regs_.ly,  color);
   }
 
-  if (regs.lcdc.sprite_enable) {
-    static std::vector<sprite*> valid_sprites;
+  if (regs_.lcdc.sprite_enable) {
+    static std::vector<Sprite*> valid_sprites;
     valid_sprites.clear();
     valid_sprites.reserve(10);
 
-    const auto height = regs.lcdc.sprite_size ? 16 : 8;
-    const auto y = regs.ly;
+    const auto height = regs_.lcdc.sprite_size ? 16 : 8;
+    const auto y = regs_.ly;
 
-    for (auto &sprite : oam.sprites) {
+    for (auto &sprite : oam_.sprites) {
       auto top = sprite.y - 16;
       auto bottom = top + height;
       if (y >= top && y < bottom) {
@@ -231,7 +231,7 @@ void Ppu::draw_lcd_row() {
       auto top = sprite->y - 16;
       auto row = sprite->attrs.y_flip ? height - (y - top) - 1  : y - top;
       uint8_t tile_id = sprite->tile;
-      if (regs.lcdc.sprite_size) {
+      if (regs_.lcdc.sprite_size) {
         if (row < 8) {
           tile_id &= 0xfe;
         } else {
@@ -239,8 +239,8 @@ void Ppu::draw_lcd_row() {
         }
       }
       auto tile_idx = (addr_with_mode(1, tile_id) - kVRAMAddrStart) / 16;
-      auto tile = vram.tile_data[tile_idx];
-      auto palette = sprite->attrs.dmg_palette ? regs.obp1: regs.obp0;
+      auto tile = vram_.tile_data[tile_idx];
+      auto palette = sprite->attrs.dmg_palette ? regs_.obp1: regs_.obp0;
       auto left = sprite->x - 8;
 
       for (auto x = sprite->x - 8; x < sprite->x; x += 1) {
@@ -263,7 +263,7 @@ void Ppu::draw_lcd_row() {
 
         if (bits) {
         auto cid = get_palette_index(bits, palette);
-          ImageDrawPixel(&target_lcd_back, x, y, kLCDPalette[cid]);
+          ImageDrawPixel(&target_lcd_back_, x, y, kLCDPalette[cid]);
           sprite_prio[x] = sprite->x;
         }
       }
@@ -271,35 +271,35 @@ void Ppu::draw_lcd_row() {
   }
 }
 
-const Texture2D& Ppu::lcd() const {
-  return target_lcd_front;
+const Texture2D& Ppu::GetTextureLcd() const {
+  return target_lcd_front_;
 }
 
-const RenderTexture2D& Ppu::tilemap1() const {
-  return target_tilemap1;
+const RenderTexture2D& Ppu::GetTextureTilemap1() const {
+  return target_tilemap1_;
 }
 
-const RenderTexture2D& Ppu::tilemap2() const {
-  return target_tilemap2;
+const RenderTexture2D& Ppu::GetTextureTilemap2() const {
+  return target_tilemap2_;
 }
 
-const RenderTexture2D& Ppu::sprites() const {
-  return target_sprites;
+const RenderTexture2D& Ppu::GetTextureSprites() const {
+  return target_sprites_;
 }
 
-const RenderTexture2D& Ppu::tiles() const {
-  return target_tiles;
+const RenderTexture2D& Ppu::GetTextureTiles() const {
+  return target_tiles_;
 }
 
-void Ppu::update_render_targets() {
+void Ppu::UpdateRenderTargets() {
   constexpr int tile_width = 16;
   constexpr int tile_height = 24;
 
-  BeginTextureMode(target_tiles);
+  BeginTextureMode(target_tiles_);
   {
     int x = 0;
     int y = 0;
-    for (auto &tile : vram.tile_data) {
+    for (auto &tile : vram_.tile_data) {
       for (int row = 0; row < tile.size(); row += 1) {
         uint16_t hi = (tile[row] >> 8) << 1;
         uint8_t lo = tile[row];
@@ -322,10 +322,10 @@ void Ppu::update_render_targets() {
   }
   EndTextureMode();
 
-  BeginTextureMode(target_tilemap1);
+  BeginTextureMode(target_tilemap1_);
   {
-    auto tiledata_area = regs.lcdc.tiledata_area;
-    auto &tilemap = vram.tile_map[0];
+    auto tiledata_area = regs_.lcdc.tiledata_area;
+    auto &tilemap = vram_.tile_map[0];
 
     int x = 0;
     int y = 0;
@@ -336,7 +336,7 @@ void Ppu::update_render_targets() {
 
       Rectangle rect {
         static_cast<float>(dst_x * 8),
-        static_cast<float>(target_tiles.texture.height - (dst_y * 8) - 8),
+        static_cast<float>(target_tiles_.texture.height - (dst_y * 8) - 8),
         8.f,
         -8.f,
       };
@@ -346,7 +346,7 @@ void Ppu::update_render_targets() {
         static_cast<float>(y * 8),
       };
 
-      DrawTextureRec(target_tiles.texture, rect, pos, WHITE);
+      DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
 
       x += 1;
       if (x >= 32) {
@@ -355,9 +355,9 @@ void Ppu::update_render_targets() {
       }
     }
 
-    if (regs.lcdc.bg_tilemap_area == 0) {
-      auto x1 = regs.scx;
-      auto y1 = regs.scy;
+    if (regs_.lcdc.bg_tilemap_area == 0) {
+      auto x1 = regs_.scx;
+      auto y1 = regs_.scy;
       auto x2 = (x1 + kLCDWidth - 1) % 256;
       auto y2 = (y1 + kLCDHeight - 1) % 256;
 
@@ -366,9 +366,9 @@ void Ppu::update_render_targets() {
       DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, RED);
       DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, RED);
     }
-    if (regs.lcdc.window_tilemap_area == 0) {
-      auto x1 = regs.wx < 7 ? kLCDWidth + regs.wx - 7 : regs.wx - 7;
-      auto y1 = regs.wy;
+    if (regs_.lcdc.window_tilemap_area == 0) {
+      auto x1 = regs_.wx < 7 ? kLCDWidth + regs_.wx - 7 : regs_.wx - 7;
+      auto y1 = regs_.wy;
       auto x2 = (x1 + kLCDWidth - 1) % 256;
       auto y2 = (y1 + kLCDHeight - 1) % 256;
 
@@ -380,10 +380,10 @@ void Ppu::update_render_targets() {
   }
   EndTextureMode();
 
-  BeginTextureMode(target_tilemap2);
+  BeginTextureMode(target_tilemap2_);
   {
-    auto tiledata_area = regs.lcdc.tiledata_area;
-    auto &tilemap = vram.tile_map[1];
+    auto tiledata_area = regs_.lcdc.tiledata_area;
+    auto &tilemap = vram_.tile_map[1];
 
     int x = 0;
     int y = 0;
@@ -394,7 +394,7 @@ void Ppu::update_render_targets() {
 
       Rectangle rect {
         static_cast<float>(dst_x * 8),
-        static_cast<float>(target_tiles.texture.height - (dst_y * 8) - 8),
+        static_cast<float>(target_tiles_.texture.height - (dst_y * 8) - 8),
         8.f,
         -8.f,
       };
@@ -404,7 +404,7 @@ void Ppu::update_render_targets() {
         static_cast<float>(y * 8),
       };
 
-      DrawTextureRec(target_tiles.texture, rect, pos, WHITE);
+      DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
 
       x += 1;
       if (x >= 32) {
@@ -413,9 +413,9 @@ void Ppu::update_render_targets() {
       }
     }
 
-    if (regs.lcdc.bg_tilemap_area == 1) {
-      auto x1 = regs.scx;
-      auto y1 = regs.scy;
+    if (regs_.lcdc.bg_tilemap_area == 1) {
+      auto x1 = regs_.scx;
+      auto y1 = regs_.scy;
       auto x2 = (x1 + kLCDWidth - 1) % 256;
       auto y2 = (y1 + kLCDHeight - 1) % 256;
 
@@ -424,9 +424,9 @@ void Ppu::update_render_targets() {
       DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, RED);
       DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, RED);
     }
-    if (regs.lcdc.window_tilemap_area == 1) {
-      auto x1 = regs.wx < 7 ? kLCDWidth + (regs.wx - 7) : regs.wx - 7;
-      auto y1 = regs.wy;
+    if (regs_.lcdc.window_tilemap_area == 1) {
+      auto x1 = regs_.wx < 7 ? kLCDWidth + (regs_.wx - 7) : regs_.wx - 7;
+      auto y1 = regs_.wy;
       auto x2 = (x1 + kLCDWidth - 1) % 256;
       auto y2 = (y1 + kLCDHeight - 1) % 256;
 
@@ -438,15 +438,15 @@ void Ppu::update_render_targets() {
   }
   EndTextureMode();
 
-  BeginTextureMode(target_sprites);
+  BeginTextureMode(target_sprites_);
   {
     ClearBackground(BLANK);
 
-    auto sprite_tile_height = regs.lcdc.sprite_size ? 2 : 1;
+    auto sprite_tile_height = regs_.lcdc.sprite_size ? 2 : 1;
     auto row = 0;
     auto col = 0;
 
-    for (auto &sprite : oam.sprites) {
+    for (auto &sprite : oam_.sprites) {
       for (auto ti = 0; ti < sprite_tile_height; ti += 1) {
         auto tile_idx = ((addr_with_mode(1, sprite.tile) - kVRAMAddrStart) / 16) + ti;
         auto dst_y = tile_idx / 16;
@@ -454,7 +454,7 @@ void Ppu::update_render_targets() {
 
         Rectangle rect {
           static_cast<float>(dst_x * 8),
-          static_cast<float>(target_tiles.texture.height - (dst_y * 8) - 8),
+          static_cast<float>(target_tiles_.texture.height - (dst_y * 8) - 8),
           8.f,
           -8.f,
         };
@@ -464,7 +464,7 @@ void Ppu::update_render_targets() {
           static_cast<float>((row * sprite_tile_height * 8) + (ti * 8))
         };
 
-        DrawTextureRec(target_tiles.texture, rect, pos, WHITE);
+        DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
 
         col += 1;
         if (col >= 8) {
@@ -495,12 +495,12 @@ bool Ppu::IsValidFor(uint16_t addr) const {
 
 void Ppu::Write8(uint16_t addr, uint8_t byte) {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
-    vram.bytes[addr - kVRAMAddrStart] = byte;
+    vram_.bytes[addr - kVRAMAddrStart] = byte;
     return;
   }
 
   if (addr >= kOAMAddrStart && addr <= kOAMAddrEnd) {
-    oam.bytes[addr - kOAMAddrStart] = byte;
+    oam_.bytes[addr - kOAMAddrStart] = byte;
     return;
   }
 
@@ -509,94 +509,94 @@ void Ppu::Write8(uint16_t addr, uint8_t byte) {
   }
 
   if (addr == std::to_underlying(IO::STAT)) {
-    regs.stat.val = (regs.stat.val & 0b11) | (byte & ~0b11);
+    regs_.stat.val = (regs_.stat.val & 0b11) | (byte & ~0b11);
     return;
   }
 
-  regs.bytes[addr - std::to_underlying(IO::LCDC)] = byte;
+  regs_.bytes[addr - std::to_underlying(IO::LCDC)] = byte;
 
-  if (addr == std::to_underlying(IO::LCDC) && !regs.lcdc.lcd_enable) {
-    regs.ly = 0;
-    cycle_counter = 0;
-    window_line_counter = 0;
-    regs.stat.ppu_mode = 0;
-    clear_target_buffers();
+  if (addr == std::to_underlying(IO::LCDC) && !regs_.lcdc.lcd_enable) {
+    regs_.ly = 0;
+    cycle_counter_ = 0;
+    window_line_counter_ = 0;
+    regs_.stat.ppu_mode = 0;
+    ClearTargetBuffers();
   } else if (addr == std::to_underlying(IO::LYC)) {
-    regs.stat.coincidence_flag = regs.lyc == regs.ly;
-    if (regs.stat.coincidence_flag && regs.stat.stat_interrupt_lyc) {
-      interrupts.RequestInterrupt(Interrupt::Stat);
+    regs_.stat.coincidence_flag = regs_.lyc == regs_.ly;
+    if (regs_.stat.coincidence_flag && regs_.stat.stat_interrupt_lyc) {
+      interrupts_.RequestInterrupt(Interrupt::Stat);
     }
   } else if (addr == std::to_underlying(IO::DMA)) {
-    start_dma();
+    StartDma();
   }
 }
 
 uint8_t Ppu::Read8(uint16_t addr) const {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
-    return vram.bytes[addr - kVRAMAddrStart];
+    return vram_.bytes[addr - kVRAMAddrStart];
   }
 
   if (addr >= kOAMAddrStart && addr <= kOAMAddrEnd) {
-    return oam.bytes[addr - kOAMAddrStart];
+    return oam_.bytes[addr - kOAMAddrStart];
   }
 
   if (addr == std::to_underlying(IO::STAT)) {
-    return regs.stat.val | 0b10000000;
+    return regs_.stat.val | 0b10000000;
   }
 
-  if (log_doctor && addr == std::to_underlying(IO::LY)) {
+  if (log_doctor_ && addr == std::to_underlying(IO::LY)) {
     return 0x90;
   }
 
-  return regs.bytes[addr - std::to_underlying(IO::LCDC)];
+  return regs_.bytes[addr - std::to_underlying(IO::LCDC)];
 }
 
 void Ppu::Reset() {
-  vram.reset();
-  oam.reset();
-  regs.reset();
-  cycle_counter = 0;
-  window_line_counter = 0;
+  vram_.reset();
+  oam_.reset();
+  regs_.reset();
+  cycle_counter_ = 0;
+  window_line_counter_ = 0;
 
-  BeginTextureMode(target_tiles);
+  BeginTextureMode(target_tiles_);
   ClearBackground(BLACK);
   EndTextureMode();
 
-  BeginTextureMode(target_tilemap1);
+  BeginTextureMode(target_tilemap1_);
   ClearBackground(BLACK);
   EndTextureMode();
 
-  BeginTextureMode(target_tilemap2);
+  BeginTextureMode(target_tilemap2_);
   ClearBackground(BLACK);
   EndTextureMode();
 
-  BeginTextureMode(target_sprites);
+  BeginTextureMode(target_sprites_);
   ClearBackground(BLACK);
   EndTextureMode();
 
-  clear_target_buffers();
+  ClearTargetBuffers();
 }
 
-void Ppu::clear_target_buffers() {
-  ImageClearBackground(&target_lcd_back, BLACK);
-  UpdateTexture(target_lcd_front, target_lcd_back.data);
+void Ppu::ClearTargetBuffers() {
+  ImageClearBackground(&target_lcd_back_, BLACK);
+  UpdateTexture(target_lcd_front_, target_lcd_back_.data);
 }
 
-PPUMode Ppu::mode() const {
-  return static_cast<PPUMode>(regs.stat.ppu_mode);
+PPUMode Ppu::GetMode() const {
+  return static_cast<PPUMode>(regs_.stat.ppu_mode);
 }
 
-void Ppu::set_mode(PPUMode mode) {
-  regs.stat.ppu_mode = std::to_underlying(mode);
+void Ppu::SetMode(PPUMode mode) {
+  regs_.stat.ppu_mode = std::to_underlying(mode);
 }
 
-void Ppu::start_dma() {
-  auto source = regs.dma << 8;
+void Ppu::StartDma() {
+  auto source = regs_.dma << 8;
 
   if (source >= kVRAMAddrStart && source <= kVRAMAddrEnd) {
     auto base = source - kVRAMAddrStart;
-    for (auto i = 0; i < oam.bytes.size(); i += 1) {
-      oam.bytes[i] = vram.bytes[base + i];
+    for (auto i = 0; i < oam_.bytes.size(); i += 1) {
+      oam_.bytes[i] = vram_.bytes[base + i];
     }
     return;
   }
@@ -605,7 +605,7 @@ void Ppu::start_dma() {
     source = kExtRamBusStart + (source & kExtRamBusMask);
   }
 
-  for (auto i = 0; i < oam.bytes.size(); i += 1) {
-    oam.bytes[i] = mmu.Read8(source + i);
+  for (auto i = 0; i < oam_.bytes.size(); i += 1) {
+    oam_.bytes[i] = mmu_.Read8(source + i);
   }
 }

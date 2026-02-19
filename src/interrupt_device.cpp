@@ -1,8 +1,8 @@
 #include <utility>
 #include <spdlog/spdlog.h>
-#include <magic_enum/magic_enum.hpp>
 
 #include "interrupt_device.hpp"
+#include "io.hpp"
 
 bool InterruptDevice::IsValidFor(uint16_t addr) const {
   switch (addr) {
