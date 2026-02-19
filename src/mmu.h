@@ -9,7 +9,7 @@
 class Mmu {
 public:
   void clear_devices();
-  void add_device(mmu_device_ptr device);
+  void add_device(MmuDevicePtr device);
 
   [[nodiscard]] uint8_t read8(uint16_t addr) const;
   void write8(uint16_t addr, uint8_t byte);
@@ -17,6 +17,6 @@ public:
   void reset_devices();
 
 private:
-  std::vector<mmu_device_ptr> devices;
+  std::vector<MmuDevicePtr> devices;
 };
 

@@ -10,10 +10,10 @@ constexpr int kHramSize = kHramEnd - kHramStart + 1;
 
 class HramDevice : public MmuDevice {
 public:
-  [[nodiscard]] bool valid_for(uint16_t addr) const override;
-  void write8(uint16_t addr, uint8_t byte) override;
+  [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
+  void Write8(uint16_t addr, uint8_t byte) override;
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
-  void reset() override;
+  void Reset() override;
 
 private:
   std::array<uint8_t, kHramSize> ram;

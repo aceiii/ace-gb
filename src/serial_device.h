@@ -13,10 +13,10 @@ class SerialDevice : public MmuDevice, public SyncedDevice {
 public:
   explicit SerialDevice(InterruptDevice &interrupts);
 
-  [[nodiscard]] bool valid_for(uint16_t addr) const override;
-  void write8(uint16_t addr, uint8_t byte) override;
+  [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
+  void Write8(uint16_t addr, uint8_t byte) override;
   [[nodiscard]] uint8_t read8(uint16_t addr) const override;
-  void reset() override;
+  void Reset() override;
 
   void step();
   void OnTick() override;

@@ -4,7 +4,7 @@
 
 #include "interrupt_device.h"
 
-bool InterruptDevice::valid_for(uint16_t addr) const {
+bool InterruptDevice::IsValidFor(uint16_t addr) const {
   switch (addr) {
     case std::to_underlying(IO::IF):
     case std::to_underlying(IO::IE):
@@ -13,7 +13,7 @@ bool InterruptDevice::valid_for(uint16_t addr) const {
   }
 }
 
-void InterruptDevice::write8(uint16_t addr, uint8_t byte) {
+void InterruptDevice::Write8(uint16_t addr, uint8_t byte) {
   switch (addr) {
     case std::to_underlying(IO::IF):
       flag.val = byte;
@@ -35,7 +35,7 @@ uint8_t InterruptDevice::read8(uint16_t addr) const {
   }
 }
 
-void InterruptDevice::reset() {
+void InterruptDevice::Reset() {
   flag.reset();
   enable.reset();
 }

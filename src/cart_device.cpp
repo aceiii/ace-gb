@@ -11,11 +11,11 @@
 #include "mbc3.h"
 #include "mbc5.h"
 
-bool CartDevice::valid_for(uint16_t addr) const {
+bool CartDevice::IsValidFor(uint16_t addr) const {
   return addr <= kRomBank01End || (addr >= kExtRamStart && addr <= kExtRamEnd);
 }
 
-void CartDevice::write8(uint16_t addr, uint8_t byte) {
+void CartDevice::Write8(uint16_t addr, uint8_t byte) {
   if (addr >= kExtRamStart && addr <= kExtRamEnd) {
     return mbc->write_ram(addr, byte);
   }
@@ -34,14 +34,14 @@ uint8_t CartDevice::read8(uint16_t addr) const {
   return mbc->read_ram(addr);
 }
 
-void CartDevice::reset() {
+void CartDevice::Reset() {
   info.reset();
   mbc = std::make_unique<NoMbc>();
 }
 
 void CartDevice::load_cartridge(const std::vector<uint8_t> &bytes) {
   if (bytes.empty()) {
-    return reset();
+    return Reset();
   }
 
   const auto *rom_base = bytes.data();

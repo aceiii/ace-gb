@@ -14,7 +14,7 @@ namespace {
 
 Timer::Timer(InterruptDevice &interrupts):interrupts{interrupts} {}
 
-bool Timer::valid_for(uint16_t addr) const {
+bool Timer::IsValidFor(uint16_t addr) const {
   switch (addr) {
 //    case std::to_underlying(IO::DIV)-1:
     case std::to_underlying(IO::DIV):
@@ -26,7 +26,7 @@ bool Timer::valid_for(uint16_t addr) const {
   }
 }
 
-void Timer::write8(uint16_t addr, uint8_t byte) {
+void Timer::Write8(uint16_t addr, uint8_t byte) {
   switch (addr) {
 //    case std::to_underlying(IO::DIV)-1:
 //      return;
@@ -63,7 +63,7 @@ uint8_t Timer::read8(uint16_t addr) const {
   }
 }
 
-void Timer::reset() {
+void Timer::Reset() {
   regs.div = 0;
   regs.tima = 0;
   regs.tma = 0;

@@ -9,11 +9,11 @@ constexpr int kWaveRamEnd = kWaveRamStart + 15;
 Audio::Audio(Timer &timer, audio_config cfg) : timer{ timer }, config{ cfg } {
 }
 
-bool Audio::valid_for(uint16_t addr) const {
+bool Audio::IsValidFor(uint16_t addr) const {
   return addr >= kAudioStart && addr <= kAudioEnd;
 }
 
-void Audio::write8(uint16_t addr, uint8_t byte) {
+void Audio::Write8(uint16_t addr, uint8_t byte) {
   if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
     ch3.set_wave(addr - kWaveRamStart, byte);
   } else if (addr == std::to_underlying(IO::NR52)) {
@@ -84,7 +84,7 @@ uint8_t Audio::read8(uint16_t addr) const {
   return 0xff;
 }
 
-void Audio::reset() {
+void Audio::Reset() {
   sample_timer = 0;
   nr50.val = 0;
   nr51.val = 0;

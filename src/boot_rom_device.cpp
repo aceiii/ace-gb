@@ -3,11 +3,11 @@
 #include "boot_rom_device.h"
 #include "io.h"
 
-bool BootRomDevice::valid_for(uint16_t addr) const {
+bool BootRomDevice::IsValidFor(uint16_t addr) const {
   return addr == std::to_underlying(IO::BOOT) || (!disable && addr < rom.size());
 }
 
-void BootRomDevice::write8(uint16_t addr, uint8_t byte) {
+void BootRomDevice::Write8(uint16_t addr, uint8_t byte) {
   if (addr != std::to_underlying(IO::BOOT)) {
     return;
   }
@@ -22,7 +22,7 @@ void BootRomDevice::write8(uint16_t addr, uint8_t byte) {
   return 0xff;
 }
 
-void BootRomDevice::reset() {
+void BootRomDevice::Reset() {
   disable = 0;
   rom.fill(0);
 }

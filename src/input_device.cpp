@@ -8,11 +8,11 @@
 InputDevice::InputDevice(InterruptDevice &interrupts): interrupts{interrupts} {
 }
 
-[[nodiscard]] bool InputDevice::valid_for(uint16_t addr) const {
+[[nodiscard]] bool InputDevice::IsValidFor(uint16_t addr) const {
   return addr == std::to_underlying(IO::P1);
 }
 
-void InputDevice::write8(uint16_t addr, uint8_t byte) {
+void InputDevice::Write8(uint16_t addr, uint8_t byte) {
   reg_buttons.select = (byte >> 4) & 0b11;
 }
 
@@ -28,7 +28,7 @@ void InputDevice::write8(uint16_t addr, uint8_t byte) {
   return (reg_buttons.select << 4) | (~buttons & 0b1111) | (0b11000000);
 }
 
-void InputDevice::reset() {
+void InputDevice::Reset() {
   reg_buttons.reset();
   reg_dpad.reset();
 }

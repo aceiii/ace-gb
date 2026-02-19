@@ -9,11 +9,11 @@ SerialDevice::SerialDevice(InterruptDevice &interrupts):interrupts{interrupts} {
   sc.unused = 0x1f;
 }
 
-bool SerialDevice::valid_for(uint16_t addr) const {
+bool SerialDevice::IsValidFor(uint16_t addr) const {
   return addr == std::to_underlying(IO::SB) || addr == std::to_underlying(IO::SC);
 }
 
-void SerialDevice::write8(uint16_t addr, uint8_t byte) {
+void SerialDevice::Write8(uint16_t addr, uint8_t byte) {
   switch (addr) {
     case std::to_underlying(IO::SB): sb = byte; return;
     case std::to_underlying(IO::SC): {
@@ -36,7 +36,7 @@ uint8_t SerialDevice::read8(uint16_t addr) const {
   }
 }
 
-void SerialDevice::reset() {
+void SerialDevice::Reset() {
   sb = 0xff;
   sc.val = 0;
   sc.unused = 0x1f;

@@ -2,11 +2,11 @@
 
 #include "null_device.h"
 
-[[nodiscard]] bool NullDevice::valid_for(uint16_t addr) const {
+[[nodiscard]] bool NullDevice::IsValidFor(uint16_t addr) const {
   return true;
 }
 
-void NullDevice::write8(uint16_t addr, uint8_t byte) {
+void NullDevice::Write8(uint16_t addr, uint8_t byte) {
   if (auto it = overrides.find(addr); it != overrides.end() && it->second.writeable) {
     it->second.value = byte;
   }
@@ -25,7 +25,7 @@ void NullDevice::write8(uint16_t addr, uint8_t byte) {
   return 0xff;
 }
 
-void NullDevice::reset() {
+void NullDevice::Reset() {
 }
 
 void NullDevice::add_override(uint16_t addr, uint8_t default_value, bool writable, uint8_t mask) {

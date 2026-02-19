@@ -477,7 +477,7 @@ void Ppu::update_render_targets() {
   EndTextureMode();
 }
 
-bool Ppu::valid_for(uint16_t addr) const {
+bool Ppu::IsValidFor(uint16_t addr) const {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     return true;
   }
@@ -493,7 +493,7 @@ bool Ppu::valid_for(uint16_t addr) const {
   return false;
 }
 
-void Ppu::write8(uint16_t addr, uint8_t byte) {
+void Ppu::Write8(uint16_t addr, uint8_t byte) {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     vram.bytes[addr - kVRAMAddrStart] = byte;
     return;
@@ -551,7 +551,7 @@ uint8_t Ppu::read8(uint16_t addr) const {
   return regs.bytes[addr - std::to_underlying(IO::LCDC)];
 }
 
-void Ppu::reset() {
+void Ppu::Reset() {
   vram.reset();
   oam.reset();
   regs.reset();
