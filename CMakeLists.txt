@@ -32,7 +32,7 @@ set(SOURCE_FILES
         src/util.hpp
         src/mmu.hpp
     src/mmu.cpp
-    src/ppu.h
+        src/ppu.hpp
     src/ppu.cpp
         src/io.hpp
         src/file.hpp

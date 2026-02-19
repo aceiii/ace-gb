@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h>
 
 #include "io.hpp"
-#include "ppu.h"
+#include "ppu.hpp"
 
 namespace {
 

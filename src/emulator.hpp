@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "cpu.hpp"
-#include "ppu.h"
+#include "ppu.hpp"
 #include "registers.h"
 #include "boot_rom_device.hpp"
 #include "cart_device.hpp"
