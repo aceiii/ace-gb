@@ -15,22 +15,22 @@ Mbc2::Mbc2(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool 
   }
 }
 
-uint8_t Mbc2::read_rom0(uint16_t addr) const {
+uint8_t Mbc2::ReadRom0(uint16_t addr) const {
   return rom[0][addr];
 }
 
-uint8_t Mbc2::read_rom1(uint16_t addr) const {
+uint8_t Mbc2::ReadRom1(uint16_t addr) const {
   return rom[rom_bank_number % info.rom_num_banks][addr & 0x3fff];
 }
 
-uint8_t Mbc2::read_ram(uint16_t addr) const {
+uint8_t Mbc2::ReadRam(uint16_t addr) const {
   if (!ram_enable) {
     return 0xff;
   }
   return ram[addr & 0x1ff] | 0b11110000;
 }
 
-void Mbc2::write_reg(uint16_t addr, uint8_t byte) {
+void Mbc2::WriteReg(uint16_t addr, uint8_t byte) {
   if (addr > 0x3fff) {
     return;
   }
@@ -47,7 +47,7 @@ void Mbc2::write_reg(uint16_t addr, uint8_t byte) {
   }
 }
 
-void Mbc2::write_ram(uint16_t addr, uint8_t byte) {
+void Mbc2::WriteRam(uint16_t addr, uint8_t byte) {
   spdlog::info("write_ram: [{:04x}] = {:02x}", addr, byte);
   if (!ram_enable || addr > 0xa1ff) {
     return;

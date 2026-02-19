@@ -23,7 +23,7 @@ Mbc1::Mbc1(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool 
   }
 }
 
-uint8_t Mbc1::read_rom0(uint16_t addr) const {
+uint8_t Mbc1::ReadRom0(uint16_t addr) const {
   if (mbc1m && banking_mode) {
       return rom[(ram_bank_number << 4) % info.rom_num_banks][addr];
   }
@@ -35,7 +35,7 @@ uint8_t Mbc1::read_rom0(uint16_t addr) const {
   return rom[(ram_bank_number << 5) % info.rom_num_banks][addr];
 }
 
-uint8_t Mbc1::read_rom1(uint16_t addr) const {
+uint8_t Mbc1::ReadRom1(uint16_t addr) const {
   uint16_t bank = rom_bank_number & 0b11111;
   if (bank == 0) {
     bank = 1;
@@ -52,7 +52,7 @@ uint8_t Mbc1::read_rom1(uint16_t addr) const {
   return rom[bank % info.rom_num_banks][addr & 0x3fff];
 }
 
-uint8_t Mbc1::read_ram(uint16_t addr) const {
+uint8_t Mbc1::ReadRam(uint16_t addr) const {
   if (!ram_enable | !info.ram_size_bytes) {
     return 0xff;
   }
@@ -61,7 +61,7 @@ uint8_t Mbc1::read_ram(uint16_t addr) const {
   return ram[bank_idx][addr & 0x1fff];
 }
 
-void Mbc1::write_reg(uint16_t addr, uint8_t byte) {
+void Mbc1::WriteReg(uint16_t addr, uint8_t byte) {
   if (addr <= 0x1fff) {
     ram_enable = (byte & 0b1111) == 0x0a;
     return;
@@ -80,7 +80,7 @@ void Mbc1::write_reg(uint16_t addr, uint8_t byte) {
   banking_mode = byte & 0b1;
 }
 
-void Mbc1::write_ram(uint16_t addr, uint8_t byte) {
+void Mbc1::WriteRam(uint16_t addr, uint8_t byte) {
   if (!ram_enable || !info.ram_num_banks) {
     return;
   }

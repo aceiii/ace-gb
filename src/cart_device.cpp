@@ -17,21 +17,21 @@ bool CartDevice::IsValidFor(uint16_t addr) const {
 
 void CartDevice::Write8(uint16_t addr, uint8_t byte) {
   if (addr >= kExtRamStart && addr <= kExtRamEnd) {
-    return mbc_->write_ram(addr, byte);
+    return mbc_->WriteRam(addr, byte);
   }
-  return mbc_->write_reg(addr, byte);
+  return mbc_->WriteReg(addr, byte);
 }
 
 uint8_t CartDevice::Read8(uint16_t addr) const {
   if (addr <= kRomBank00End) {
-    return mbc_->read_rom0(addr);
+    return mbc_->ReadRom0(addr);
   }
 
   if (addr <= kRomBank01End) {
-    return mbc_->read_rom1(addr);
+    return mbc_->ReadRom1(addr);
   }
 
-  return mbc_->read_ram(addr);
+  return mbc_->ReadRam(addr);
 }
 
 void CartDevice::Reset() {

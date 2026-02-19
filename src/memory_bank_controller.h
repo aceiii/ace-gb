@@ -1,6 +1,7 @@
 #pragma once
-#include <cstddef>
+
 #include <cstdint>
+
 
 constexpr size_t kRomBank00Start = 0x0000;
 constexpr size_t kRomBank00End = 0x3FFF;
@@ -13,10 +14,10 @@ class MemoryBankController {
 public:
   virtual ~MemoryBankController() = default;
 
-  [[nodiscard]] virtual uint8_t read_rom0(uint16_t addr) const = 0;
-  [[nodiscard]] virtual uint8_t read_rom1(uint16_t addr) const = 0;
-  [[nodiscard]] virtual uint8_t read_ram(uint16_t addr) const = 0;
+  [[nodiscard]] virtual uint8_t ReadRom0(uint16_t addr) const = 0;
+  [[nodiscard]] virtual uint8_t ReadRom1(uint16_t addr) const = 0;
+  [[nodiscard]] virtual uint8_t ReadRam(uint16_t addr) const = 0;
 
-  virtual void write_reg(uint16_t addr, uint8_t byte) = 0;
-  virtual void write_ram(uint16_t addr, uint8_t byte) = 0;
+  virtual void WriteReg(uint16_t addr, uint8_t byte) = 0;
+  virtual void WriteRam(uint16_t addr, uint8_t byte) = 0;
 };

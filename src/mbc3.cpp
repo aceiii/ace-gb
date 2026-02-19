@@ -15,19 +15,19 @@ Mbc3::Mbc3(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool 
   }
 }
 
-uint8_t Mbc3::read_rom0(uint16_t addr) const {
+uint8_t Mbc3::ReadRom0(uint16_t addr) const {
   return rom[0][addr];
 }
 
-uint8_t Mbc3::read_rom1(uint16_t addr) const {
+uint8_t Mbc3::ReadRom1(uint16_t addr) const {
   return rom[rom_bank_number % info.rom_num_banks][addr & 0x3fff];
 }
 
-uint8_t Mbc3::read_ram(uint16_t addr) const {
+uint8_t Mbc3::ReadRam(uint16_t addr) const {
   return ram_or_clock[(addr - 0xa000) % ram_or_clock_mod];
 }
 
-void Mbc3::write_reg(uint16_t addr, uint8_t byte) {
+void Mbc3::WriteReg(uint16_t addr, uint8_t byte) {
   if (addr <= 0x1fff) {
     ram_enable = (byte & 0b1111) == 0x0a;
   } else if (addr <= 0x3fff) {
@@ -50,7 +50,7 @@ void Mbc3::write_reg(uint16_t addr, uint8_t byte) {
   }
 }
 
-void Mbc3::write_ram(uint16_t addr, uint8_t byte) {
+void Mbc3::WriteRam(uint16_t addr, uint8_t byte) {
   ram_or_clock[(addr - 0xa000) % ram_or_clock_mod] = byte;
 }
 
