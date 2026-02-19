@@ -8,7 +8,7 @@
 #include <rlImGui.h>
 
 #include "emulator.hpp"
-#include "file.h"
+#include "file.hpp"
 #include "mmu.h"
 
 // NOTE: not sure why, but my emulator seems to be 4x slower than it should be...

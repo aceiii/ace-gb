@@ -35,7 +35,7 @@ set(SOURCE_FILES
     src/ppu.h
     src/ppu.cpp
     src/io.h
-    src/file.h
+        src/file.hpp
     src/file.cpp
         src/boot_rom_device.hpp
         src/boot_rom_device.cpp
