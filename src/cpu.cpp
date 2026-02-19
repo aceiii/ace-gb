@@ -1180,11 +1180,11 @@ uint8_t Cpu::Execute() {
   }
 
   uint8_t byte_code = ReadNext8();
-  Instruction instr = Decoder::decode(byte_code);
+  Instruction instr = Decoder::Decode(byte_code);
 
   if (instr.opcode == Opcode::PREFIX) {
     byte_code = ReadNext8();
-    instr = Decoder::decode_prefixed(byte_code);
+    instr = Decoder::DecodePrefixed(byte_code);
   }
 
   std::visit(overloaded{

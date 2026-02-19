@@ -8,7 +8,7 @@
 
 namespace Decoder {
 
-Instruction decode_prefixed(uint8_t op) {
+Instruction DecodePrefixed(uint8_t op) {
   int r8 = op & 0x7;
 
   uint8_t bytes = 2;
@@ -98,7 +98,7 @@ Instruction decode_prefixed(uint8_t op) {
   }
 }
 
-Instruction decode(uint8_t op) {
+Instruction Decode(uint8_t op) {
   switch (op) {
   case 0x00:
     return {Opcode::NOP, 1, 4, 4, Operands_None{}};

@@ -176,10 +176,10 @@ PPUMode Emulator::GetMode() const {
 
 Instruction Emulator::GetCurrentInstruction() const {
   auto byte = mmu_.read8(cpu_.regs.pc);
-  auto instr = Decoder::decode(byte);
+  auto instr = Decoder::Decode(byte);
   if (instr.opcode == Opcode::PREFIX) {
     byte = mmu_.read8(cpu_.regs.pc + 1);
-    instr = Decoder::decode_prefixed(byte);
+    instr = Decoder::DecodePrefixed(byte);
   }
   return instr;
 }
