@@ -21,12 +21,12 @@ private:
   using rom_bank = std::array<uint8_t, 16384>;
   using ram_bank = std::array<uint8_t, 8192>;
 
-  std::array<rom_bank, 512> rom {};
-  std::array<ram_bank, 16> ram {};
+  std::array<rom_bank, 512> rom_ {};
+  std::array<ram_bank, 16> ram_ {};
 
-  CartInfo info;
-  bool ram_enable = false;
+  CartInfo info_;
+  bool ram_enable_ = false;
 
-  uint16_t rom_bank_number = 1;
-  uint8_t ram_bank_number = 0;
+  uint16_t rom_bank_number_ = 1;
+  uint8_t ram_bank_number_ = 0;
 };
