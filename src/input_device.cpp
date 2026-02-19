@@ -3,7 +3,7 @@
 #include <magic_enum/magic_enum.hpp>
 
 #include "io.h"
-#include "input_device.h"
+#include "input_device.hpp"
 
 InputDevice::InputDevice(InterruptDevice &interrupts): interrupts_{interrupts} {
 }

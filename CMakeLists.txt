@@ -55,7 +55,7 @@ set(SOURCE_FILES
     src/null_device.cpp
     src/null_device.h
     src/input_device.cpp
-    src/input_device.h
+        src/input_device.hpp
     src/serial_device.cpp
     src/serial_device.h
         src/synced_device.hpp
