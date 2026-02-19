@@ -3,7 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include "cart_device.h"
+#include "cart_device.hpp"
 #include "cart_header.h"
 #include "no_mbc.h"
 #include "mbc1.h"

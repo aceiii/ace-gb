@@ -11,7 +11,7 @@
 #include "ppu.h"
 #include "registers.h"
 #include "boot_rom_device.hpp"
-#include "cart_device.h"
+#include "cart_device.hpp"
 #include "wram_device.h"
 #include "hram_device.h"
 #include "timer.h"

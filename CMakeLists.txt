@@ -39,8 +39,8 @@ set(SOURCE_FILES
     src/file.cpp
         src/boot_rom_device.hpp
         src/boot_rom_device.cpp
-    src/cart_device.h
-    src/cart_device.cpp
+        src/cart_device.hpp
+        src/cart_device.cpp
     src/wram_device.cpp
     src/wram_device.h
     src/timer.cpp
