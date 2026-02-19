@@ -58,7 +58,7 @@ set(SOURCE_FILES
     src/input_device.h
     src/serial_device.cpp
     src/serial_device.h
-    src/synced_device.h
+        src/synced_device.hpp
     src/joypad.h
     src/cart_header.h
     src/memory_bank_controller.h
@@ -138,7 +138,7 @@ if(BUILD_TESTS)
         src/interrupt.h
         src/interrupt_device.h
         src/interrupt_device.cpp
-        src/synced_device.h
+            src/synced_device.hpp
     )
 
     add_executable(${TEST_NAME} ${TEST_FILES})

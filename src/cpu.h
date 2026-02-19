@@ -7,7 +7,7 @@
 #include "io.h"
 #include "interrupt.h"
 #include "interrupt_device.h"
-#include "synced_device.h"
+#include "synced_device.hpp"
 
 #include <memory>
 #include <valarray>

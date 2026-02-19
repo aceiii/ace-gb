@@ -5,7 +5,7 @@
 
 #include "mmu.h"
 #include "interrupt_device.h"
-#include "synced_device.h"
+#include "synced_device.hpp"
 
 constexpr int kNumTiles = 384;
 

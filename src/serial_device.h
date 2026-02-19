@@ -5,7 +5,7 @@
 
 #include "mmu_device.h"
 #include "interrupt_device.h"
-#include "synced_device.h"
+#include "synced_device.hpp"
 
 using LineCallback = std::function<void(const std::string &str)>;
 

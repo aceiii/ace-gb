@@ -2,7 +2,7 @@
 
 #include "mmu_device.h"
 #include "interrupt_device.h"
-#include "synced_device.h"
+#include "synced_device.hpp"
 
 struct timer_registers {
   uint16_t div;

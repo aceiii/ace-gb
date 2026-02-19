@@ -7,7 +7,7 @@
 
 #include "io.h"
 #include "mmu_device.h"
-#include "synced_device.h"
+#include "synced_device.hpp"
 #include "timer.h"
 #include "square_channel.h"
 #include "noise_channel.h"
