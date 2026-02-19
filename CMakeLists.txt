@@ -14,81 +14,83 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(TOML_EXCEPTIONS=0)
 
 set(SOURCE_FILES
+        src/applog.cpp
+        src/applog.hpp
         src/args.cpp
         src/args.hpp
-    src/main.cpp
-        src/interface.hpp
-        src/interface.cpp
-        src/cpu.hpp
-    src/cpu.cpp
-        src/emulator.hpp
-        src/emulator.cpp
-        src/decoder.hpp
-    src/decoder.cpp
-        src/instructions.hpp
-        src/opcodes.hpp
-    src/overloaded.h
-        src/registers.hpp
-        src/util.hpp
-        src/mmu.hpp
-    src/mmu.cpp
-        src/ppu.hpp
-    src/ppu.cpp
-        src/io.hpp
-        src/file.hpp
-    src/file.cpp
-        src/boot_rom_device.hpp
-        src/boot_rom_device.cpp
-        src/cart_device.hpp
-        src/cart_device.cpp
-    src/wram_device.cpp
-        src/wram_device.hpp
-    src/timer.cpp
-        src/timer.hpp
-    src/interrupt_device.cpp
-        src/interrupt_device.hpp
-        src/interrupt.hpp
-    src/hram_device.cpp
-        src/hram_device.hpp
+        src/assembly_viewer.cpp
+        src/assembly_viewer.hpp
+        src/audio_channel.hpp
         src/audio.cpp
         src/audio.hpp
-    src/null_device.cpp
-    src/null_device.h
-    src/input_device.cpp
-        src/input_device.hpp
-    src/serial_device.cpp
-        src/serial_device.hpp
-        src/synced_device.hpp
-        src/joypad.hpp
+        src/boot_rom_device.cpp
+        src/boot_rom_device.hpp
+        src/cart_device.cpp
+        src/cart_device.hpp
         src/cart_header.hpp
-        src/memory_bank_controller.hpp
         src/cart_info.hpp
-    src/no_mbc.cpp
-        src/no_mbc.hpp
-    src/mbc1.cpp
-        src/mbc1.hpp
-    src/mbc2.cpp
-        src/mbc2.hpp
-    src/mbc3.cpp
-        src/mbc3.hpp
-    src/mbc5.cpp
-        src/mbc5.hpp
-    src/square_channel.cpp
-        src/square_channel.hpp
-    src/wave_channel.cpp
-        src/wave_channel.hpp
-    src/noise_channel.cpp
-    src/noise_channel.h
-        src/audio_channel.hpp
-        src/config.hpp
         src/config.cpp
-    src/recent_files.cpp
-    src/recent_files.hpp
-    src/assembly_viewer.cpp
-    src/assembly_viewer.hpp
-    src/applog.cpp
-    src/applog.hpp
+        src/config.hpp
+        src/cpu.cpp
+        src/cpu.hpp
+        src/decoder.cpp
+        src/decoder.hpp
+        src/emulator.cpp
+        src/emulator.hpp
+        src/error_messages.cpp
+        src/error_messages.hpp
+        src/file.cpp
+        src/file.hpp
+        src/hram_device.cpp
+        src/hram_device.hpp
+        src/input_device.cpp
+        src/input_device.hpp
+        src/instructions.hpp
+        src/interface.cpp
+        src/interface.hpp
+        src/interrupt_device.cpp
+        src/interrupt_device.hpp
+        src/interrupt.hpp
+        src/io.hpp
+        src/joypad.hpp
+        src/main.cpp
+        src/mbc1.cpp
+        src/mbc1.hpp
+        src/mbc2.cpp
+        src/mbc2.hpp
+        src/mbc3.cpp
+        src/mbc3.hpp
+        src/mbc5.cpp
+        src/mbc5.hpp
+        src/memory_bank_controller.hpp
         src/mmu_device.hpp
+        src/mmu.cpp
+        src/mmu.hpp
+        src/no_mbc.cpp
+        src/no_mbc.hpp
+        src/noise_channel.cpp
+        src/noise_channel.h
+        src/null_device.cpp
+        src/null_device.h
+        src/opcodes.hpp
+        src/overloaded.h
+        src/ppu.cpp
+        src/ppu.hpp
+        src/recent_files.cpp
+        src/recent_files.hpp
+        src/registers.hpp
+        src/serial_device.cpp
+        src/serial_device.hpp
+        src/square_channel.cpp
+        src/square_channel.hpp
+        src/synced_device.hpp
+        src/timer.cpp
+        src/timer.hpp
+        src/util.hpp
+        src/wave_channel.cpp
+        src/wave_channel.hpp
+        src/wram_device.cpp
+        src/wram_device.hpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
@@ -123,22 +125,22 @@ target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})
 
 if(BUILD_TESTS)
     set(TEST_FILES
-        src/test.cpp
+            src/test.cpp
             src/cpu.hpp
-        src/cpu.cpp
+            src/cpu.cpp
             src/decoder.hpp
-        src/decoder.cpp
+            src/decoder.cpp
             src/instructions.hpp
             src/opcodes.hpp
-        src/overloaded.h
+            src/overloaded.h
             src/registers.hpp
             src/util.hpp
             src/io.hpp
             src/mmu.hpp
-        src/mmu.cpp
+            src/mmu.cpp
             src/interrupt.hpp
             src/interrupt_device.hpp
-        src/interrupt_device.cpp
+            src/interrupt_device.cpp
             src/synced_device.hpp
     )
 

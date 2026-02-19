@@ -4,12 +4,13 @@
 #include <imgui.h>
 #include <imgui_memory_editor/imgui_memory_editor.h>
 
+#include "applog.hpp"
 #include "args.hpp"
+#include "assembly_viewer.hpp"
 #include "config.hpp"
 #include "emulator.hpp"
+#include "error_messages.hpp"
 #include "recent_files.hpp"
-#include "assembly_viewer.hpp"
-#include "applog.hpp"
 
 
 namespace app {
@@ -89,7 +90,7 @@ private:
   Config<InterfaceSettings> config_;
   MemoryEditor mem_editor_;
   AppLog app_log_;
-  std::string error_message_;
+  ErrorMessages error_messages_;
 
   bool should_close_ = false;
   bool show_settings_ = false;

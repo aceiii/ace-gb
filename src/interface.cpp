@@ -35,6 +35,9 @@ constexpr int kAudioSampleSize = 32;
 constexpr int kAudioNumChannels = 2;
 constexpr int kSamplesPerUpdate = 512;
 
+constexpr char const* kBootRomErrorKey = "BootRomError";
+constexpr char const* kCartRomErrorKey = "CartRomError";
+
 AudioStream stream;
 }
 
@@ -210,7 +213,8 @@ static uint32_t MemEditorCustomBgColor(const uint8_t* data, size_t offset, void*
 Interface::Interface(Args args)
     : args_{args},
       emulator_{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
-      config_{.serialize=SerializeInterfaceSettings, .deserialize=DeserializeInterfaceSettings}
+      config_{.serialize=SerializeInterfaceSettings, .deserialize=DeserializeInterfaceSettings},
+      error_messages_{}
 {
   mem_editor_.ReadFn = MemEditorCustomRead;
   mem_editor_.WriteFn = MemEditorCustomWrite;
@@ -279,7 +283,9 @@ Interface::Interface(Args args)
 
   if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
     spdlog::error("Failed to set boot rom path");
-    error_message_ = result.error();
+    error_messages_.AddError(kBootRomErrorKey, result.error());
+  } else {
+    error_messages_.ClearError(kBootRomErrorKey);
   }
 
   while (!IsWindowReady()) {
@@ -408,18 +414,7 @@ void Interface::Run() {
 }
 
 void Interface::RenderError() {
-  if (error_message_.empty()) {
-    return;
-  }
-
-  auto text_width = MeasureText(error_message_.c_str(), 15);
-  auto text_height = 20;
-  auto text_x = (config_.settings.screen_width - text_width) / 2;
-  auto text_y = (config_.settings.screen_height / 2) - (text_height / 2);
-  auto padding = 10;
-
-  DrawRectangle(text_x - padding, text_y - padding, text_width + padding + padding, text_height + padding + padding, Color { 32, 32, 32, 127 });
-  DrawText(error_message_.c_str(), text_x, text_y, 15, RED);
+  error_messages_.Draw();
 }
 
 void Interface::LoadCartridge() {
@@ -454,9 +449,12 @@ void Interface::LoadCartRom(const std::string &file_path) {
   auto load_result = File::LoadBin(path.string());
   if (!load_result) {
     config_.settings.recent_files.Remove(path);
-    error_message_ = std::format("Failed to load cart: {}", load_result.error());
-    spdlog::error("Failed to load cart: {}", error_message_);
+    std::string error = std::format("Failed to load cart: {}", load_result.error());
+    spdlog::error("Failed to load cart: {}", error);
+    error_messages_.AddError(kCartRomErrorKey, error);
     return;
+  } else {
+    error_messages_.ClearError(kCartRomErrorKey);
   }
 
   emulator_.LoadCartBytes(std::move(load_result.value()));
@@ -851,9 +849,9 @@ void Interface::RenderSettingsPopup() {
       spdlog::debug("Set boot rom path: {}", boot_rom_path);
       config_.settings.boot_rom_path = boot_rom_path;
       if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
-        error_message_ = std::format("Failed to load boot rom: {}", result.error());
+        error_messages_.AddError(kBootRomErrorKey, std::format("Failed to load boot rom: {}", result.error()));
       } else {
-        error_message_ = "";
+        error_messages_.ClearError(kBootRomErrorKey);
       }
     }
     ImGui::SameLine();
