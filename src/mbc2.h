@@ -20,10 +20,10 @@ public:
 private:
   using rom_bank = std::array<uint8_t, 16384>;
 
-  std::array<rom_bank, 16> rom {};
-  std::array<uint8_t, 512> ram {};
-  CartInfo info;
+  std::array<rom_bank, 16> rom_ {};
+  std::array<uint8_t, 512> ram_ {};
+  CartInfo info_;
 
-  bool ram_enable = false;
-  uint16_t rom_bank_number = 1;
+  bool ram_enable_ = false;
+  uint16_t rom_bank_number_ = 1;
 };
