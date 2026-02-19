@@ -18,22 +18,22 @@ public:
   [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
   void Reset() override;
 
-  void step();
+  void Step();
   void OnTick() override;
-  void trigger_callbacks();
+  void TriggerCallbacks();
 
-  std::string_view line_buffer() const;
-  void on_line(const LineCallback& callback);
+  std::string_view LineBuffer() const;
+  void OnLine(const LineCallback& callback);
 
 private:
-  InterruptDevice &interrupts;
-  uint16_t clock = 0;
-  uint16_t transfer_bytes = 0;
-  uint8_t byte_buffer;
-  std::string str_buffer;
-  std::vector<LineCallback> callbacks;
+  InterruptDevice &interrupts_;
+  uint16_t clock_ = 0;
+  uint16_t transfer_bytes_ = 0;
+  uint8_t byte_buffer_;
+  std::string str_buffer_;
+  std::vector<LineCallback> callbacks_;
 
-  uint8_t sb;
+  uint8_t sb_;
   union {
     struct {
       uint8_t clock_select    : 1;
@@ -42,6 +42,6 @@ private:
       uint8_t transfer_enable : 1;
     };
     uint8_t val;
-  } sc;
+  } sc_;
 
 };

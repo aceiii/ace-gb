@@ -15,7 +15,7 @@
 constexpr auto kStaticSpeedMultiplier = 4;
 
 Emulator::Emulator(audio_config cfg):cpu_{mmu_, interrupts_}, ppu_{mmu_, interrupts_}, serial_device_{interrupts_}, timer_{interrupts_}, input_device_{interrupts_}, audio_{timer_, cfg} {
-  serial_device_.on_line([] (const std::string &str) {
+  serial_device_.OnLine([] (const std::string &str) {
     spdlog::info("Serial: {}", str);
   });
 
