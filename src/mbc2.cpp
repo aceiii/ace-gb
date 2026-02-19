@@ -1,7 +1,7 @@
 #include <utility>
 #include <spdlog/spdlog.h>
 
-#include "mbc2.h"
+#include "mbc2.hpp"
 
 Mbc2::Mbc2(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool has_battery): info_ {std::move(info)} {
   size_t size_left = bytes.size();
