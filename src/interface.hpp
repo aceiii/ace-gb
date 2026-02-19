@@ -5,7 +5,7 @@
 #include <imgui_memory_editor/imgui_memory_editor.h>
 
 #include "args.hpp"
-#include "config.h"
+#include "config.hpp"
 #include "emulator.hpp"
 #include "recent_files.hpp"
 #include "assembly_viewer.hpp"

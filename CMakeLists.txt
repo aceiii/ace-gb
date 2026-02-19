@@ -80,8 +80,8 @@ set(SOURCE_FILES
     src/noise_channel.cpp
     src/noise_channel.h
         src/audio_channel.hpp
-    src/config.h
-    src/config.cpp
+        src/config.hpp
+        src/config.cpp
     src/recent_files.cpp
     src/recent_files.hpp
     src/assembly_viewer.cpp
