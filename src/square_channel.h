@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "audio_channel.h"
+#include "audio_channel.hpp"
 
 class SquareChannel : public AudioChannel {
 public:

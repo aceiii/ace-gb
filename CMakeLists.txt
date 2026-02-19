@@ -79,7 +79,7 @@ set(SOURCE_FILES
     src/wave_channel.h
     src/noise_channel.cpp
     src/noise_channel.h
-    src/audio_channel.h
+        src/audio_channel.hpp
     src/config.h
     src/config.cpp
     src/recent_files.cpp
