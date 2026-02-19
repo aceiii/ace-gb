@@ -1,7 +1,7 @@
 #include <utility>
 
 #include "decoder.hpp"
-#include "instructions.h"
+#include "instructions.hpp"
 #include "opcodes.h"
 #include "registers.h"
 

@@ -25,7 +25,7 @@ set(SOURCE_FILES
         src/emulator.cpp
         src/decoder.hpp
     src/decoder.cpp
-    src/instructions.h
+        src/instructions.hpp
     src/opcodes.h
     src/overloaded.h
     src/registers.h
@@ -128,7 +128,7 @@ if(BUILD_TESTS)
         src/cpu.cpp
             src/decoder.hpp
         src/decoder.cpp
-        src/instructions.h
+            src/instructions.hpp
         src/opcodes.h
         src/overloaded.h
         src/registers.h

@@ -5,7 +5,7 @@
 #include "cpu.hpp"
 #include "opcodes.h"
 #include "overloaded.h"
-#include "instructions.h"
+#include "instructions.hpp"
 
 
 inline uint16_t interrupt_handler(Interrupt interrupt) {
