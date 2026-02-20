@@ -1,4 +1,5 @@
 #include <utility>
+#include <tracy/Tracy.hpp>
 
 #include "decoder.hpp"
 #include "instructions.hpp"
@@ -9,6 +10,7 @@
 namespace Decoder {
 
 Instruction DecodePrefixed(uint8_t op) {
+  ZoneScoped;
   int r8 = op & 0x7;
 
   uint8_t bytes = 2;
@@ -99,6 +101,7 @@ Instruction DecodePrefixed(uint8_t op) {
 }
 
 Instruction Decode(uint8_t op) {
+  ZoneScoped;
   switch (op) {
   case 0x00:
     return {Opcode::NOP, 1, 4, 4, Operands_None{}};

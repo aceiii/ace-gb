@@ -1,6 +1,7 @@
 #include <utility>
 #include <spdlog/spdlog.h>
 #include <magic_enum/magic_enum.hpp>
+#include <tracy/Tracy.hpp>
 
 #include "io.hpp"
 #include "input_device.hpp"
@@ -34,6 +35,8 @@ void InputDevice::Reset() {
 }
 
 void InputDevice::Update(JoypadButton button, bool pressed) {
+  ZoneScoped;
+
   uint8_t on_off = pressed ? 0 : 1;
   bool flipped;
 

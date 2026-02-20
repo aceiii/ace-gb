@@ -94,6 +94,8 @@ set(SOURCE_FILES
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
+option(TRACY_ENABLE "" ON)
+option(TRACY_ON_DEMAND "" ON)
 
 set(SPDLOG_USE_STD_FORMAT ON)
 add_subdirectory(external/spdlog)
@@ -102,6 +104,7 @@ add_subdirectory(external/raylib)
 add_subdirectory(external/argparse)
 add_subdirectory(external/magic_enum)
 add_subdirectory(external/json)
+add_subdirectory(external/tracy)
 
 include(cmake/imgui.cmake)
 include(cmake/rlimgui.cmake)
@@ -120,6 +123,8 @@ target_link_libraries(${EXE_NAME} PRIVATE nfd)
 target_link_libraries(${EXE_NAME} PRIVATE glfw)
 target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(${EXE_NAME} PRIVATE tomlplusplus::tomlplusplus)
+target_link_libraries(${EXE_NAME} PUBLIC TracyClient)
+
 
 target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})
 

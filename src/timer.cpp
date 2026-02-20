@@ -1,4 +1,5 @@
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 #include "timer.hpp"
 #include "cpu.hpp"
@@ -27,6 +28,7 @@ bool Timer::IsValidFor(uint16_t addr) const {
 }
 
 void Timer::Write8(uint16_t addr, uint8_t byte) {
+  ZoneScoped;
   switch (addr) {
 //    case std::to_underlying(IO::DIV)-1:
 //      return;
@@ -48,6 +50,7 @@ void Timer::Write8(uint16_t addr, uint8_t byte) {
 }
 
 uint8_t Timer::Read8(uint16_t addr) const {
+  ZoneScoped;
   switch (addr) {
 //    case std::to_underlying(IO::DIV)-1:
 //      return regs.div & 0xff;
@@ -71,6 +74,7 @@ void Timer::Reset() {
 }
 
 void Timer::Execute(uint8_t cycles) {
+  ZoneScoped;
   regs_.div += cycles;
 
   if (regs_.enable_tima) {
@@ -92,6 +96,7 @@ void Timer::Execute(uint8_t cycles) {
 }
 
 void Timer::OnTick() {
+  ZoneScoped;
   Execute(4);
 }
 

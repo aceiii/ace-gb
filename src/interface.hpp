@@ -70,6 +70,7 @@ private:
   void Step();
   void Reset();
 
+  void Update();
   void RenderError();
   void RenderLCD();
   void RenderTiles();

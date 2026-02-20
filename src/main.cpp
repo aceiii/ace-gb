@@ -1,4 +1,7 @@
+#define TRACY_ON_DEMAND
+
 #include <iostream>
+#include <tracy/Tracy.hpp>
 
 #include "args.hpp"
 #include "interface.hpp"

@@ -1,4 +1,5 @@
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 #include "serial_device.hpp"
 #include "io.hpp"
@@ -43,6 +44,7 @@ void SerialDevice::Reset() {
 }
 
 void SerialDevice::OnTick() {
+  ZoneScoped;
   Step();
 }
 
@@ -55,6 +57,8 @@ void SerialDevice::OnLine(const LineCallback& callback) {
 }
 
 void SerialDevice::Step() {
+  ZoneScoped;
+
   clock_ += 4;
 
   if (!sc_.transfer_enable) {

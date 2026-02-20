@@ -1,5 +1,6 @@
 #include <utility>
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 #include "io.hpp"
 #include "ppu.hpp"
@@ -97,10 +98,12 @@ void Ppu::Execute(uint8_t cycles) {
 }
 
 void Ppu::OnTick() {
+  ZoneScoped;
   Step();
 }
 
 inline void Ppu::Step() {
+  ZoneScoped;
   if (!regs_.lcdc.lcd_enable) {
     return;
   }
@@ -154,6 +157,7 @@ void Ppu::SwapLcdTargets() {
 }
 
 void Ppu::DrawLcdRow() {
+  ZoneScoped;
   static std::array<uint8_t, kLCDWidth> bg_win_pixels;
   bg_win_pixels.fill(0);
 

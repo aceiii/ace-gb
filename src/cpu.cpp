@@ -1,6 +1,7 @@
 #include <cassert>
 #include <spdlog/spdlog.h>
 #include <magic_enum/magic_enum.hpp>
+#include <tracy/Tracy.hpp>
 
 #include "cpu.hpp"
 #include "opcodes.hpp"
@@ -1143,6 +1144,8 @@ void execute_stop(Cpu& cpu, Mmu& mmu, Instruction& instr) {
 }
 
 uint8_t Cpu::Execute() {
+  ZoneScoped;
+
   tick_counter = 0;
 
   auto interrupt_cycles = ExecuteInterrupts();
@@ -1279,6 +1282,8 @@ uint8_t Cpu::Execute() {
 }
 
 uint8_t Cpu::ExecuteInterrupts() {
+  ZoneScoped;
+
   if (!state.ime && !state.halt) {
     return 0;
   }
@@ -1308,10 +1313,12 @@ uint8_t Cpu::ExecuteInterrupts() {
 }
 
 uint8_t Cpu::ReadNext8() {
+  ZoneScoped;
   return Read8(regs.pc++);
 }
 
 uint16_t Cpu::ReadNext16() {
+  ZoneScoped;
   auto lo = Read8(regs.pc++);
   auto hi = Read8(regs.pc++);
   auto result = lo | (hi << 8);
@@ -1326,12 +1333,14 @@ void Cpu::Reset() {
 Cpu::Cpu(Mmu& mmu_, InterruptDevice& interrupts_):mmu{mmu_}, interrupts{interrupts_} {}
 
 uint8_t Cpu::Read8(uint16_t addr) {
+  ZoneScoped;
   auto result = mmu.Read8(addr);
   Tick();
   return result;
 }
 
 void Cpu::Write8(uint16_t addr, uint8_t val) {
+  ZoneScoped;
   mmu.Write8(addr, val);
   Tick();
 }
@@ -1373,6 +1382,7 @@ void Cpu::AddSyncedDevice(SyncedDevice* device) {
 }
 
 void Cpu::Tick() {
+  ZoneScoped;
   for (auto& device : synced_devices) {
     device->OnTick();
   }

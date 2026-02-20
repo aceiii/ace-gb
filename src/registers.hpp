@@ -7,6 +7,7 @@
 #include <ranges>
 #include <utility>
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 
 enum class Flag {
@@ -41,43 +42,52 @@ struct Registers {
   uint16_t sp {};
 
   uint8_t& At(Reg8 reg) {
+    ZoneScoped;
     return vals[std::to_underlying(reg)];
   }
 
   [[nodiscard]] uint8_t Get(Reg8 reg) const {
+    ZoneScoped;
     return vals[std::to_underlying(reg)];
   }
 
   void Set(Reg8 reg, uint8_t val) {
+    ZoneScoped;
     vals[std::to_underlying(reg)] = val & (reg == Reg8::F ? 0xf0 : 0xff);
   }
 
   [[nodiscard]] uint16_t Get(Reg16 reg) const {
+    ZoneScoped;
     int idx = std::to_underlying(reg);
     return (vals[idx] << 8) | vals[idx + 1];
   }
 
   void Set(Reg16 reg, uint16_t val) {
+    ZoneScoped;
     int idx = std::to_underlying(reg);
     vals[idx] = val >> 8;
     vals[idx + 1] = val & (reg == Reg16::AF ? 0xf0 : 0xff);
   }
 
   [[nodiscard]] uint8_t Get(Flag flag) const {
+    ZoneScoped;
     return (vals[std::to_underlying(Reg8::F)] >> std::to_underlying(flag)) & 1;
   }
 
   void Set(Flag flag, uint8_t bit) {
+    ZoneScoped;
     auto& val = vals[std::to_underlying(Reg8::F)];
     val = (val & ~(1 << std::to_underlying(flag))) | ((bit & 1) << std::to_underlying(flag));
   }
 
   void SetFlags(uint8_t flag_bits) {
+    ZoneScoped;
     auto& val = vals[std::to_underlying(Reg8::F)];
     val = (flag_bits & 0xf) << 4;
   }
 
   void Reset() {
+    ZoneScoped;
     vals.fill(0);
     sp = 0;
     pc = 0;
@@ -96,6 +106,7 @@ public:
   }
 
   auto format(const Registers& regs, auto& ctx) const {
+    ZoneScoped;
     return std::format_to(ctx.out(), "a={}, f={}, b={}, c={}, d={}, e={}, h={}, l={}, sp={}, pc={}",
                           regs.Get(Reg8::A), regs.Get(Reg8::F), regs.Get(Reg8::B), regs.Get(Reg8::C), regs.Get(Reg8::D),
                           regs.Get(Reg8::E), regs.Get(Reg8::H), regs.Get(Reg8::L), regs.sp, regs.pc);

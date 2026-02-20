@@ -1,4 +1,5 @@
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 #include "audio.hpp"
 
@@ -107,6 +108,8 @@ void Audio::PowerOff() {
 }
 
 void Audio::OnTick() {
+  ZoneScoped;
+
   ch1_.Tick();
   ch2_.Tick();
   ch3_.Tick();

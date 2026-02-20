@@ -242,6 +242,7 @@ public:
   }
 
   auto format(const Instruction& instr, auto& ctx) const {
+    ZoneScoped;
     return std::format_to(ctx.out(), "Instr({})", magic_enum::enum_name(instr.opcode));
   }
 };

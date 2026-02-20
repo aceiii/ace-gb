@@ -6,6 +6,7 @@
 #include <spdlog/spdlog.h>
 #include <imgui.h>
 #include <rlImGui.h>
+#include <tracy/Tracy.hpp>
 
 #include "emulator.hpp"
 #include "file.hpp"
@@ -45,6 +46,8 @@ void Emulator::Init() {
 }
 
 void Emulator::Update(float dt) {
+  ZoneScoped;
+
   if (!running_ && !cpu_.state.halt) {
     return;
   }

@@ -14,6 +14,8 @@
 #include <spdlog/sinks/callback_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <toml++/toml.hpp>
+#include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
 
 #include "interface.hpp"
 #include "emulator.hpp"
@@ -314,100 +316,7 @@ void Interface::Run() {
   emulator_.SetSkipBootRom(config_.settings.skip_boot_rom);
 
   while (!should_close_) {
-    if (WindowShouldClose()) {
-      should_close_ = true;
-    }
-
-    const auto frame_time = GetFrameTime();
-    config_.settings.screen_width = GetScreenWidth();
-    config_.settings.screen_height = GetScreenHeight();
-
-    if (IsFileDropped()) {
-      FilePathList dropped_files = LoadDroppedFiles();
-
-      if (dropped_files.count > 1) {
-        spdlog::warn("Loading only last dropped file");
-      }
-
-      auto idx = dropped_files.count - 1;
-      std::string file_path { dropped_files.paths[idx] };
-      LoadCartRom(file_path);
-
-      UnloadDroppedFiles(dropped_files);
-    }
-
-    emulator_.UpdateInput(JoypadButton::Up, IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
-    emulator_.UpdateInput(JoypadButton::Down, IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
-    emulator_.UpdateInput(JoypadButton::Left, IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
-    emulator_.UpdateInput(JoypadButton::Right, IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
-    emulator_.UpdateInput(JoypadButton::Select, IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
-    emulator_.UpdateInput(JoypadButton::Start, IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
-    emulator_.UpdateInput(JoypadButton::B, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
-    emulator_.UpdateInput(JoypadButton::A, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
-
-    emulator_.Update(frame_time);
-
-    BeginDrawing();
-    ClearBackground(DARKGRAY);
-
-    rlImGuiBegin();
-
-    ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
-
-    if (config_.settings.reset_view) {
-      config_.settings.reset_view = false;
-
-      ImGui::DockBuilderRemoveNode(dockspace_id);
-      ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-      ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
-
-      ImGuiID main = dockspace_id;
-      ImGuiID right = ImGui::DockBuilderSplitNode(main, ImGuiDir_Right, 0.28f, nullptr, &main);
-      ImGuiID right_bottom = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.4f, nullptr, &right);
-      ImGuiID right_center = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.32f, nullptr, &right);
-      ImGuiID bottom = ImGui::DockBuilderSplitNode(main, ImGuiDir_Down, 0.32f, nullptr, &main);
-      ImGuiID center_top = ImGui::DockBuilderSplitNode(main, ImGuiDir_Right, 0.33f, nullptr, &main);
-      ImGuiID center_bottom = ImGui::DockBuilderSplitNode(center_top, ImGuiDir_Down, 0.45f, nullptr, &center_top);
-      ImGuiID left = ImGui::DockBuilderSplitNode(main, ImGuiDir_Down, 0.28f, nullptr, &main);
-
-      ImGui::DockBuilderDockWindow("LCD", main);
-      ImGui::DockBuilderDockWindow("Logs", bottom);
-      ImGui::DockBuilderDockWindow("Input", left);
-      ImGui::DockBuilderDockWindow("TileMap 2", center_top);
-      ImGui::DockBuilderDockWindow("TileMap 1", center_top);
-      ImGui::DockBuilderDockWindow("Tile Data", center_top);
-      ImGui::DockBuilderDockWindow("Sprites", center_bottom);
-      ImGui::DockBuilderDockWindow("Memory", right);
-      ImGui::DockBuilderDockWindow("Registers", right_center);
-      ImGui::DockBuilderDockWindow("Instructions", right_bottom);
-      ImGui::DockBuilderFinish(dockspace_id);
-    }
-
-    RenderLCD();
-    RenderTiles();
-    RenderTilemap1();
-    RenderTilemap2();
-    RenderSprites();
-    RenderRegisters();
-    RenderInput();
-    RenderMemory();
-    RenderInstructions();
-    RenderLogs();
-    RenderMainMenu();
-    RenderSettingsPopup();
-
-    rlImGuiEnd();
-
-    RenderError();
-
-    DrawFPS(10, config_.settings.screen_height - 24);
-
-    EndDrawing();
-
-    if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
-      auto& samples = emulator_.GetAudioSamples();
-      UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
-    }
+    Update();
   }
 
   Cleanup();
@@ -415,7 +324,109 @@ void Interface::Run() {
   spdlog::info("Shutting down...");
 }
 
+void Interface::Update() {
+  ZoneScoped;
+
+  if (WindowShouldClose()) {
+    should_close_ = true;
+  }
+
+  const auto frame_time = GetFrameTime();
+  config_.settings.screen_width = GetScreenWidth();
+  config_.settings.screen_height = GetScreenHeight();
+
+  if (IsFileDropped()) {
+    FilePathList dropped_files = LoadDroppedFiles();
+
+    if (dropped_files.count > 1) {
+      spdlog::warn("Loading only last dropped file");
+    }
+
+    auto idx = dropped_files.count - 1;
+    std::string file_path { dropped_files.paths[idx] };
+    LoadCartRom(file_path);
+
+    UnloadDroppedFiles(dropped_files);
+  }
+
+  emulator_.UpdateInput(JoypadButton::Up, IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
+  emulator_.UpdateInput(JoypadButton::Down, IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
+  emulator_.UpdateInput(JoypadButton::Left, IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
+  emulator_.UpdateInput(JoypadButton::Right, IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
+  emulator_.UpdateInput(JoypadButton::Select, IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
+  emulator_.UpdateInput(JoypadButton::Start, IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
+  emulator_.UpdateInput(JoypadButton::B, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
+  emulator_.UpdateInput(JoypadButton::A, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
+
+  emulator_.Update(frame_time);
+
+  BeginDrawing();
+  ClearBackground(DARKGRAY);
+
+  rlImGuiBegin();
+
+  ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+
+  if (config_.settings.reset_view) {
+    config_.settings.reset_view = false;
+
+    ImGui::DockBuilderRemoveNode(dockspace_id);
+    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+
+    ImGuiID main = dockspace_id;
+    ImGuiID right = ImGui::DockBuilderSplitNode(main, ImGuiDir_Right, 0.28f, nullptr, &main);
+    ImGuiID right_bottom = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.4f, nullptr, &right);
+    ImGuiID right_center = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.32f, nullptr, &right);
+    ImGuiID bottom = ImGui::DockBuilderSplitNode(main, ImGuiDir_Down, 0.32f, nullptr, &main);
+    ImGuiID center_top = ImGui::DockBuilderSplitNode(main, ImGuiDir_Right, 0.33f, nullptr, &main);
+    ImGuiID center_bottom = ImGui::DockBuilderSplitNode(center_top, ImGuiDir_Down, 0.45f, nullptr, &center_top);
+    ImGuiID left = ImGui::DockBuilderSplitNode(main, ImGuiDir_Down, 0.28f, nullptr, &main);
+
+    ImGui::DockBuilderDockWindow("LCD", main);
+    ImGui::DockBuilderDockWindow("Logs", bottom);
+    ImGui::DockBuilderDockWindow("Input", left);
+    ImGui::DockBuilderDockWindow("TileMap 2", center_top);
+    ImGui::DockBuilderDockWindow("TileMap 1", center_top);
+    ImGui::DockBuilderDockWindow("Tile Data", center_top);
+    ImGui::DockBuilderDockWindow("Sprites", center_bottom);
+    ImGui::DockBuilderDockWindow("Memory", right);
+    ImGui::DockBuilderDockWindow("Registers", right_center);
+    ImGui::DockBuilderDockWindow("Instructions", right_bottom);
+    ImGui::DockBuilderFinish(dockspace_id);
+  }
+
+  RenderLCD();
+  RenderTiles();
+  RenderTilemap1();
+  RenderTilemap2();
+  RenderSprites();
+  RenderRegisters();
+  RenderInput();
+  RenderMemory();
+  RenderInstructions();
+  RenderLogs();
+  RenderMainMenu();
+  RenderSettingsPopup();
+
+  rlImGuiEnd();
+
+  RenderError();
+
+  DrawFPS(10, config_.settings.screen_height - 24);
+
+  EndDrawing();
+
+  if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
+    auto& samples = emulator_.GetAudioSamples();
+    UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
+  }
+
+  FrameMark;
+}
+
 void Interface::RenderError() {
+  ZoneScoped;
   error_messages_.Draw();
 }
 
@@ -475,6 +486,8 @@ void Interface::LoadCartRom(std::string_view file_path) {
 }
 
 void Interface::RenderLCD() {
+  ZoneScoped;
+
   if (!config_.settings.show_lcd) {
     return;
   }
@@ -488,6 +501,8 @@ void Interface::RenderLCD() {
 }
 
 void Interface::RenderTiles() {
+  ZoneScoped;
+
   if (!config_.settings.show_tiles) {
     return;
   }
@@ -504,6 +519,8 @@ void Interface::RenderTiles() {
 }
 
 void Interface::RenderTilemap1() {
+  ZoneScoped;
+
   if (!config_.settings.show_tilemap1) {
     return;
   }
@@ -520,6 +537,8 @@ void Interface::RenderTilemap1() {
 }
 
 void Interface::RenderTilemap2() {
+  ZoneScoped;
+
   if (!config_.settings.show_tilemap2) {
     return;
   }
@@ -536,6 +555,8 @@ void Interface::RenderTilemap2() {
 }
 
 void Interface::RenderSprites() {
+  ZoneScoped;
+
   if (!config_.settings.show_sprites) {
     return;
   }
@@ -552,6 +573,8 @@ void Interface::RenderSprites() {
 }
 
 void Interface::RenderRegisters() {
+  ZoneScoped;
+
   if (!config_.settings.show_cpu_registers) {
     return;
   }
@@ -590,6 +613,8 @@ void Interface::RenderRegisters() {
 }
 
 void Interface::RenderInput() {
+  ZoneScoped;
+
   if (!config_.settings.show_input) {
     return;
   }
@@ -677,6 +702,8 @@ void Interface::RenderInput() {
 }
 
 void Interface::RenderMemory() {
+  ZoneScoped;
+
   if (!config_.settings.show_memory) {
     return;
   }
@@ -689,6 +716,8 @@ void Interface::RenderMemory() {
 }
 
 void Interface::RenderInstructions() {
+  ZoneScoped;
+
   if (!config_.settings.show_instructions) {
     return;
   }
@@ -701,6 +730,8 @@ void Interface::RenderInstructions() {
 }
 
 void Interface::RenderLogs() {
+  ZoneScoped;
+
   if (!config_.settings.show_logs) {
     return;
   }
@@ -712,6 +743,8 @@ void Interface::RenderLogs() {
 }
 
 void Interface::RenderMainMenu() {
+  ZoneScoped;
+
   ImGui::BeginMainMenuBar();
 
   if (ImGui::BeginMenu("File")) {
@@ -837,6 +870,8 @@ void Interface::RenderMainMenu() {
 }
 
 void Interface::RenderSettingsPopup() {
+  ZoneScoped;
+
   if (show_settings_) {
     ImGui::OpenPopup("Settings");
     show_settings_ = false;

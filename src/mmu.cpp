@@ -1,4 +1,5 @@
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 #include "mmu.hpp"
 
@@ -11,6 +12,7 @@ void Mmu::AddDevice(MmuDevicePtr device) {
 }
 
 void Mmu::Write8(uint16_t addr, uint8_t byte) {
+  ZoneScoped;
   for (auto& device : devices_) {
     if (device->IsValidFor(addr)) {
       device->Write8(addr, byte);
@@ -21,6 +23,7 @@ void Mmu::Write8(uint16_t addr, uint8_t byte) {
 }
 
 uint8_t Mmu::Read8(uint16_t addr) const {
+  ZoneScoped;
   for (const auto& device : devices_) {
     if (device->IsValidFor(addr)) {
       return device->Read8(addr);
