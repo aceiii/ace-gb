@@ -39,12 +39,12 @@ void CartDevice::Reset() {
   mbc_ = std::make_unique<NoMbc>();
 }
 
-void CartDevice::LoadCartBytes(const std::vector<uint8_t> &bytes) {
+void CartDevice::LoadCartBytes(const std::vector<uint8_t>& bytes) {
   if (bytes.empty()) {
     return Reset();
   }
 
-  const auto *rom_base = bytes.data();
+  const auto* rom_base = bytes.data();
   std::string title { rom_base + 0x0134, std::find(rom_base + 0x0134, rom_base + 0x0144, 0) };
   CartType cart_type { *(rom_base + 0x0147) };
   size_t rom_size_kb = 32 * (1 << *(rom_base + 0x0148));

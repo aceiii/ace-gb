@@ -27,8 +27,8 @@ using namespace app;
 namespace {
 constexpr int kDefaultWindowWidth = 800;
 constexpr int kDefaultWindowHeight = 600;
-constexpr char const *kWindowTitle = "Ace::GB - GameBoy Emulator";
-constexpr char const *kDefaultBootRomPath = "boot.bin";
+constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
+constexpr char const* kDefaultBootRomPath = "boot.bin";
 
 constexpr int kAudioSampleRate = 48000;
 constexpr int kAudioSampleSize = 32;
@@ -41,7 +41,7 @@ constexpr char const* kCartRomErrorKey = "CartRomError";
 AudioStream stream;
 }
 
-void rlImGuiImageTextureFit(const Texture2D *image, bool center) {
+void rlImGuiImageTextureFit(const Texture2D* image, bool center) {
   if (!image)
     return;
 
@@ -68,7 +68,7 @@ void rlImGuiImageTextureFit(const Texture2D *image, bool center) {
 
 static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> toml::table {
   toml::array recent_files {};
-  for (const auto &filename : settings.recent_files) {
+  for (const auto& filename : settings.recent_files) {
     recent_files.push_back(filename);
   }
 
@@ -229,7 +229,7 @@ Interface::Interface(Args args)
   auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
   auto formatter = std::make_shared<spdlog::pattern_formatter>();
   auto callback_sink = std::make_shared<spdlog::sinks::callback_sink_mt>(
-      [=, this](const spdlog::details::log_msg &msg) {
+      [=, this](const spdlog::details::log_msg& msg) {
         spdlog::memory_buf_t formatted;
         formatter->format(msg, formatted);
         app_log_.AddLog(formatted);
@@ -276,7 +276,7 @@ Interface::Interface(Args args)
   SetExitKey(KEY_NULL);
   rlImGuiSetup(true);
 
-  auto &io = ImGui::GetIO();
+  auto& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   emulator_.Init();
@@ -403,7 +403,7 @@ void Interface::Run() {
     EndDrawing();
 
     if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
-      auto &samples = emulator_.GetAudioSamples();
+      auto& samples = emulator_.GetAudioSamples();
       UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
     }
   }
@@ -418,7 +418,7 @@ void Interface::RenderError() {
 }
 
 void Interface::LoadCartridge() {
-  nfdchar_t *file_path = nullptr;
+  nfdchar_t* file_path = nullptr;
   std::array<nfdfilteritem_t, 3> filter_items = {{
     { .name="GB", .spec="gb" },
     { .name="BIN", .spec="bin" },
@@ -435,7 +435,7 @@ void Interface::LoadCartridge() {
   }
 }
 
-void Interface::LoadCartRom(const std::string &file_path) {
+void Interface::LoadCartRom(const std::string& file_path) {
   Stop();
 
   fs::path path { file_path };
@@ -492,7 +492,7 @@ void Interface::RenderTiles() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Tile Data", &config_.settings.show_tiles)) {
-    auto &target = emulator_.GetTargetTiles();
+    auto& target = emulator_.GetTargetTiles();
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 3;
@@ -508,7 +508,7 @@ void Interface::RenderTilemap1() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("TileMap 1", &config_.settings.show_tilemap1)) {
-    auto &target = emulator_.GetTargetTilemap(0);
+    auto& target = emulator_.GetTargetTilemap(0);
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -524,7 +524,7 @@ void Interface::RenderTilemap2() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("TileMap 2", &config_.settings.show_tilemap2)) {
-    auto &target = emulator_.GetTargetTilemap(1);
+    auto& target = emulator_.GetTargetTilemap(1);
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -540,7 +540,7 @@ void Interface::RenderSprites() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Sprites", &config_.settings.show_sprites)) {
-    auto &target = emulator_.GetTargetSprites();
+    auto& target = emulator_.GetTargetSprites();
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -556,7 +556,7 @@ void Interface::RenderRegisters() {
 
   // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Registers", &config_.settings.show_cpu_registers)) {
-    const auto &regs = emulator_.GetRegisters();
+    const auto& regs = emulator_.GetRegisters();
 
     auto a = regs.Get(Reg8::A);
     auto f = regs.Get(Reg8::F);
@@ -581,7 +581,7 @@ void Interface::RenderRegisters() {
     ImGui::Text("AF=%04X BC=%04X DE=%04X HL=%04X", af, bc, de, hl);
     ImGui::Text("Flags Z=%d N=%d H=%d C=%d", zero, neg, half_carry, carry);
 
-    const auto &state = emulator_.GetState();
+    const auto& state = emulator_.GetState();
     ImGui::Text("State IME=%d HALT=%d STOP=%d HARD_LOCK=%d", state.ime, state.halt, state.stop, state.hard_lock);
   }
   ImGui::End();
@@ -720,7 +720,7 @@ void Interface::RenderMainMenu() {
 
     auto& recent_files = config_.settings.recent_files;
     if (ImGui::BeginMenu("Recent files", !recent_files.IsEmpty())) {
-      for (auto &file : recent_files) {
+      for (auto& file : recent_files) {
         if (ImGui::MenuItem(fs::relative(file).c_str())) {
           spdlog::debug("Pressed recent file: '{}'", file);
           LoadCartRom(file);

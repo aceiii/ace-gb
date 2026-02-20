@@ -237,11 +237,11 @@ struct Instruction {
 template <>
 struct std::formatter<Instruction> {
 public:
-  constexpr auto parse(auto &ctx) {
+  constexpr auto parse(auto& ctx) {
     return ctx.begin();
   }
 
-  auto format(const Instruction &instr, auto &ctx) const {
+  auto format(const Instruction& instr, auto& ctx) const {
     return std::format_to(ctx.out(), "Instr({})", magic_enum::enum_name(instr.opcode));
   }
 };

@@ -5,7 +5,7 @@
 #include "io.hpp"
 #include "input_device.hpp"
 
-InputDevice::InputDevice(InterruptDevice &interrupts): interrupts_{interrupts} {
+InputDevice::InputDevice(InterruptDevice& interrupts): interrupts_{interrupts} {
 }
 
 [[nodiscard]] bool InputDevice::IsValidFor(uint16_t addr) const {

@@ -73,7 +73,7 @@ struct Registers {
   }
 
   void SetFlags(uint8_t flag_bits) {
-    auto &val = vals[std::to_underlying(Reg8::F)];
+    auto& val = vals[std::to_underlying(Reg8::F)];
     val = (flag_bits & 0xf) << 4;
   }
 
@@ -84,18 +84,18 @@ struct Registers {
   }
 };
 
-inline bool operator==(const Registers &r1, const Registers &r2) {
+inline bool operator==(const Registers& r1, const Registers& r2) {
   return std::ranges::equal(r1.vals, r2.vals) && r1.sp == r2.sp && r1.pc == r2.pc;
 }
 
 template <>
 struct std::formatter<Registers> {
 public:
-  constexpr auto parse(auto &ctx) {
+  constexpr auto parse(auto& ctx) {
     return ctx.begin();
   }
 
-  auto format(const Registers &regs, auto &ctx) const {
+  auto format(const Registers& regs, auto& ctx) const {
     return std::format_to(ctx.out(), "a={}, f={}, b={}, c={}, d={}, e={}, h={}, l={}, sp={}, pc={}",
                           regs.Get(Reg8::A), regs.Get(Reg8::F), regs.Get(Reg8::B), regs.Get(Reg8::C), regs.Get(Reg8::D),
                           regs.Get(Reg8::E), regs.Get(Reg8::H), regs.Get(Reg8::L), regs.sp, regs.pc);

@@ -6,7 +6,7 @@ constexpr int kClockSpeed = 4194304;
 constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
 constexpr int kWaveRamEnd = kWaveRamStart + 15;
 
-Audio::Audio(Timer &timer, audio_config cfg) : timer_{ timer }, config_{ cfg } {
+Audio::Audio(Timer& timer, audio_config cfg) : timer_{ timer }, config_{ cfg } {
 }
 
 bool Audio::IsValidFor(uint16_t addr) const {
@@ -135,7 +135,7 @@ void Audio::OnTick() {
   }
 }
 
-void Audio::GetSamples(std::vector<float> &out_buffer) {
+void Audio::GetSamples(std::vector<float>& out_buffer) {
   for (auto it = out_buffer.begin(); it != out_buffer.end(); ++it) {
     if (buffer_read_idx_ == buffer_write_idx_) {
       *it = 0;

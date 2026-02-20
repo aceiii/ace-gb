@@ -11,7 +11,7 @@ void Mmu::AddDevice(MmuDevicePtr device) {
 }
 
 void Mmu::Write8(uint16_t addr, uint8_t byte) {
-  for (auto &device : devices_) {
+  for (auto& device : devices_) {
     if (device->IsValidFor(addr)) {
       device->Write8(addr, byte);
       return;
@@ -21,7 +21,7 @@ void Mmu::Write8(uint16_t addr, uint8_t byte) {
 }
 
 uint8_t Mmu::Read8(uint16_t addr) const {
-  for (const auto &device : devices_) {
+  for (const auto& device : devices_) {
     if (device->IsValidFor(addr)) {
       return device->Read8(addr);
     }
@@ -30,7 +30,7 @@ uint8_t Mmu::Read8(uint16_t addr) const {
 }
 
 void Mmu::ResetDevices() {
-  for (auto &device : devices_) {
+  for (auto& device : devices_) {
     device->Reset();
   }
 }

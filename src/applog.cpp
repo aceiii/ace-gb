@@ -5,7 +5,7 @@ AppLog::AppLog() : auto_scroll_{true} {
   Clear();
 }
 
-void AppLog::AddLog(const std::string &log) {
+void AppLog::AddLog(const std::string& log) {
   int old_size = buffer_.size();
   buffer_.append(log.c_str());
   for (int new_size = buffer_.size(); old_size < new_size; old_size += 1) {
@@ -51,12 +51,12 @@ void AppLog::Draw() {
     }
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    const char *buf = buffer_.begin();
-    const char *buf_end = buffer_.end();
+    const char* buf = buffer_.begin();
+    const char* buf_end = buffer_.end();
     if (filter_.IsActive()) {
       for (int line_no = 0; line_no < line_offsets_.Size; line_no++) {
-        const char *line_start = buf + line_offsets_[line_no];
-        const char *line_end = (line_no + 1 < line_offsets_.Size)
+        const char* line_start = buf + line_offsets_[line_no];
+        const char* line_end = (line_no + 1 < line_offsets_.Size)
                                    ? (buf + line_offsets_[line_no + 1] - 1)
                                    : buf_end;
         if (filter_.PassFilter(line_start, line_end)) {
@@ -68,8 +68,8 @@ void AppLog::Draw() {
       clipper.Begin(line_offsets_.Size);
       while (clipper.Step()) {
         for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
-          const char *line_start = buf + line_offsets_[line_no];
-          const char *line_end = (line_no + 1 < line_offsets_.Size)
+          const char* line_start = buf + line_offsets_[line_no];
+          const char* line_end = (line_no + 1 < line_offsets_.Size)
                                     ? (buf + line_offsets_[line_no + 1] - 1)
                                     : buf_end;
           ImGui::TextUnformatted(line_start, line_end);

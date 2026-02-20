@@ -3,11 +3,11 @@
 
 #include "mbc2.hpp"
 
-Mbc2::Mbc2(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool has_battery): info_ {std::move(info)} {
+Mbc2::Mbc2(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool has_battery): info_ {std::move(info)} {
   size_t size_left = bytes.size();
   auto byte_it = bytes.begin();
 
-  for (auto &bank : rom_) {
+  for (auto& bank : rom_) {
     size_t size = std::min(bank.size(), size_left);
     std::copy_n(byte_it, size, bank.begin());
     size_left -= size;

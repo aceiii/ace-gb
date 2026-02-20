@@ -11,7 +11,7 @@ using RomBuffer = std::array<uint8_t, kBootRomSize>;
 
 class BootRomDevice : public MmuDevice {
 public:
-  void LoadBytes(const RomBuffer &bytes);
+  void LoadBytes(const RomBuffer& bytes);
 
   [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
   void Write8(uint16_t addr, uint8_t byte) override;

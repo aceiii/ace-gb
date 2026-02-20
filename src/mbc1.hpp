@@ -8,7 +8,7 @@
 
 class Mbc1 : public MemoryBankController {
 public:
-  explicit Mbc1(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool has_battery);
+  explicit Mbc1(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool has_battery);
 
   [[nodiscard]] uint8_t ReadRom0(uint16_t addr) const override;
   [[nodiscard]] uint8_t ReadRom1(uint16_t addr) const override;

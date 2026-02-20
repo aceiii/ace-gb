@@ -19,7 +19,7 @@ inline uint16_t interrupt_handler(Interrupt interrupt) {
   }
 }
 
-inline bool check_cond(Cpu &cpu, Cond cond) {
+inline bool check_cond(Cpu& cpu, Cond cond) {
   switch (cond) {
   case Cond::NZ: return !cpu.regs.Get(Flag::Z);
   case Cond::Z: return cpu.regs.Get(Flag::Z);
@@ -29,97 +29,97 @@ inline bool check_cond(Cpu &cpu, Cond cond) {
   }
 }
 
-inline void instr_load_reg8_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+inline void instr_load_reg8_reg8(Cpu& cpu, Reg8 r1, Reg8 r2) {
   cpu.regs.At(r1) = cpu.regs.Get(r2);
 }
 
-inline void instr_load_reg8_imm8(Cpu &cpu, Reg8 r1, uint8_t imm) {
+inline void instr_load_reg8_imm8(Cpu& cpu, Reg8 r1, uint8_t imm) {
   cpu.regs.At(r1) = imm;
 }
 
-inline void instr_load_reg8_reg16_ptr(Cpu &cpu, Reg8 r1, Reg16 r2) {
+inline void instr_load_reg8_reg16_ptr(Cpu& cpu, Reg8 r1, Reg16 r2) {
   cpu.regs.At(r1) = cpu.Read8(cpu.regs.Get(r2));
 }
 
-inline void instr_load_reg16_ptr_reg8(Cpu &cpu, Reg16 r1, Reg8 r2) {
+inline void instr_load_reg16_ptr_reg8(Cpu& cpu, Reg16 r1, Reg8 r2) {
   cpu.Write8(cpu.regs.Get(r1), cpu.regs.Get(r2));
 }
 
-inline void instr_load_reg16_ptr_imm8(Cpu &cpu, Reg16 r1, uint8_t val) {
+inline void instr_load_reg16_ptr_imm8(Cpu& cpu, Reg16 r1, uint8_t val) {
   cpu.Write8(cpu.regs.Get(r1), val);
 }
 
-inline void instr_load_reg8_imm16_ptr(Cpu &cpu, Reg8 r1, uint16_t val) {
+inline void instr_load_reg8_imm16_ptr(Cpu& cpu, Reg8 r1, uint16_t val) {
   cpu.regs.At(r1) = cpu.Read8(val);
 }
 
-inline void instr_load_imm16_ptr_reg8(Cpu &cpu, uint16_t val, Reg8 r1) {
+inline void instr_load_imm16_ptr_reg8(Cpu& cpu, uint16_t val, Reg8 r1) {
   cpu.Write8(val, cpu.regs.Get(r1));
 }
 
-inline void instr_load_hi_reg8_reg8_ptr(Cpu &cpu, Reg8 r1, Reg8 r2) {
+inline void instr_load_hi_reg8_reg8_ptr(Cpu& cpu, Reg8 r1, Reg8 r2) {
   cpu.regs.At(r1) = cpu.Read8(0xff00 | cpu.regs.Get(r2));
 }
 
-inline void instr_load_hi_reg8_ptr_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+inline void instr_load_hi_reg8_ptr_reg8(Cpu& cpu, Reg8 r1, Reg8 r2) {
   cpu.Write8(0xff00 | cpu.regs.Get(r1), cpu.regs.Get(r2));
 }
 
-inline void instr_load_hi_reg8_imm8_ptr(Cpu &cpu, Reg8 r1, uint8_t val) {
+inline void instr_load_hi_reg8_imm8_ptr(Cpu& cpu, Reg8 r1, uint8_t val) {
   cpu.regs.At(r1) = cpu.Read8(0xff00 | val);
 }
 
-inline void instr_load_hi_imm8_ptr_reg8(Cpu &cpu, uint8_t val, Reg8 r1) {
+inline void instr_load_hi_imm8_ptr_reg8(Cpu& cpu, uint8_t val, Reg8 r1) {
   cpu.Write8(0xff00 | val, cpu.regs.Get(r1));
 }
 
-inline void instr_load_reg8_reg16_ptr_dec(Cpu &cpu, Reg8 r1, Reg16 r2) {
+inline void instr_load_reg8_reg16_ptr_dec(Cpu& cpu, Reg8 r1, Reg16 r2) {
   auto addr = cpu.regs.Get(r2);
   cpu.regs.At(r1) = cpu.Read8(addr);
   cpu.regs.Set(r2, addr - 1);
 }
 
-inline void instr_load_reg16_ptr_dec_reg8(Cpu &cpu, Reg16 r1, Reg8 r2) {
+inline void instr_load_reg16_ptr_dec_reg8(Cpu& cpu, Reg16 r1, Reg8 r2) {
   auto addr = cpu.regs.Get(r1);
   cpu.Write8(addr, cpu.regs.Get(r2));
   cpu.regs.Set(r1, addr - 1);
 }
 
-inline void instr_load_reg8_reg16_ptr_inc(Cpu &cpu, Reg8 r1, Reg16 r2) {
+inline void instr_load_reg8_reg16_ptr_inc(Cpu& cpu, Reg8 r1, Reg16 r2) {
   auto addr = cpu.regs.Get(r2);
   cpu.regs.At(r1) = cpu.Read8(addr);
   cpu.regs.Set(r2, addr + 1);
 }
 
-inline void instr_load_reg16_ptr_inc_reg8(Cpu &cpu, Reg16 r1, Reg8 r2) {
+inline void instr_load_reg16_ptr_inc_reg8(Cpu& cpu, Reg16 r1, Reg8 r2) {
   auto addr = cpu.regs.Get(r1);
   cpu.Write8(addr, cpu.regs.Get(r2));
   cpu.regs.Set(r1, addr + 1);
 }
 
-inline void instr_load_reg16_reg16(Cpu &cpu, Reg16 r1, Reg16 r2) {
+inline void instr_load_reg16_reg16(Cpu& cpu, Reg16 r1, Reg16 r2) {
   cpu.regs.Set(r1, cpu.regs.Get(r2));
   cpu.Tick();
 }
 
-inline void instr_load_reg16_imm16(Cpu &cpu, Reg16 r1, uint16_t val) {
+inline void instr_load_reg16_imm16(Cpu& cpu, Reg16 r1, uint16_t val) {
   cpu.regs.Set(r1, val);
 }
 
-inline void instr_load_imm16_ptr_sp(Cpu &cpu, uint16_t val) {
+inline void instr_load_imm16_ptr_sp(Cpu& cpu, uint16_t val) {
   cpu.Write16(val, cpu.regs.sp);
 }
 
-inline void instr_load_sp_reg16(Cpu &cpu, Reg16 r1) {
+inline void instr_load_sp_reg16(Cpu& cpu, Reg16 r1) {
   cpu.regs.sp = cpu.regs.Get(r1);
   cpu.Tick();
 }
 
-inline void instr_load_sp_imm16(Cpu &cpu, uint16_t imm) {
+inline void instr_load_sp_imm16(Cpu& cpu, uint16_t imm) {
   cpu.regs.sp = imm;
 }
 
-inline void instr_load_reg16_sp_offset(Cpu &cpu, Reg16 r1, int8_t e) {
+inline void instr_load_reg16_sp_offset(Cpu& cpu, Reg16 r1, int8_t e) {
   uint32_t sp = cpu.regs.sp;
   uint32_t result = sp + e;
 
@@ -131,18 +131,18 @@ inline void instr_load_reg16_sp_offset(Cpu &cpu, Reg16 r1, int8_t e) {
   cpu.Tick();
 }
 
-inline void instr_push_reg16(Cpu &cpu, Reg16 r1) {
+inline void instr_push_reg16(Cpu& cpu, Reg16 r1) {
   uint16_t val = cpu.regs.Get(r1);
   cpu.Push16(val);
 }
 
-inline void instr_pop_reg16(Cpu &cpu, Reg16 r1) {
+inline void instr_pop_reg16(Cpu& cpu, Reg16 r1) {
   auto val = cpu.Pop16();
   cpu.regs.Set(r1, val);
 }
 
-inline uint8_t instr_add8(Cpu &cpu, uint8_t a, uint8_t b, uint8_t c) {
-  uint8_t result_half = (a & 0xf) + (b &0xf) + c;
+inline uint8_t instr_add8(Cpu& cpu, uint8_t a, uint8_t b, uint8_t c) {
+  uint8_t result_half = (a & 0xf) + (b& 0xf) + c;
   uint16_t result = a + b + c;
 
   cpu.regs.Set(Flag::Z, (result & 0xff) == 0 ? 1 : 0);
@@ -153,7 +153,7 @@ inline uint8_t instr_add8(Cpu &cpu, uint8_t a, uint8_t b, uint8_t c) {
   return (uint8_t)result;
 }
 
-inline uint16_t instr_add16(Cpu &cpu, uint16_t a, uint16_t b) {
+inline uint16_t instr_add16(Cpu& cpu, uint16_t a, uint16_t b) {
   uint16_t result_half = (a & 0xfff) + (b & 0xfff);
   uint32_t result = a + b;
 
@@ -164,65 +164,65 @@ inline uint16_t instr_add16(Cpu &cpu, uint16_t a, uint16_t b) {
   return result;
 }
 
-inline void instr_add_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_add_reg8(Cpu& cpu, Reg8 r) {
   cpu.regs.At(Reg8::A) = instr_add8(cpu, cpu.regs.Get(Reg8::A), cpu.regs.Get(r), 0);
 }
 
-inline void instr_add_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_add_reg16_ptr(Cpu& cpu, Reg16 r) {
   cpu.regs.At(Reg8::A) = instr_add8(cpu, cpu.regs.Get(Reg8::A), cpu.Read8(cpu.regs.Get(r)), 0);
 }
 
-inline void instr_add_imm8(Cpu &cpu, uint8_t imm) {
+inline void instr_add_imm8(Cpu& cpu, uint8_t imm) {
   cpu.regs.At(Reg8::A) = instr_add8(cpu, cpu.regs.Get(Reg8::A), imm, 0);
 }
 
-inline void instr_add_reg8_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+inline void instr_add_reg8_reg8(Cpu& cpu, Reg8 r1, Reg8 r2) {
   cpu.regs.At(r1) = instr_add8(cpu, cpu.regs.Get(r1), cpu.regs.Get(r2), 0);
 }
 
-inline void instr_add_reg8_imm8(Cpu &cpu, Reg8 r, uint8_t imm) {
+inline void instr_add_reg8_imm8(Cpu& cpu, Reg8 r, uint8_t imm) {
   cpu.regs.At(r) = instr_add8(cpu, cpu.regs.Get(r), imm, 0);
 }
 
-inline void instr_add_reg8_reg16_ptr(Cpu &cpu, Reg8 r1, Reg16 r2) {
+inline void instr_add_reg8_reg16_ptr(Cpu& cpu, Reg8 r1, Reg16 r2) {
   cpu.regs.At(r1) = instr_add8(cpu, cpu.regs.Get(r1), cpu.Read8(cpu.regs.Get(r2)), 0);
 }
 
-inline void instr_add_carry_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_add_carry_reg8(Cpu& cpu, Reg8 r) {
   cpu.regs.At(Reg8::A) = instr_add8(cpu, cpu.regs.Get(Reg8::A), cpu.regs.Get(r), cpu.regs.Get(Flag::C));
 }
 
-inline void instr_add_carry_reg8_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+inline void instr_add_carry_reg8_reg8(Cpu& cpu, Reg8 r1, Reg8 r2) {
   cpu.regs.At(r1) = instr_add8(cpu, cpu.regs.Get(r1), cpu.regs.Get(r2), cpu.regs.Get(Flag::C));
 }
 
-inline void instr_add_carry_reg8_imm8(Cpu &cpu, Reg8 r, uint8_t imm) {
+inline void instr_add_carry_reg8_imm8(Cpu& cpu, Reg8 r, uint8_t imm) {
   cpu.regs.At(r) = instr_add8(cpu, cpu.regs.Get(r), imm, cpu.regs.Get(Flag::C));
 }
 
-inline void instr_add_carry_reg8_reg16_ptr(Cpu &cpu, Reg8 r1, Reg16 r2) {
+inline void instr_add_carry_reg8_reg16_ptr(Cpu& cpu, Reg8 r1, Reg16 r2) {
   cpu.regs.At(r1) = instr_add8(cpu, cpu.regs.Get(r1), cpu.Read8(cpu.regs.Get(r2)), cpu.regs.Get(Flag::C));
 }
 
-inline void instr_add_carry_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_add_carry_reg16_ptr(Cpu& cpu, Reg16 r) {
   cpu.regs.At(Reg8::A) = instr_add8(cpu, cpu.regs.Get(Reg8::A), cpu.Read8(cpu.regs.Get(r)), cpu.regs.Get(Flag::C));
 }
 
-inline void instr_add_carry_imm8(Cpu &cpu, uint8_t imm) {
+inline void instr_add_carry_imm8(Cpu& cpu, uint8_t imm) {
   cpu.regs.At(Reg8::A) = instr_add8(cpu, cpu.regs.Get(Reg8::A), imm, cpu.regs.Get(Flag::C));
 }
 
-inline void instr_add_reg16_sp(Cpu &cpu, Reg16 r) {
+inline void instr_add_reg16_sp(Cpu& cpu, Reg16 r) {
   cpu.regs.Set(r, instr_add16(cpu, cpu.regs.Get(r), cpu.regs.sp));
   cpu.Tick();
 }
 
-inline void instr_add_reg16_reg16(Cpu &cpu, Reg16 r1, Reg16 r2) {
+inline void instr_add_reg16_reg16(Cpu& cpu, Reg16 r1, Reg16 r2) {
   cpu.regs.Set(r1, instr_add16(cpu, cpu.regs.Get(r1), cpu.regs.Get(r2)));
   cpu.Tick();
 }
 
-inline void instr_add_sp_offset(Cpu &cpu, int8_t e) {
+inline void instr_add_sp_offset(Cpu& cpu, int8_t e) {
   uint32_t sp = cpu.regs.sp;
   uint32_t result = sp + e;
 
@@ -236,7 +236,7 @@ inline void instr_add_sp_offset(Cpu &cpu, int8_t e) {
   cpu.Tick();
 }
 
-inline uint8_t instr_sub8(Cpu &cpu, uint8_t a, uint8_t b, uint8_t c) {
+inline uint8_t instr_sub8(Cpu& cpu, uint8_t a, uint8_t b, uint8_t c) {
   auto half_result = static_cast<int16_t>(a & 0xf) - (b & 0xf) - c;
   auto result = static_cast<int16_t>(a) - b - c;
 
@@ -248,55 +248,55 @@ inline uint8_t instr_sub8(Cpu &cpu, uint8_t a, uint8_t b, uint8_t c) {
   return result;
 }
 
-inline void instr_sub_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_sub_reg8(Cpu& cpu, Reg8 r) {
   cpu.regs.At(Reg8::A) = instr_sub8(cpu, cpu.regs.Get(Reg8::A), cpu.regs.Get(r), 0);
 }
 
-inline void instr_sub_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_sub_reg16_ptr(Cpu& cpu, Reg16 r) {
   cpu.regs.At(Reg8::A) = instr_sub8(cpu, cpu.regs.Get(Reg8::A), cpu.Read8(cpu.regs.Get(r)), 0);
 }
 
-inline void instr_sub_imm8(Cpu &cpu, uint8_t imm) {
+inline void instr_sub_imm8(Cpu& cpu, uint8_t imm) {
   cpu.regs.At(Reg8::A) = instr_sub8(cpu, cpu.regs.Get(Reg8::A), imm, 0);
 }
 
-inline void instr_sub_carry_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_sub_carry_reg8(Cpu& cpu, Reg8 r) {
   cpu.regs.At(Reg8::A) = instr_sub8(cpu, cpu.regs.Get(Reg8::A), cpu.regs.Get(r), 0);
 }
 
-inline void instr_sub_carry_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_sub_carry_reg16_ptr(Cpu& cpu, Reg16 r) {
   cpu.regs.At(Reg8::A) = instr_sub8(cpu, cpu.regs.Get(Reg8::A), cpu.Read8(cpu.regs.Get(r)), cpu.regs.Get(Flag::C));
 }
 
-inline void instr_sub_carry_imm8(Cpu &cpu, uint8_t imm) {
+inline void instr_sub_carry_imm8(Cpu& cpu, uint8_t imm) {
   cpu.regs.At(Reg8::A) = instr_sub8(cpu, cpu.regs.Get(Reg8::A), imm, cpu.regs.Get(Flag::C));
 }
 
-inline void instr_sub_carry_reg8_reg8(Cpu &cpu, Reg8 r1, Reg8 r2) {
+inline void instr_sub_carry_reg8_reg8(Cpu& cpu, Reg8 r1, Reg8 r2) {
   cpu.regs.At(r1) = instr_sub8(cpu, cpu.regs.Get(r1), cpu.regs.Get(r2), cpu.regs.Get(Flag::C));
 }
 
-inline void instr_sub_carry_reg8_imm8(Cpu &cpu, Reg8 r, uint8_t imm) {
+inline void instr_sub_carry_reg8_imm8(Cpu& cpu, Reg8 r, uint8_t imm) {
   cpu.regs.At(r) = instr_sub8(cpu, cpu.regs.Get(r), imm, cpu.regs.Get(Flag::C));
 }
 
-inline void instr_sub_carry_reg8_reg16_ptr(Cpu &cpu, Reg8 r1, Reg16 r2) {
+inline void instr_sub_carry_reg8_reg16_ptr(Cpu& cpu, Reg8 r1, Reg16 r2) {
   cpu.regs.At(r1) = instr_sub8(cpu, cpu.regs.Get(r1), cpu.Read8(cpu.regs.Get(r2)), cpu.regs.Get(Flag::C));
 }
 
-inline void instr_cmp_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_cmp_reg8(Cpu& cpu, Reg8 r) {
   instr_sub8(cpu, cpu.regs.Get(Reg8::A), cpu.regs.Get(r), 0);
 }
 
-inline void instr_cmp_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_cmp_reg16_ptr(Cpu& cpu, Reg16 r) {
   instr_sub8(cpu, cpu.regs.Get(Reg8::A), cpu.Read8(cpu.regs.Get(r)), 0);
 }
 
-inline void instr_cmp_imm8(Cpu &cpu, uint8_t imm) {
+inline void instr_cmp_imm8(Cpu& cpu, uint8_t imm) {
   instr_sub8(cpu, cpu.regs.Get(Reg8::A), imm, 0);
 }
 
-inline void instr_inc_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_inc_reg8(Cpu& cpu, Reg8 r) {
   uint8_t val = cpu.regs.Get(r);
   uint8_t result = val + 1;
   cpu.regs.Set(r, result);
@@ -305,7 +305,7 @@ inline void instr_inc_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::H, (val & 0xf) + 1 > 0xf ? 1 : 0);
 }
 
-inline void instr_inc_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_inc_reg16_ptr(Cpu& cpu, Reg16 r) {
   uint8_t val = cpu.Read8(cpu.regs.Get(r));
   uint8_t result = val + 1;
   cpu.Write8(cpu.regs.Get(r), result);
@@ -314,17 +314,17 @@ inline void instr_inc_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::H, (val & 0xf) + 1 > 0xf ? 1 : 0);
 }
 
-inline void instr_inc_sp(Cpu &cpu) {
+inline void instr_inc_sp(Cpu& cpu) {
   cpu.regs.sp += 1;
   cpu.Tick();
 }
 
-inline void instr_inc_reg16(Cpu &cpu, Reg16 r) {
+inline void instr_inc_reg16(Cpu& cpu, Reg16 r) {
   cpu.regs.Set(r, cpu.regs.Get(r) + 1);
   cpu.Tick();
 }
 
-inline void instr_dec_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_dec_reg8(Cpu& cpu, Reg8 r) {
   uint8_t val = cpu.regs.Get(r);
   uint8_t result = val - 1;
   cpu.regs.At(r) = result;
@@ -333,7 +333,7 @@ inline void instr_dec_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::H, (val & 0xf) == 0);
 }
 
-inline void instr_dec_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_dec_reg16_ptr(Cpu& cpu, Reg16 r) {
   uint8_t val = cpu.Read8(cpu.regs.Get(r));
   uint8_t result = val - 1;
   cpu.Write8(cpu.regs.Get(r), result);
@@ -342,17 +342,17 @@ inline void instr_dec_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::H, (val & 0xf) == 0);
 }
 
-inline void instr_dec_sp(Cpu &cpu) {
+inline void instr_dec_sp(Cpu& cpu) {
   cpu.regs.sp -= 1;
   cpu.Tick();
 }
 
-inline void instr_dec_reg16(Cpu &cpu, Reg16 r) {
+inline void instr_dec_reg16(Cpu& cpu, Reg16 r) {
   cpu.regs.Set(r, cpu.regs.Get(r) - 1);
   cpu.Tick();
 }
 
-inline void instr_and_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_and_reg8(Cpu& cpu, Reg8 r) {
   auto result = cpu.regs.At(Reg8::A) &= cpu.regs.Get(r);
   cpu.regs.Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
@@ -360,7 +360,7 @@ inline void instr_and_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_and_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_and_reg16_ptr(Cpu& cpu, Reg16 r) {
   auto result = cpu.regs.At(Reg8::A) &= cpu.Read8(cpu.regs.Get(r));
   cpu.regs.Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
@@ -368,7 +368,7 @@ inline void instr_and_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_and_imm8(Cpu &cpu, uint8_t imm) {
+inline void instr_and_imm8(Cpu& cpu, uint8_t imm) {
   auto result = cpu.regs.At(Reg8::A) &= imm;
   cpu.regs.Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
@@ -376,7 +376,7 @@ inline void instr_and_imm8(Cpu &cpu, uint8_t imm) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_or_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_or_reg8(Cpu& cpu, Reg8 r) {
   auto result = cpu.regs.At(Reg8::A) |= cpu.regs.Get(r);
   cpu.regs.Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
@@ -384,7 +384,7 @@ inline void instr_or_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_or_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_or_reg16_ptr(Cpu& cpu, Reg16 r) {
   auto result = cpu.regs.At(Reg8::A) |= cpu.Read8(cpu.regs.Get(r));
   cpu.regs.Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
@@ -392,7 +392,7 @@ inline void instr_or_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_or_imm8(Cpu &cpu, uint8_t imm) {
+inline void instr_or_imm8(Cpu& cpu, uint8_t imm) {
   auto result = cpu.regs.At(Reg8::A) |= imm;
   cpu.regs.Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
@@ -400,7 +400,7 @@ inline void instr_or_imm8(Cpu &cpu, uint8_t imm) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_xor_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_xor_reg8(Cpu& cpu, Reg8 r) {
   auto result = cpu.regs.At(Reg8::A) ^= cpu.regs.Get(r);
   cpu.regs.Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
@@ -408,7 +408,7 @@ inline void instr_xor_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_xor_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_xor_reg16_ptr(Cpu& cpu, Reg16 r) {
   auto result = cpu.regs.At(Reg8::A) ^= cpu.Read8(cpu.regs.Get(r));
   cpu.regs.Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
@@ -416,7 +416,7 @@ inline void instr_xor_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_xor_imm8(Cpu &cpu, uint8_t imm) {
+inline void instr_xor_imm8(Cpu& cpu, uint8_t imm) {
   auto result = cpu.regs.At(Reg8::A) ^= imm;
   cpu.regs.Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
@@ -424,19 +424,19 @@ inline void instr_xor_imm8(Cpu &cpu, uint8_t imm) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_ccf(Cpu &cpu) {
+inline void instr_ccf(Cpu& cpu) {
   cpu.regs.Set(Flag::N, 0);
   cpu.regs.Set(Flag::H, 0);
   cpu.regs.Set(Flag::C, cpu.regs.Get(Flag::C) ? 0 : 1);
 }
 
-inline void instr_scf(Cpu &cpu) {
+inline void instr_scf(Cpu& cpu) {
   cpu.regs.Set(Flag::N, 0);
   cpu.regs.Set(Flag::H, 0);
   cpu.regs.Set(Flag::C, 1);
 }
 
-inline void instr_daa(Cpu &cpu) {
+inline void instr_daa(Cpu& cpu) {
   auto a = cpu.regs.Get(Reg8::A);
   auto n = cpu.regs.Get(Flag::N);
   auto h = cpu.regs.Get(Flag::H);
@@ -464,13 +464,13 @@ inline void instr_daa(Cpu &cpu) {
   cpu.regs.Set(Flag::H, 0);
 }
 
-inline void instr_cpl(Cpu &cpu) {
+inline void instr_cpl(Cpu& cpu) {
   cpu.regs.Set(Reg8::A, ~cpu.regs.Get(Reg8::A));
   cpu.regs.Set(Flag::N, 1);
   cpu.regs.Set(Flag::H, 1);
 }
 
-inline void instr_rlca(Cpu &cpu) {
+inline void instr_rlca(Cpu& cpu) {
   uint8_t val = cpu.regs.Get(Reg8::A);
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | carry;
@@ -481,7 +481,7 @@ inline void instr_rlca(Cpu &cpu) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_rrca(Cpu &cpu) {
+inline void instr_rrca(Cpu& cpu) {
   uint8_t val = cpu.regs.Get(Reg8::A);
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (carry << 7);
@@ -492,7 +492,7 @@ inline void instr_rrca(Cpu &cpu) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_rla(Cpu &cpu) {
+inline void instr_rla(Cpu& cpu) {
   uint8_t val = cpu.regs.Get(Reg8::A);
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | cpu.regs.Get(Flag::C);
@@ -503,7 +503,7 @@ inline void instr_rla(Cpu &cpu) {
   cpu.regs.Set(Flag::C,  carry);
 }
 
-inline void instr_rra(Cpu &cpu) {
+inline void instr_rra(Cpu& cpu) {
   uint8_t val = cpu.regs.Get(Reg8::A);
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (cpu.regs.Get(Flag::C) << 7);
@@ -514,7 +514,7 @@ inline void instr_rra(Cpu &cpu) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_rlc_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_rlc_reg8(Cpu& cpu, Reg8 r) {
   uint8_t val = cpu.regs.Get(r);
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | carry;
@@ -525,7 +525,7 @@ inline void instr_rlc_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_rlc_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_rlc_reg16_ptr(Cpu& cpu, Reg16 r) {
   uint8_t val = cpu.Read8(cpu.regs.Get(r));
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | carry;
@@ -536,7 +536,7 @@ inline void instr_rlc_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_rrc_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_rrc_reg8(Cpu& cpu, Reg8 r) {
   uint8_t val = cpu.regs.Get(r);
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (carry << 7);
@@ -547,7 +547,7 @@ inline void instr_rrc_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_rrc_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_rrc_reg16_ptr(Cpu& cpu, Reg16 r) {
   uint8_t val = cpu.Read8(cpu.regs.Get(r));
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (carry << 7);
@@ -558,7 +558,7 @@ inline void instr_rrc_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_rl_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_rl_reg8(Cpu& cpu, Reg8 r) {
   uint8_t val = cpu.regs.Get(r);
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | cpu.regs.Get(Flag::C);
@@ -569,7 +569,7 @@ inline void instr_rl_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C,  carry);
 }
 
-inline void instr_rl_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_rl_reg16_ptr(Cpu& cpu, Reg16 r) {
   uint8_t val = cpu.Read8(cpu.regs.Get(r));
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = (val << 1) | cpu.regs.Get(Flag::C);
@@ -580,7 +580,7 @@ inline void instr_rl_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C,  carry);
 }
 
-inline void instr_rr_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_rr_reg8(Cpu& cpu, Reg8 r) {
   uint8_t val = cpu.regs.Get(r);
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (cpu.regs.Get(Flag::C) << 7);
@@ -591,7 +591,7 @@ inline void instr_rr_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_rr_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_rr_reg16_ptr(Cpu& cpu, Reg16 r) {
   uint8_t val = cpu.Read8(cpu.regs.Get(r));
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (cpu.regs.Get(Flag::C) << 7);
@@ -602,7 +602,7 @@ inline void instr_rr_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_sla_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_sla_reg8(Cpu& cpu, Reg8 r) {
   uint8_t val = cpu.regs.Get(r);
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = val << 1;
@@ -613,7 +613,7 @@ inline void instr_sla_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_sla_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_sla_reg16_ptr(Cpu& cpu, Reg16 r) {
   uint8_t val = cpu.Read8(cpu.regs.Get(r));
   uint8_t carry = (val & 0x80) >> 7;
   uint8_t result = val << 1;
@@ -624,7 +624,7 @@ inline void instr_sla_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_srl_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_srl_reg8(Cpu& cpu, Reg8 r) {
   uint8_t val = cpu.regs.Get(r);
   uint8_t carry = val & 0x1;
   uint8_t result = val >> 1;
@@ -635,7 +635,7 @@ inline void instr_srl_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_srl_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_srl_reg16_ptr(Cpu& cpu, Reg16 r) {
   uint8_t val = cpu.Read8(cpu.regs.Get(r));
   uint8_t carry = val & 0x1;
   uint8_t result = val >> 1;
@@ -646,7 +646,7 @@ inline void instr_srl_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_sra_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_sra_reg8(Cpu& cpu, Reg8 r) {
   uint8_t val = cpu.regs.Get(r);
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (val & 0x80);
@@ -657,7 +657,7 @@ inline void instr_sra_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_sra_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_sra_reg16_ptr(Cpu& cpu, Reg16 r) {
   uint8_t val = cpu.Read8(cpu.regs.Get(r));
   uint8_t carry = val & 0x1;
   uint8_t result = (val >> 1) | (val & 0x80);
@@ -668,7 +668,7 @@ inline void instr_sra_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, carry);
 }
 
-inline void instr_swap_reg8(Cpu &cpu, Reg8 r) {
+inline void instr_swap_reg8(Cpu& cpu, Reg8 r) {
   auto val = cpu.regs.Get(r);
   uint8_t upper = (val >> 4) & 0xf;
   uint8_t lower = val & 0xf;
@@ -680,7 +680,7 @@ inline void instr_swap_reg8(Cpu &cpu, Reg8 r) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_swap_reg16_ptr(Cpu &cpu, Reg16 r) {
+inline void instr_swap_reg16_ptr(Cpu& cpu, Reg16 r) {
   auto val = cpu.Read8(cpu.regs.Get(r));
   uint8_t upper = (val >> 4) & 0xf;
   uint8_t lower = val & 0xf;
@@ -692,26 +692,26 @@ inline void instr_swap_reg16_ptr(Cpu &cpu, Reg16 r) {
   cpu.regs.Set(Flag::C, 0);
 }
 
-inline void instr_bit_imm8_reg8(Cpu &cpu, uint8_t imm, Reg8 r) {
+inline void instr_bit_imm8_reg8(Cpu& cpu, uint8_t imm, Reg8 r) {
   auto bit = (cpu.regs.Get(r) >> imm) & 0x1;
   cpu.regs.Set(Flag::Z, bit == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
   cpu.regs.Set(Flag::H, 1);
 }
 
-inline void instr_bit_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
+inline void instr_bit_imm8_reg16_ptr(Cpu& cpu, uint8_t imm, Reg16 r) {
   auto bit = (cpu.Read8(cpu.regs.Get(r)) >> imm) & 0x1;
   cpu.regs.Set(Flag::Z, bit == 0 ? 1 : 0);
   cpu.regs.Set(Flag::N, 0);
   cpu.regs.Set(Flag::H, 1);
 }
 
-inline void instr_res_imm8_reg8(Cpu &cpu, uint8_t imm, Reg8 r) {
+inline void instr_res_imm8_reg8(Cpu& cpu, uint8_t imm, Reg8 r) {
   uint8_t mask = cpu.regs.Get(r) & (1 << imm);
   cpu.regs.At(r) ^= mask;
 }
 
-inline void instr_res_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
+inline void instr_res_imm8_reg16_ptr(Cpu& cpu, uint8_t imm, Reg16 r) {
   uint16_t addr = cpu.regs.Get(r);
   uint8_t val = cpu.Read8(addr);
   uint8_t mask = val & (1 << imm);
@@ -719,30 +719,30 @@ inline void instr_res_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
   cpu.Write8(addr, result);
 }
 
-inline void instr_set_imm8_reg8(Cpu &cpu, uint8_t imm, Reg8 r) {
+inline void instr_set_imm8_reg8(Cpu& cpu, uint8_t imm, Reg8 r) {
   uint8_t mask = 1 << imm;
   cpu.regs.At(r) |= mask;
 }
 
-inline void instr_set_imm8_reg16_ptr(Cpu &cpu, uint8_t imm, Reg16 r) {
+inline void instr_set_imm8_reg16_ptr(Cpu& cpu, uint8_t imm, Reg16 r) {
   uint8_t mask = 1 << imm;
   uint16_t addr = cpu.regs.Get(r);
   uint8_t result = cpu.Read8(addr) | mask;
   cpu.Write8(addr, result);
 }
 
-inline bool instr_jump_imm16(Cpu &cpu, uint16_t imm) {
+inline bool instr_jump_imm16(Cpu& cpu, uint16_t imm) {
   cpu.regs.pc = imm;
   cpu.Tick();
   return true;
 }
 
-inline bool instr_jump_reg16(Cpu &cpu, Reg16 r) {
+inline bool instr_jump_reg16(Cpu& cpu, Reg16 r) {
   cpu.regs.pc = cpu.regs.Get(r);
   return true;
 }
 
-inline bool instr_jump_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
+inline bool instr_jump_cond_imm16(Cpu& cpu, Cond cond, uint16_t nn) {
   if (check_cond(cpu, cond)) {
     cpu.regs.pc = nn;
     cpu.Tick();
@@ -751,13 +751,13 @@ inline bool instr_jump_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
   return false;
 }
 
-inline bool instr_jump_rel(Cpu &cpu, int8_t e) {
+inline bool instr_jump_rel(Cpu& cpu, int8_t e) {
   cpu.regs.pc += e;
   cpu.Tick();
   return true;
 }
 
-inline bool instr_jump_rel_cond(Cpu &cpu, Cond cond, int8_t e) {
+inline bool instr_jump_rel_cond(Cpu& cpu, Cond cond, int8_t e) {
   if (check_cond(cpu, cond)) {
     cpu.regs.pc += e;
     cpu.Tick();
@@ -766,14 +766,14 @@ inline bool instr_jump_rel_cond(Cpu &cpu, Cond cond, int8_t e) {
   return false;
 }
 
-inline bool instr_call_imm16(Cpu &cpu, uint16_t nn) {
+inline bool instr_call_imm16(Cpu& cpu, uint16_t nn) {
   cpu.Push16(cpu.regs.pc);
   cpu.regs.pc = nn;
   cpu.Tick();
   return true;
 }
 
-inline bool instr_call_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
+inline bool instr_call_cond_imm16(Cpu& cpu, Cond cond, uint16_t nn) {
   if (check_cond(cpu, cond)) {
     cpu.Push16(cpu.regs.pc);
     cpu.regs.pc = nn;
@@ -783,13 +783,13 @@ inline bool instr_call_cond_imm16(Cpu &cpu, Cond cond, uint16_t nn) {
   return false;
 }
 
-inline bool instr_ret(Cpu &cpu) {
+inline bool instr_ret(Cpu& cpu) {
   cpu.regs.pc = cpu.Pop16();
   cpu.Tick();
   return true;
 }
 
-inline bool instr_ret_cond(Cpu &cpu, Cond cond) {
+inline bool instr_ret_cond(Cpu& cpu, Cond cond) {
   auto jump = check_cond(cpu, cond);
   cpu.Tick();
   if (jump) {
@@ -800,344 +800,344 @@ inline bool instr_ret_cond(Cpu &cpu, Cond cond) {
   return false;
 }
 
-inline void instr_reti(Cpu &cpu) {
+inline void instr_reti(Cpu& cpu) {
   cpu.regs.pc = cpu.Pop16();
   cpu.state.ime = true;
   cpu.Tick();
 }
 
-inline void instr_restart(Cpu &cpu, uint8_t n) {
+inline void instr_restart(Cpu& cpu, uint8_t n) {
   cpu.Push16(cpu.regs.pc);
   cpu.regs.pc = n;
   cpu.Tick();
 }
 
-inline void execute_ld(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+inline void execute_ld(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_SP_Reg16 &operands) { instr_load_sp_reg16(cpu, operands.reg); },
-     [&](Operands_SP_Imm16 &operands) { instr_load_sp_imm16(cpu, operands.imm); },
-     [&](Operands_Reg8_Reg8 &operands) { instr_load_reg8_reg8(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm8 &operands) { instr_load_reg8_imm8(cpu, operands.reg, operands.imm); },
-     [&](Operands_Reg16_Reg16 &operands) { instr_load_reg16_reg16(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Imm16 &operands) { instr_load_reg16_imm16(cpu, operands.reg, operands.imm); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu, operands.addr, operands.reg); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_load_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Reg16_Ptr_Inc &operands) { instr_load_reg8_reg16_ptr_inc(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Reg16_Ptr_Dec &operands) { instr_load_reg8_reg16_ptr_dec(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm16_Ptr &operands) { instr_load_reg8_imm16_ptr(cpu, operands.reg, operands.addr); },
-     [&](Operands_Reg16_SP_Offset &operands) { instr_load_reg16_sp_offset(cpu, operands.reg, operands.offset); },
-     [&](Operands_Reg16_Ptr_Reg8 &operands) { instr_load_reg16_ptr_reg8(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Ptr_Inc_Reg8 &operands) { instr_load_reg16_ptr_inc_reg8(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Ptr_Imm8 &operands) { instr_load_reg16_ptr_imm8(cpu, operands.reg, operands.imm); },
-     [&](Operands_Reg16_Ptr_Dec_Reg8 &operands) { instr_load_reg16_ptr_dec_reg8(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Imm16_Ptr_Reg8 &operands) { instr_load_imm16_ptr_reg8(cpu, operands.addr, operands.reg); },
-     [&](Operands_Imm16_Ptr_SP &operands) { instr_load_imm16_ptr_sp(cpu, operands.addr); },
+     [&](Operands_SP_Reg16& operands) { instr_load_sp_reg16(cpu, operands.reg); },
+     [&](Operands_SP_Imm16& operands) { instr_load_sp_imm16(cpu, operands.imm); },
+     [&](Operands_Reg8_Reg8& operands) { instr_load_reg8_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8& operands) { instr_load_reg8_imm8(cpu, operands.reg, operands.imm); },
+     [&](Operands_Reg16_Reg16& operands) { instr_load_reg16_reg16(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Imm16& operands) { instr_load_reg16_imm16(cpu, operands.reg, operands.imm); },
+     [&](Operands_Imm8_Ptr_Reg8& operands) { instr_load_hi_imm8_ptr_reg8(cpu, operands.addr, operands.reg); },
+     [&](Operands_Reg8_Reg16_Ptr& operands) { instr_load_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Reg16_Ptr_Inc& operands) { instr_load_reg8_reg16_ptr_inc(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Reg16_Ptr_Dec& operands) { instr_load_reg8_reg16_ptr_dec(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm16_Ptr& operands) { instr_load_reg8_imm16_ptr(cpu, operands.reg, operands.addr); },
+     [&](Operands_Reg16_SP_Offset& operands) { instr_load_reg16_sp_offset(cpu, operands.reg, operands.offset); },
+     [&](Operands_Reg16_Ptr_Reg8& operands) { instr_load_reg16_ptr_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Ptr_Inc_Reg8& operands) { instr_load_reg16_ptr_inc_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Ptr_Imm8& operands) { instr_load_reg16_ptr_imm8(cpu, operands.reg, operands.imm); },
+     [&](Operands_Reg16_Ptr_Dec_Reg8& operands) { instr_load_reg16_ptr_dec_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Imm16_Ptr_Reg8& operands) { instr_load_imm16_ptr_reg8(cpu, operands.addr, operands.reg); },
+     [&](Operands_Imm16_Ptr_SP& operands) { instr_load_imm16_ptr_sp(cpu, operands.addr); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-inline void execute_inc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+inline void execute_inc(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_inc_reg8(cpu, operands.reg); },
-     [&](Operands_Reg16 &operands) { instr_inc_reg16(cpu, operands.reg); },
-     [&](Operands_Reg16_Ptr &operands) { instr_inc_reg16_ptr(cpu, operands.reg); },
-     [&](Operands_SP &operands) { instr_inc_sp(cpu); },
+     [&](Operands_Reg8& operands) { instr_inc_reg8(cpu, operands.reg); },
+     [&](Operands_Reg16& operands) { instr_inc_reg16(cpu, operands.reg); },
+     [&](Operands_Reg16_Ptr& operands) { instr_inc_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_SP& operands) { instr_inc_sp(cpu); },
      [&](auto&) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_dec(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_dec(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_dec_reg8(cpu, operands.reg); },
-     [&](Operands_Reg16 &operands) { instr_dec_reg16(cpu, operands.reg); },
-     [&](Operands_Reg16_Ptr &operands) { instr_dec_reg16_ptr(cpu, operands.reg); },
-     [&](Operands_SP &operands) { instr_dec_sp(cpu); },
+     [&](Operands_Reg8& operands) { instr_dec_reg8(cpu, operands.reg); },
+     [&](Operands_Reg16& operands) { instr_dec_reg16(cpu, operands.reg); },
+     [&](Operands_Reg16_Ptr& operands) { instr_dec_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_SP& operands) { instr_dec_sp(cpu); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_add(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_add(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_add_reg8(cpu, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_add_imm8(cpu, operands.imm); },
-     [&](Operands_Reg8_Reg8 &operands) { instr_add_reg8_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8& operands) { instr_add_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8& operands) { instr_add_imm8(cpu, operands.imm); },
+     [&](Operands_Reg8_Reg8& operands) { instr_add_reg8_reg8(cpu, operands.reg1, operands.reg2); },
      [&](Operands_Reg8_Imm8& operands) { instr_add_reg8_imm8(cpu, operands.reg, operands.imm); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg16_Reg16 &operands) { instr_add_reg16_reg16(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_SP_Offset &operands) { instr_add_sp_offset(cpu, operands.offset); },
-     [&](Operands_Reg16_Ptr &operands) { instr_add_reg16_ptr(cpu, operands.reg); },
-     [&](Operands_Reg16_SP &operands) { instr_add_reg16_sp(cpu, operands.reg); },
+     [&](Operands_Reg8_Reg16_Ptr& operands) { instr_add_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg16_Reg16& operands) { instr_add_reg16_reg16(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_SP_Offset& operands) { instr_add_sp_offset(cpu, operands.offset); },
+     [&](Operands_Reg16_Ptr& operands) { instr_add_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg16_SP& operands) { instr_add_reg16_sp(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_adc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_adc(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_add_carry_reg8(cpu, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_add_carry_imm8(cpu, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_add_carry_reg16_ptr(cpu, operands.reg); },
-     [&](Operands_Reg8_Reg8 &operands) { instr_add_carry_reg8_reg8(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm8 &operands) { instr_add_carry_reg8_imm8(cpu, operands.reg, operands.imm); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_add_carry_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8& operands) { instr_add_carry_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8& operands) { instr_add_carry_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr& operands) { instr_add_carry_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg8_Reg8& operands) { instr_add_carry_reg8_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8& operands) { instr_add_carry_reg8_imm8(cpu, operands.reg, operands.imm); },
+     [&](Operands_Reg8_Reg16_Ptr& operands) { instr_add_carry_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_sub(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_sub(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_sub_reg8(cpu, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_sub_imm8(cpu, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_sub_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg8& operands) { instr_sub_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8& operands) { instr_sub_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr& operands) { instr_sub_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_sbc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_sbc(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_sub_carry_reg8(cpu, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_sub_carry_imm8(cpu, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_sub_carry_reg16_ptr(cpu, operands.reg); },
-     [&](Operands_Reg8_Reg8 &operands) { instr_sub_carry_reg8_reg8(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Imm8 &operands) { instr_sub_carry_reg8_imm8(cpu, operands.reg, operands.imm); },
-     [&](Operands_Reg8_Reg16_Ptr &operands) { instr_sub_carry_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8& operands) { instr_sub_carry_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8& operands) { instr_sub_carry_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr& operands) { instr_sub_carry_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg8_Reg8& operands) { instr_sub_carry_reg8_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8& operands) { instr_sub_carry_reg8_imm8(cpu, operands.reg, operands.imm); },
+     [&](Operands_Reg8_Reg16_Ptr& operands) { instr_sub_carry_reg8_reg16_ptr(cpu, operands.reg1, operands.reg2); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_and(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_and(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_and_reg8(cpu, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_and_imm8(cpu, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_and_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg8& operands) { instr_and_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8& operands) { instr_and_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr& operands) { instr_and_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_xor(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_xor(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_xor_reg8(cpu, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_xor_imm8(cpu, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_xor_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg8& operands) { instr_xor_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8& operands) { instr_xor_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr& operands) { instr_xor_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_or(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_or(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_or_reg8(cpu, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_or_imm8(cpu, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_or_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg8& operands) { instr_or_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8& operands) { instr_or_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr& operands) { instr_or_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_cp(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_cp(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8 &operands) { instr_cmp_reg8(cpu, operands.reg); },
-     [&](Operands_Imm8 &operands) { instr_cmp_imm8(cpu, operands.imm); },
-     [&](Operands_Reg16_Ptr &operands) { instr_cmp_reg16_ptr(cpu, operands.reg); },
+     [&](Operands_Reg8& operands) { instr_cmp_reg8(cpu, operands.reg); },
+     [&](Operands_Imm8& operands) { instr_cmp_imm8(cpu, operands.imm); },
+     [&](Operands_Reg16_Ptr& operands) { instr_cmp_reg16_ptr(cpu, operands.reg); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_rlca(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_rlca(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   instr_rlca(cpu);
 }
 
-void execute_rrca(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_rrca(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   instr_rrca(cpu);
 }
 
-void execute_rla(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_rla(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   instr_rla(cpu);
 }
 
-void execute_rra(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_rra(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   instr_rra(cpu);
 }
 
-void execute_daa(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_daa(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   instr_daa(cpu);
 }
 
-void execute_cpl(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_cpl(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   instr_cpl(cpu);
 }
 
-void execute_scf(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_scf(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   instr_scf(cpu);
 }
 
-void execute_ccf(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_ccf(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   instr_ccf(cpu);
 }
 
-bool execute_jr(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+bool execute_jr(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   return std::visit(overloaded{
-     [&](Operands_Offset &operands) { return instr_jump_rel(cpu, operands.offset); },
-     [&](Operands_Cond_Offset &operands) { return instr_jump_rel_cond(cpu, operands.cond, operands.offset); },
+     [&](Operands_Offset& operands) { return instr_jump_rel(cpu, operands.offset); },
+     [&](Operands_Cond_Offset& operands) { return instr_jump_rel_cond(cpu, operands.cond, operands.offset); },
      [&](auto &) { std::unreachable(); return false; },
   }, instr.operands);
 }
 
-void execute_halt(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_halt(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   cpu.state.halt = true;
 }
 
-void execute_ldh(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_ldh(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   std::visit(overloaded{
-     [&](Operands_Reg8_Imm8_Ptr &operands) { instr_load_hi_reg8_imm8_ptr(cpu, operands.reg, operands.addr); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { instr_load_hi_imm8_ptr_reg8(cpu, operands.addr, operands.reg); },
-     [&](Operands_Reg8_Reg8_Ptr &operands) { instr_load_hi_reg8_reg8_ptr(cpu, operands.reg1, operands.reg2); },
-     [&](Operands_Reg8_Ptr_Reg8 &operands) { instr_load_hi_reg8_ptr_reg8(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Imm8_Ptr& operands) { instr_load_hi_reg8_imm8_ptr(cpu, operands.reg, operands.addr); },
+     [&](Operands_Imm8_Ptr_Reg8& operands) { instr_load_hi_imm8_ptr_reg8(cpu, operands.addr, operands.reg); },
+     [&](Operands_Reg8_Reg8_Ptr& operands) { instr_load_hi_reg8_reg8_ptr(cpu, operands.reg1, operands.reg2); },
+     [&](Operands_Reg8_Ptr_Reg8& operands) { instr_load_hi_reg8_ptr_reg8(cpu, operands.reg1, operands.reg2); },
      [&](auto &) { std::unreachable(); },
   }, instr.operands);
 }
 
-void execute_pop(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_pop(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   auto operands = std::get<Operands_Reg16>(instr.operands);
   instr_pop_reg16(cpu, operands.reg);
 }
 
-void execute_push(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_push(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   cpu.Tick();
   auto operands = std::get<Operands_Reg16>(instr.operands);
   instr_push_reg16(cpu, operands.reg);
 }
 
-void execute_rst(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_rst(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   auto operands = std::get<Operands_Imm8_Literal>(instr.operands);
   instr_restart(cpu, operands.imm);
 }
 
-bool execute_call(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Imm16>(&instr.operands)) {
+bool execute_call(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Imm16>(&instr.operands)) {
     return instr_call_imm16(cpu, ops->imm);
-  } else if (const auto *ops = std::get_if<Operands_Cond_Imm16>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Cond_Imm16>(&instr.operands)) {
     return instr_call_cond_imm16(cpu, ops->cond, ops->imm);
   }
   std::unreachable();
 }
 
-bool execute_jp(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+bool execute_jp(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   return std::visit(overloaded{
-    [&](Operands_Reg16 &operands) { return instr_jump_reg16(cpu, operands.reg); },
-    [&](Operands_Imm16 &operands) { return instr_jump_imm16(cpu, operands.imm); },
-    [&](Operands_Cond_Imm16 &operands) { return instr_jump_cond_imm16(cpu, operands.cond, operands.imm); },
+    [&](Operands_Reg16& operands) { return instr_jump_reg16(cpu, operands.reg); },
+    [&](Operands_Imm16& operands) { return instr_jump_imm16(cpu, operands.imm); },
+    [&](Operands_Cond_Imm16& operands) { return instr_jump_cond_imm16(cpu, operands.cond, operands.imm); },
     [&](auto &) { std::unreachable(); return false; },
   }, instr.operands);
 }
 
-bool execute_ret(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+bool execute_ret(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   if (std::get_if<Operands_None>(&instr.operands)) {
     return instr_ret(cpu);
-  } else if (const auto *ops = std::get_if<Operands_Cond>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Cond>(&instr.operands)) {
     return instr_ret_cond(cpu, ops->cond);
   }
   std::unreachable();
 }
 
-void execute_reti(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_reti(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   instr_reti(cpu);
 }
 
-void execute_rlc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
+void execute_rlc(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_rlc_reg8(cpu,  ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
     instr_rlc_reg16_ptr(cpu, ops->reg);
   }
 }
 
-void execute_rrc(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
+void execute_rrc(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_rrc_reg8(cpu,  ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
     instr_rrc_reg16_ptr(cpu, ops->reg);
   }
 }
 
-void execute_rl(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
+void execute_rl(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_rl_reg8(cpu,  ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
     instr_rl_reg16_ptr(cpu, ops->reg);
   }
 }
 
-void execute_rr(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
+void execute_rr(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_rr_reg8(cpu,  ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
     instr_rr_reg16_ptr(cpu, ops->reg);
   }
 }
 
-void execute_sla(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
+void execute_sla(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_sla_reg8(cpu,  ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
     instr_sla_reg16_ptr(cpu, ops->reg);
   }
 }
 
-void execute_sra(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
+void execute_sra(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_sra_reg8(cpu,  ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
     instr_sra_reg16_ptr(cpu, ops->reg);
   }
 }
 
-void execute_srl(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
+void execute_srl(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_srl_reg8(cpu,  ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
     instr_srl_reg16_ptr(cpu, ops->reg);
   }
 }
 
-void execute_swap(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Reg8>(&instr.operands)) {
+void execute_swap(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Reg8>(&instr.operands)) {
     instr_swap_reg8(cpu,  ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Reg16_Ptr>(&instr.operands)) {
     instr_swap_reg16_ptr(cpu, ops->reg);
   }
 }
 
-void execute_bit(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
+void execute_bit(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
     instr_bit_imm8_reg8(cpu, ops->imm, ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
     instr_bit_imm8_reg16_ptr(cpu, ops->imm, ops->reg);
   }
 }
 
-void execute_res(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
+void execute_res(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
     instr_res_imm8_reg8(cpu, ops->imm, ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
     instr_res_imm8_reg16_ptr(cpu, ops->imm, ops->reg);
   }
 }
 
-void execute_set(Cpu &cpu, Mmu& mmu, Instruction &instr) {
-  if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
+void execute_set(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (const auto* ops = std::get_if<Operands_Imm8_Literal_Reg8>(&instr.operands)) {
     instr_set_imm8_reg8(cpu, ops->imm, ops->reg);
-  } else if (const auto *ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
+  } else if (const auto* ops = std::get_if<Operands_Imm8_Literal_Reg16_Ptr>(&instr.operands)) {
     instr_set_imm8_reg16_ptr(cpu, ops->imm, ops->reg);
   }
 }
 
-void execute_di(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_di(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   cpu.state.ime = false;
 }
 
-void execute_ei(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_ei(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   cpu.state.ime = true;
 }
 
-void execute_stop(Cpu &cpu, Mmu& mmu, Instruction &instr) {
+void execute_stop(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   cpu.state.stop = true;
   cpu.Write8(std::to_underlying(IO::DIV), 0);
 }
@@ -1188,23 +1188,23 @@ uint8_t Cpu::Execute() {
   }
 
   std::visit(overloaded{
-     [&](Operands_Imm8 &operands) { operands.imm = ReadNext8(); },
-     [&](Operands_Imm16 &operands) { operands.imm = ReadNext16(); },
-     [&](Operands_Offset &operands) { operands.offset = static_cast<int8_t>(ReadNext8()); },
-     [&](Operands_Reg8_Imm8 &operands) { operands.imm = ReadNext8(); },
-     [&](Operands_Reg16_Imm16 &operands) { operands.imm =ReadNext16(); },
-     [&](Operands_Cond_Imm16 &operands) { operands.imm = ReadNext16(); },
-     [&](Operands_Cond_Offset &operands) { operands.offset = static_cast<int8_t>(ReadNext8()); },
-     [&](Operands_SP_Imm16 &operands) { operands.imm = ReadNext16(); },
-     [&](Operands_SP_Offset &operands) { operands.offset = static_cast<int8_t>(ReadNext8()); },
-     [&](Operands_Imm16_Ptr_Reg8 &operands) { operands.addr = ReadNext16(); },
-     [&](Operands_Imm16_Ptr_SP &operands) { operands.addr = ReadNext16(); },
-     [&](Operands_Imm8_Ptr_Reg8 &operands) { operands.addr = ReadNext8(); },
-     [&](Operands_Reg8_Imm8_Ptr &operands) { operands.addr = ReadNext8(); },
-     [&](Operands_Reg8_Imm16_Ptr &operands) { operands.addr = ReadNext16(); },
-     [&](Operands_Reg16_SP_Offset &operands) { operands.offset = static_cast<int8_t>(ReadNext8()); },
-     [&](Operands_Reg16_Ptr_Imm8 &operands) { operands.imm = ReadNext8(); },
-     [&](auto &operands) { /* pass */ }
+     [&](Operands_Imm8& operands) { operands.imm = ReadNext8(); },
+     [&](Operands_Imm16& operands) { operands.imm = ReadNext16(); },
+     [&](Operands_Offset& operands) { operands.offset = static_cast<int8_t>(ReadNext8()); },
+     [&](Operands_Reg8_Imm8& operands) { operands.imm = ReadNext8(); },
+     [&](Operands_Reg16_Imm16& operands) { operands.imm =ReadNext16(); },
+     [&](Operands_Cond_Imm16& operands) { operands.imm = ReadNext16(); },
+     [&](Operands_Cond_Offset& operands) { operands.offset = static_cast<int8_t>(ReadNext8()); },
+     [&](Operands_SP_Imm16& operands) { operands.imm = ReadNext16(); },
+     [&](Operands_SP_Offset& operands) { operands.offset = static_cast<int8_t>(ReadNext8()); },
+     [&](Operands_Imm16_Ptr_Reg8& operands) { operands.addr = ReadNext16(); },
+     [&](Operands_Imm16_Ptr_SP& operands) { operands.addr = ReadNext16(); },
+     [&](Operands_Imm8_Ptr_Reg8& operands) { operands.addr = ReadNext8(); },
+     [&](Operands_Reg8_Imm8_Ptr& operands) { operands.addr = ReadNext8(); },
+     [&](Operands_Reg8_Imm16_Ptr& operands) { operands.addr = ReadNext16(); },
+     [&](Operands_Reg16_SP_Offset& operands) { operands.offset = static_cast<int8_t>(ReadNext8()); },
+     [&](Operands_Reg16_Ptr_Imm8& operands) { operands.imm = ReadNext8(); },
+     [&](auto& operands) { /* pass */ }
   }, instr.operands);
 
   auto cycles = instr.cycles;
@@ -1323,7 +1323,7 @@ void Cpu::Reset() {
   state.Reset();
 }
 
-Cpu::Cpu(Mmu &mmu_, InterruptDevice &interrupts_):mmu{mmu_}, interrupts{interrupts_} {}
+Cpu::Cpu(Mmu& mmu_, InterruptDevice& interrupts_):mmu{mmu_}, interrupts{interrupts_} {}
 
 uint8_t Cpu::Read8(uint16_t addr) {
   auto result = mmu.Read8(addr);
@@ -1368,12 +1368,12 @@ uint16_t Cpu::Pop16() {
   return lo | (hi << 8);
 }
 
-void Cpu::AddSyncedDevice(SyncedDevice *device) {
+void Cpu::AddSyncedDevice(SyncedDevice* device) {
   synced_devices.push_back(device);
 }
 
 void Cpu::Tick() {
-  for (auto &device : synced_devices) {
+  for (auto& device : synced_devices) {
     device->OnTick();
   }
   tick_counter += 4;

@@ -34,7 +34,7 @@ struct State {
 class Cpu {
 public:
   Cpu() = delete;
-  explicit Cpu(Mmu &mmu, InterruptDevice &interrupts);
+  explicit Cpu(Mmu& mmu, InterruptDevice& interrupts);
 
   void Reset();
   uint8_t Execute();
@@ -48,13 +48,13 @@ public:
   void Push16(uint16_t val);
   uint16_t Pop16();
 
-  void AddSyncedDevice(SyncedDevice *device);
+  void AddSyncedDevice(SyncedDevice* device);
   void Tick();
   uint64_t Ticks() const;
 
 public:
-  Mmu &mmu;
-  InterruptDevice &interrupts;
+  Mmu& mmu;
+  InterruptDevice& interrupts;
   Registers regs;
   State state;
 

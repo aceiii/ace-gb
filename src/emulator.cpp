@@ -15,7 +15,7 @@
 constexpr auto kStaticSpeedMultiplier = 4;
 
 Emulator::Emulator(audio_config cfg):cpu_{mmu_, interrupts_}, ppu_{mmu_, interrupts_}, serial_device_{interrupts_}, timer_{interrupts_}, input_device_{interrupts_}, audio_{timer_, cfg} {
-  serial_device_.OnLine([] (const std::string &str) {
+  serial_device_.OnLine([] (const std::string& str) {
     spdlog::info("Serial: {}", str);
   });
 
@@ -71,7 +71,7 @@ void Emulator::Cleanup() {
   ppu_.Cleanup();
 }
 
-void Emulator::LoadCartBytes(std::vector<uint8_t> &&bytes) {
+void Emulator::LoadCartBytes(std::vector<uint8_t> bytes) {
   cart_bytes_ = std::move(bytes);
   Reset();
 }
@@ -263,7 +263,7 @@ std::expected<void, std::string> Emulator::SetBootRomPath(std::string_view path)
     return std::unexpected{result.error()};
   }
 
-  const auto &bytes = result.value();
+  const auto& bytes = result.value();
   std::copy_n(bytes.begin(), std::min(bytes.size(), boot_rom_.size()), boot_rom_.begin());
 
   return {};

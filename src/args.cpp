@@ -16,7 +16,7 @@ constexpr std::string kSettingsFileName = "settings.toml";
 constexpr std::string kDefaultLogLevel = "info";
 }
 
-static bool SetLoggingLevel(const std::string &level_name) {
+static bool SetLoggingLevel(const std::string& level_name) {
   auto level = magic_enum::enum_cast<spdlog::level::level_enum>(level_name);
   if (level.has_value()) {
     spdlog::set_level(level.value());
@@ -25,7 +25,7 @@ static bool SetLoggingLevel(const std::string &level_name) {
   return false;
 }
 
-std::expected<Args, std::string> app::GetArgs(const std::string& name, const std::string& version, int argc, char **argv) {
+std::expected<Args, std::string> app::GetArgs(const std::string& name, const std::string& version, int argc, char** argv) {
   spdlog::set_level(spdlog::level::info);
 
   argparse::ArgumentParser program(name, version);
@@ -47,7 +47,7 @@ std::expected<Args, std::string> app::GetArgs(const std::string& name, const std
 
   try {
     program.parse_args(argc, argv);
-  } catch (const std::exception &err) {
+  } catch (const std::exception& err) {
     std::stringstream ss;
     ss << err.what() << "\n";
     ss << program;
@@ -70,7 +70,7 @@ std::expected<Args, std::string> app::GetArgs(const std::string& name, const std
       auto logger = spdlog::basic_logger_mt("doctor_logger", "doctor.log");
       logger->set_pattern("%v");
     }
-    catch (const spdlog::spdlog_ex &ex) {
+    catch (const spdlog::spdlog_ex& ex) {
       return std::unexpected{std::format("Doctor logger failed to initialize: {}", ex.what())};
     }
   }

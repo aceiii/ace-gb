@@ -16,7 +16,7 @@ public:
   [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
   void Reset() override;
 
-  void LoadCartBytes(const std::vector<uint8_t> &bytes);
+  void LoadCartBytes(const std::vector<uint8_t>& bytes);
   const CartInfo& GetCartridgeInfo() const;
 
 private:

@@ -114,7 +114,7 @@ struct VramMemory {
 
 class Ppu : public MmuDevice, public SyncedDevice {
 public:
-  explicit Ppu(Mmu &mmu, InterruptDevice &interrupts);
+  explicit Ppu(Mmu& mmu, InterruptDevice& interrupts);
 
   void Init();
   void Cleanup();
@@ -144,8 +144,8 @@ private:
   void SwapLcdTargets();
   void StartDma();
 
-  Mmu &mmu_;
-  InterruptDevice &interrupts_;
+  Mmu& mmu_;
+  InterruptDevice& interrupts_;
   Texture2D target_lcd_front_;
   Image target_lcd_back_;
 

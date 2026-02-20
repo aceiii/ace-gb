@@ -7,11 +7,11 @@
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
 
-using LineCallback = std::function<void(const std::string &str)>;
+using LineCallback = std::function<void(const std::string& str)>;
 
 class SerialDevice : public MmuDevice, public SyncedDevice {
 public:
-  explicit SerialDevice(InterruptDevice &interrupts);
+  explicit SerialDevice(InterruptDevice& interrupts);
 
   [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
   void Write8(uint16_t addr, uint8_t byte) override;
@@ -26,7 +26,7 @@ public:
   void OnLine(const LineCallback& callback);
 
 private:
-  InterruptDevice &interrupts_;
+  InterruptDevice& interrupts_;
   uint16_t clock_ = 0;
   uint16_t transfer_bytes_ = 0;
   uint8_t byte_buffer_;

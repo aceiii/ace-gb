@@ -6,11 +6,11 @@
 constexpr uint16_t kLogoStart = 0x0104;
 constexpr uint16_t kLogoEnd = 0x0133;
 
-Mbc1::Mbc1(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool has_battery): info_ {std::move(info)} {
+Mbc1::Mbc1(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool has_battery): info_ {std::move(info)} {
   size_t size_left = bytes.size();
   auto byte_it = bytes.begin();
 
-  for (auto &bank : rom_) {
+  for (auto& bank : rom_) {
     size_t size = std::min(bank.size(), size_left);
     std::copy_n(byte_it, size, bank.begin());
     size_left -= size;

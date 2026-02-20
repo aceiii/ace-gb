@@ -34,7 +34,7 @@ struct audio_config {
 
 class Audio : public MmuDevice, public SyncedDevice {
 public:
-  explicit Audio(Timer &timer, audio_config cfg);
+  explicit Audio(Timer& timer, audio_config cfg);
 
   [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
   void Write8(uint16_t addr, uint8_t byte) override;
@@ -44,7 +44,7 @@ public:
 
   void OnTick() override;
 
-  void GetSamples(std::vector<float> &out_buffer);
+  void GetSamples(std::vector<float>& out_buffer);
 
   bool IsChannelEnabled(AudioChannelID channel) const;
   void ToggleChannel(AudioChannelID channel, bool enable);
@@ -53,7 +53,7 @@ private:
   std::tuple<float, float> Sample() const;
 
 private:
-  Timer &timer_;
+  Timer& timer_;
   audio_config config_;
 
   uint8_t frame_sequencer_ {};

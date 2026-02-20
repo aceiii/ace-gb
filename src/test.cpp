@@ -21,7 +21,7 @@ using TestMemory = std::array<uint8_t, kTestMemSize>;
 
 class TestMemoryDevice : public MmuDevice {
 public:
-  explicit TestMemoryDevice(TestMemory &mem_):mem_{mem_} {}
+  explicit TestMemoryDevice(TestMemory& mem_):mem_{mem_} {}
 
   bool IsValidFor(uint16_t addr) const override {
     return true;
@@ -57,7 +57,7 @@ struct TestResult {
   std::vector<TFailed> failed {};
 };
 
-void LoadRegisters(const json &data, Registers &regs) {
+void LoadRegisters(const json& data, Registers& regs) {
   regs.Set(Reg8::A, data.at("a").get<uint8_t>());
   regs.Set(Reg8::B, data.at("b").get<uint8_t>());
   regs.Set(Reg8::C, data.at("c").get<uint8_t>());
@@ -71,7 +71,7 @@ void LoadRegisters(const json &data, Registers &regs) {
 }
 
 void LoadMemory(const json& data, TestMemory& mem) {
-  for (const auto &ram : data.items()) {
+  for (const auto& ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint16_t>();
     spdlog::debug("load_memory: {:02x} => {:02x}", addr, val);
@@ -79,8 +79,8 @@ void LoadMemory(const json& data, TestMemory& mem) {
   }
 }
 
-bool CheckMemory(const json &data, const TestMemory& mem) {
-  for (const auto &ram : data.items()) {
+bool CheckMemory(const json& data, const TestMemory& mem) {
+  for (const auto& ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint8_t>();
     if (mem[addr] != val) {
@@ -90,7 +90,7 @@ bool CheckMemory(const json &data, const TestMemory& mem) {
   return true;
 }
 
-std::vector<std::tuple<std::string, uint8_t, uint8_t>> MismatchedRegisters(const Registers &regs, const Registers &target) {
+std::vector<std::tuple<std::string, uint8_t, uint8_t>> MismatchedRegisters(const Registers& regs, const Registers& target) {
   std::vector<std::tuple<std::string, uint8_t, uint8_t>> failed;
   for (int i = 0; i < std::to_underlying(Reg8::Count); i += 1) {
     Reg8 r {i};
@@ -114,7 +114,7 @@ std::vector<std::tuple<std::string, uint8_t, uint8_t>> MismatchedRegisters(const
 
 std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> MismatchedMemory(const json& data, const TestMemory& mem) {
   std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> failed;
-  for (const auto &ram : data.items()) {
+  for (const auto& ram : data.items()) {
     auto addr = ram.value().at(0).get<uint16_t>();
     auto val = ram.value().at(1).get<uint8_t>();
     auto mem_val = mem[addr];
@@ -125,7 +125,7 @@ std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> MismatchedMemory(const json&
   return failed;
 }
 
-std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig &config) {
+std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig& config) {
   std::ifstream input(config.path);
   if (input.fail()) {
     return std::unexpected { std::format("Failed to open '{}': {}", config.path.string(), strerror(errno)) };
@@ -134,7 +134,7 @@ std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig &confi
   json data;
   try {
     data = json::parse(input);
-  } catch (const json::parse_error &e) {
+  } catch (const json::parse_error& e) {
     return std::unexpected { e.what() };
   }
 
@@ -172,7 +172,7 @@ std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig &confi
     cpu.reset();
     mmu.reset_devices();
 
-    Registers &regs = cpu.regs;
+    Registers& regs = cpu.regs;
     LoadRegisters(initial, regs);
 
     Registers final_regs;
@@ -212,11 +212,11 @@ std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig &confi
   return result;
 }
 
-int RunAllTests(const TestConfig &config) {
+int RunAllTests(const TestConfig& config) {
   std::vector<fs::path> test_files;
   test_files.reserve(128);
 
-  for (const auto &entry : fs::directory_iterator(config.path)) {
+  for (const auto& entry : fs::directory_iterator(config.path)) {
     if (entry.is_regular_file() && entry.path().extension() == ".json") {
       test_files.emplace_back(entry.path());
     }
@@ -227,7 +227,7 @@ int RunAllTests(const TestConfig &config) {
   TestResult<fs::path, std::tuple<fs::path, size_t, size_t>> total_results {};
   total_results.total = test_files.size();
 
-  for (const auto &path : test_files) {
+  for (const auto& path : test_files) {
     TestConfig test_config = config;
     test_config.path = path;
     auto res = RunTest(test_config);
@@ -257,12 +257,12 @@ int RunAllTests(const TestConfig &config) {
   return total_results.failed.empty() ? 0 : 1;
 }
 
-int RunSingleTest(const TestConfig &config) {
+int RunSingleTest(const TestConfig& config) {
   if (auto res = RunTest(config); res.has_value()) {
     auto result = res.value();
     if (config.list_fails && !result.failed.empty()) {
       spdlog::error("Failed:");
-      for (const auto &item : result.failed) {
+      for (const auto& item : result.failed) {
         spdlog::error("  #{}", item);
       }
     } else if (result.succeeded.size() == result.total) {
@@ -277,7 +277,7 @@ int RunSingleTest(const TestConfig &config) {
   }
 }
 
-int RunCpuTests(const TestConfig &config) {
+int RunCpuTests(const TestConfig& config) {
   if (fs::is_directory(config.path)) {
     spdlog::info("Running all .json test files at {}.", config.path.string());
     return RunAllTests(config);
@@ -287,7 +287,7 @@ int RunCpuTests(const TestConfig &config) {
   return RunSingleTest(config);
 }
 
-static bool SetLoggingLevel(const std::string &level_name) {
+static bool SetLoggingLevel(const std::string& level_name) {
   auto level = magic_enum::enum_cast<spdlog::level::level_enum>(level_name);
   if (level.has_value()) {
     spdlog::set_level(level.value());
@@ -296,7 +296,7 @@ static bool SetLoggingLevel(const std::string &level_name) {
   return false;
 }
 
-auto main(int argc, char *argv[]) -> int {
+auto main(int argc, char* argv[]) -> int {
   spdlog::set_level(spdlog::level::info);
 
   argparse::ArgumentParser program("ace-gb", "0.0.1");
@@ -325,7 +325,7 @@ auto main(int argc, char *argv[]) -> int {
 
   try {
     program.parse_args(argc, argv);
-  } catch (const std::exception &err) {
+  } catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
     return 1;

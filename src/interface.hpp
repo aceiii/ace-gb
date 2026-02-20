@@ -59,7 +59,7 @@ public:
 
   void Run();
   void LoadCartridge();
-  void LoadCartRom(const std::string &path);
+  void LoadCartRom(const std::string& path);
 
 private:
   void Cleanup();

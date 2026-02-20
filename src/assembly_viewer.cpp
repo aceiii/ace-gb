@@ -25,7 +25,7 @@ void AssemblyViewer::Draw() {
 
   if (ImGui::BeginChild("scrolling", ImVec2(0, 0), ImGuiChildFlags_None,
                         ImGuiWindowFlags_HorizontalScrollbar)) {
-    ImGuiStyle &style = ImGui::GetStyle();
+    ImGuiStyle& style = ImGui::GetStyle();
 
     // auto line_total_count = static_cast<int>(regs->mem.size() / 2);
     int line_total_count = kMaxMemorySize;

@@ -36,7 +36,7 @@ public:
   void Play();
   void Stop();
 
-  void LoadCartBytes(std::vector<uint8_t> &&bytes);
+  void LoadCartBytes(std::vector<uint8_t> bytes);
   [[nodiscard]] bool IsPlaying() const;
   void SetSkipBootRom(bool skip);
   [[nodiscard]] bool ShouldSkipBootRom() const;

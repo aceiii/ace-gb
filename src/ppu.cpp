@@ -49,7 +49,7 @@ inline uint16_t addr_with_mode(uint8_t mode, uint8_t addr) {
   return mode ? addr_mode_8000(addr) : addr_mode_8800(addr);
 }
 
-Ppu::Ppu(Mmu &mmu, InterruptDevice &interrupts)
+Ppu::Ppu(Mmu& mmu, InterruptDevice& interrupts)
 :interrupts_{interrupts}, mmu_{mmu}
 {
   auto logger = spdlog::get("doctor_logger");
@@ -175,7 +175,7 @@ void Ppu::DrawLcdRow() {
         row = py % 8;
       }
 
-      auto &tilemap = vram_.tile_map[enable_window ? regs_.lcdc.window_tilemap_area : regs_.lcdc.bg_tilemap_area];
+      auto& tilemap = vram_.tile_map[enable_window ? regs_.lcdc.window_tilemap_area : regs_.lcdc.bg_tilemap_area];
 
       uint8_t px = enable_window ? x - (regs_.wx - 7) : regs_.scx + x;
       uint8_t tx = (px >> 3) & 31;
@@ -213,7 +213,7 @@ void Ppu::DrawLcdRow() {
     const auto height = regs_.lcdc.sprite_size ? 16 : 8;
     const auto y = regs_.ly;
 
-    for (auto &sprite : oam_.sprites) {
+    for (auto& sprite : oam_.sprites) {
       auto top = sprite.y - 16;
       auto bottom = top + height;
       if (y >= top && y < bottom) {
@@ -299,7 +299,7 @@ void Ppu::UpdateRenderTargets() {
   {
     int x = 0;
     int y = 0;
-    for (auto &tile : vram_.tile_data) {
+    for (auto& tile : vram_.tile_data) {
       for (int row = 0; row < tile.size(); row += 1) {
         uint16_t hi = (tile[row] >> 8) << 1;
         uint8_t lo = tile[row];
@@ -325,7 +325,7 @@ void Ppu::UpdateRenderTargets() {
   BeginTextureMode(target_tilemap1_);
   {
     auto tiledata_area = regs_.lcdc.tiledata_area;
-    auto &tilemap = vram_.tile_map[0];
+    auto& tilemap = vram_.tile_map[0];
 
     int x = 0;
     int y = 0;
@@ -383,7 +383,7 @@ void Ppu::UpdateRenderTargets() {
   BeginTextureMode(target_tilemap2_);
   {
     auto tiledata_area = regs_.lcdc.tiledata_area;
-    auto &tilemap = vram_.tile_map[1];
+    auto& tilemap = vram_.tile_map[1];
 
     int x = 0;
     int y = 0;
@@ -446,7 +446,7 @@ void Ppu::UpdateRenderTargets() {
     auto row = 0;
     auto col = 0;
 
-    for (auto &sprite : oam_.sprites) {
+    for (auto& sprite : oam_.sprites) {
       for (auto ti = 0; ti < sprite_tile_height; ti += 1) {
         auto tile_idx = ((addr_with_mode(1, sprite.tile) - kVRAMAddrStart) / 16) + ti;
         auto dst_y = tile_idx / 16;

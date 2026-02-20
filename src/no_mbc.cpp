@@ -1,7 +1,7 @@
 #include "no_mbc.hpp"
 #include <algorithm>
 
-NoMbc::NoMbc(const std::vector<uint8_t> &bytes) {
+NoMbc::NoMbc(const std::vector<uint8_t>& bytes) {
   std::copy_n(bytes.begin(), std::min(rom_.size(), bytes.size()), rom_.begin());
 }
 

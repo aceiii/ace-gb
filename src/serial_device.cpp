@@ -3,7 +3,7 @@
 #include "serial_device.hpp"
 #include "io.hpp"
 
-SerialDevice::SerialDevice(InterruptDevice &interrupts):interrupts_{interrupts} {
+SerialDevice::SerialDevice(InterruptDevice& interrupts):interrupts_{interrupts} {
   sb_ = 0xff;
   sc_.val = 0;
   sc_.unused = 0x1f;
@@ -96,7 +96,7 @@ void SerialDevice::Step() {
 
 void SerialDevice::TriggerCallbacks() {
   std::string str = str_buffer_;
-  for (const auto &callback : callbacks_) {
+  for (const auto& callback : callbacks_) {
     callback(str);
   }
 }

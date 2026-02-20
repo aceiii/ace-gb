@@ -27,7 +27,7 @@ void BootRomDevice::Reset() {
   rom_.fill(0);
 }
 
-void BootRomDevice::LoadBytes(const RomBuffer &bytes) {
+void BootRomDevice::LoadBytes(const RomBuffer& bytes) {
   rom_ = bytes;
 }
 

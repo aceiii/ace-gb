@@ -13,8 +13,8 @@ template <typename Settings>
 struct Config {
   Settings settings;
 
-  std::function<toml::table(const Settings &settings)> serialize;
-  std::function<void(const toml::table&, Settings &settings)> deserialize;
+  std::function<toml::table(const Settings& settings)> serialize;
+  std::function<void(const toml::table&, Settings& settings)> deserialize;
 
   std::expected<void, std::string> Load(std::string_view filename) {
     auto result = toml::parse_file(filename);
@@ -24,7 +24,7 @@ struct Config {
 
     try {
       deserialize(result.table(), settings);
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       return std::unexpected{std::format("Failed to deserialize settings: {}", e.what())};
     }
 
@@ -35,7 +35,7 @@ struct Config {
     toml::table table;
     try {
       table = serialize(settings);
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       return std::unexpected{std::format("Failed to serialize settings: {}", e.what())};
     }
 
@@ -45,7 +45,7 @@ struct Config {
       std::ofstream file(filepath);
       file << toml::toml_formatter{ table };
       file.close();
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       return std::unexpected{std::format("Failed to save settings to file: {}", e.what())};
     }
     return {};

@@ -105,7 +105,7 @@ float SquareChannel::Sample() const {
     return 0.0f;
   }
 
-  const auto &waveform = waveforms[nrx1.wave_duty];
+  const auto& waveform = waveforms[nrx1.wave_duty];
   auto bit = (waveform >> (7 - duty_step_)) & 0b1;
   auto vol = static_cast<float>(volume_) / 15.0f;
   return bit ? vol : -vol;

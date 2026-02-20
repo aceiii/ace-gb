@@ -12,7 +12,7 @@ namespace {
   };
 }
 
-Timer::Timer(InterruptDevice &interrupts):interrupts_{interrupts} {}
+Timer::Timer(InterruptDevice& interrupts):interrupts_{interrupts} {}
 
 bool Timer::IsValidFor(uint16_t addr) const {
   switch (addr) {

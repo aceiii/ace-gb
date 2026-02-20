@@ -35,7 +35,7 @@ struct InputRegister {
 
 class InputDevice : public MmuDevice {
 public:
-  explicit InputDevice(InterruptDevice &interrupts);
+  explicit InputDevice(InterruptDevice& interrupts);
 
   [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
   void Write8(uint16_t addr, uint8_t byte) override;
@@ -46,7 +46,7 @@ public:
   bool IsPressed(JoypadButton button) const;
 
 private:
-  InterruptDevice &interrupts_;
+  InterruptDevice& interrupts_;
 
   InputRegister reg_buttons_;
   InputRegister reg_dpad_;

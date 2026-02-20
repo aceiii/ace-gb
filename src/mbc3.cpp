@@ -3,11 +3,11 @@
 
 #include "mbc3.hpp"
 
-Mbc3::Mbc3(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool has_battery, bool has_timer): info_ {std::move(info)} {
+Mbc3::Mbc3(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool has_battery, bool has_timer): info_ {std::move(info)} {
   size_t size_left = bytes.size();
   auto byte_it = bytes.begin();
 
-  for (auto &bank : rom_) {
+  for (auto& bank : rom_) {
     size_t size = std::min(bank.size(), size_left);
     std::copy_n(byte_it, size, bank.begin());
     size_left -= size;
@@ -38,7 +38,7 @@ void Mbc3::WriteReg(uint16_t addr, uint8_t byte) {
 
   } else if (addr <= 0x5fff) {
     if (byte < 0x08) {
-      auto &bank = ram_[byte];
+      auto& bank = ram_[byte];
       ram_or_clock_ = bank.begin();
       ram_or_clock_mod_ = bank.size();
     } else if (byte >= 0x08 && byte <= 0x0c) {

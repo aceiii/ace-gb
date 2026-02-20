@@ -8,7 +8,7 @@ namespace {
   const char* kAppVersion = "0.0.1";
 }
 
-auto main(int argc, char *argv[]) -> int {
+auto main(int argc, char* argv[]) -> int {
   auto args = app::GetArgs(kAppName, kAppVersion, argc, argv);
   if (!args.has_value()) {
     std::cerr << args.error() << "\n";

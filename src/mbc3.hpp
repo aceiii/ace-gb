@@ -10,7 +10,7 @@ constexpr size_t kRamBankSize = 8192;
 
 class Mbc3 : public MemoryBankController {
 public:
-  explicit Mbc3(const std::vector<uint8_t> &bytes, CartInfo info, bool has_ram, bool has_battery, bool has_timer);
+  explicit Mbc3(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool has_battery, bool has_timer);
 
   [[nodiscard]] uint8_t ReadRom0(uint16_t addr) const override;
   [[nodiscard]] uint8_t ReadRom1(uint16_t addr) const override;
@@ -31,6 +31,6 @@ private:
   uint16_t rom_bank_number_ = 1;
   std::array<uint8_t, 5> clock_regs_;
 
-  uint8_t *ram_or_clock_ = &ram_[0][0];
+  uint8_t* ram_or_clock_ = &ram_[0][0];
   size_t ram_or_clock_mod_ = kRamBankSize;
 };

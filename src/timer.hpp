@@ -21,7 +21,7 @@ struct TimerRegisters {
 
 class Timer : public MmuDevice, public SyncedDevice {
 public:
-  explicit Timer(InterruptDevice &interrupts);
+  explicit Timer(InterruptDevice& interrupts);
 
   [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
   void Write8(uint16_t addr, uint8_t byte) override;
@@ -34,7 +34,7 @@ public:
   uint16_t div() const;
 
 private:
-  InterruptDevice &interrupts_;
+  InterruptDevice& interrupts_;
   uint16_t tima_counter_;
   TimerRegisters regs_;
 };
