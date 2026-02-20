@@ -2,12 +2,13 @@
 
 #include <imgui.h>
 #include <string>
+#include <string_view>
 
 class AppLog {
 public:
   AppLog();
 
-  void AddLog(const std::string& string);
+  void AddLog(std::string_view string);
   void Clear();
   void Draw();
 

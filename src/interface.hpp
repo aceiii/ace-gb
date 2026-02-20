@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <imgui.h>
 #include <imgui_memory_editor/imgui_memory_editor.h>
 
@@ -59,7 +60,7 @@ public:
 
   void Run();
   void LoadCartridge();
-  void LoadCartRom(const std::string& path);
+  void LoadCartRom(std::string_view path);
 
 private:
   void Cleanup();

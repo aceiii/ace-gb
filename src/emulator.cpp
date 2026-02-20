@@ -15,7 +15,7 @@
 constexpr auto kStaticSpeedMultiplier = 4;
 
 Emulator::Emulator(audio_config cfg):cpu_{mmu_, interrupts_}, ppu_{mmu_, interrupts_}, serial_device_{interrupts_}, timer_{interrupts_}, input_device_{interrupts_}, audio_{timer_, cfg} {
-  serial_device_.OnLine([] (const std::string& str) {
+  serial_device_.OnLine([] (std::string_view str) {
     spdlog::info("Serial: {}", str);
   });
 
@@ -188,7 +188,7 @@ uint8_t Emulator::Read8(uint16_t addr) const {
   return mmu_.Read8(addr);
 }
 
-void Emulator::write8(uint16_t addr, uint8_t byte) {
+void Emulator::Write8(uint16_t addr, uint8_t byte) {
   mmu_.Write8(addr, byte);
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <expected>
-#include <string>
+#include <string_view>
 
 
 namespace app {
@@ -12,6 +12,6 @@ namespace app {
     bool doctor_log;
   };
 
-  std::expected<Args, std::string> GetArgs(const std::string& name, const std::string& version, int argc, char** argv);
+  std::expected<Args, std::string> GetArgs(std::string_view name, std::string_view version, int argc, char** argv);
 
 }

@@ -191,7 +191,7 @@ static uint8_t MemEditorCustomRead(const uint8_t* data, size_t offset, void* use
 
 static void MemEditorCustomWrite(uint8_t* data, size_t offset, uint8_t d, void* user_data) {
   auto emulator = static_cast<Emulator*>(user_data);
-  emulator->write8(offset, d);
+  emulator->Write8(offset, d);
 }
 
 static uint32_t MemEditorCustomBgColor(const uint8_t* data, size_t offset, void* user_data) {
@@ -291,6 +291,8 @@ Interface::Interface(Args args)
   while (!IsWindowReady()) {
     // pass
   }
+
+  app_log_.AddLog("Hello");
 }
 
 Interface::~Interface() {
@@ -435,7 +437,7 @@ void Interface::LoadCartridge() {
   }
 }
 
-void Interface::LoadCartRom(const std::string& file_path) {
+void Interface::LoadCartRom(std::string_view file_path) {
   Stop();
 
   fs::path path { file_path };

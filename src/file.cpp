@@ -6,8 +6,8 @@
 #include "file.hpp"
 
 
-File::LoadFileResult File::LoadBin(const std::string& path) {
-  std::ifstream input(path, std::ios::in | std::ios::binary);
+File::LoadFileResult File::LoadBin(std::string_view path) {
+  std::ifstream input(std::string{path}, std::ios::in | std::ios::binary);
   if (input.fail()) {
     return std::unexpected{strerror(errno)};
   }

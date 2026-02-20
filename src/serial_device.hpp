@@ -7,7 +7,7 @@
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
 
-using LineCallback = std::function<void(const std::string& str)>;
+using LineCallback = std::function<void(std::string_view str)>;
 
 class SerialDevice : public MmuDevice, public SyncedDevice {
 public:

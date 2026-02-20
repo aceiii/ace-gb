@@ -47,7 +47,7 @@ public:
   [[nodiscard]] PPUMode GetMode() const;
   [[nodiscard]] Instruction GetCurrentInstruction() const;
   [[nodiscard]] uint8_t Read8(uint16_t addr) const;
-  void write8(uint16_t addr, uint8_t byte);
+  void Write8(uint16_t addr, uint8_t byte);
 
   [[nodiscard]] const Texture2D& GetTargetLCD() const;
   [[nodiscard]] const RenderTexture2D& GetTargetTiles() const;

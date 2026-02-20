@@ -1,6 +1,7 @@
 #include <expected>
 #include <format>
 #include <string>
+#include <string_view>
 #include <argparse/argparse.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
@@ -16,7 +17,7 @@ constexpr std::string kSettingsFileName = "settings.toml";
 constexpr std::string kDefaultLogLevel = "info";
 }
 
-static bool SetLoggingLevel(const std::string& level_name) {
+static bool SetLoggingLevel(std::string_view level_name) {
   auto level = magic_enum::enum_cast<spdlog::level::level_enum>(level_name);
   if (level.has_value()) {
     spdlog::set_level(level.value());
@@ -25,10 +26,10 @@ static bool SetLoggingLevel(const std::string& level_name) {
   return false;
 }
 
-std::expected<Args, std::string> app::GetArgs(const std::string& name, const std::string& version, int argc, char** argv) {
+std::expected<Args, std::string> app::GetArgs(std::string_view name, std::string_view version, int argc, char** argv) {
   spdlog::set_level(spdlog::level::info);
 
-  argparse::ArgumentParser program(name, version);
+  argparse::ArgumentParser program(std::string{name}, std::string{version});
 
   program.add_argument("--log-level")
       .help("Set the verbosity for logging")

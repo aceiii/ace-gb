@@ -287,7 +287,7 @@ int RunCpuTests(const TestConfig& config) {
   return RunSingleTest(config);
 }
 
-static bool SetLoggingLevel(const std::string& level_name) {
+static bool SetLoggingLevel(std::string_view level_name) {
   auto level = magic_enum::enum_cast<spdlog::level::level_enum>(level_name);
   if (level.has_value()) {
     spdlog::set_level(level.value());

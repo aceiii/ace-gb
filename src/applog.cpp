@@ -5,9 +5,9 @@ AppLog::AppLog() : auto_scroll_{true} {
   Clear();
 }
 
-void AppLog::AddLog(const std::string& log) {
+void AppLog::AddLog(std::string_view log) {
   int old_size = buffer_.size();
-  buffer_.append(log.c_str());
+  buffer_.append(log.data(), log.data() + log.size());
   for (int new_size = buffer_.size(); old_size < new_size; old_size += 1) {
     if (buffer_[old_size] == '\n') {
       line_offsets_.push_back(old_size + 1);
