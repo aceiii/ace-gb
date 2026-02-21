@@ -42,6 +42,7 @@ struct InterfaceSettings {
   bool show_memory;
   bool show_instructions;
   bool show_logs;
+  bool show_debugger;
 
   bool enable_audio;
   bool enable_ch1;
@@ -75,6 +76,7 @@ private:
   void Update();
   void ConfigureDockSpace();
   void RenderError();
+  void RenderDebugger();
   void RenderLCD();
   void RenderTiles();
   void RenderTilemap1();

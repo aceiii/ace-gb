@@ -106,6 +106,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "auto_start", settings.auto_start },
         { "skip_boot_rom", settings.skip_boot_rom },
         { "boot_rom_path", settings.boot_rom_path },
+        { "show_debugger", settings.show_debugger },
       },
     },
     {
@@ -162,6 +163,7 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
   settings.auto_start = table["emulator"]["auto_start"].value_or(true);
   settings.skip_boot_rom = table["emulator"]["skip_boot_rom"].value_or(true);
   settings.boot_rom_path = table["emulator"]["boot_rom_path"].value_or(std::string{kDefaultBootRomPath});
+  settings.show_debugger = table["emulator"]["show_debugger"].value_or(true);
 
   settings.show_lcd = table["hardware"]["show_lcd"].value_or(true);
   settings.show_tiles = table["hardware"]["show_tiles"].value_or(true);
@@ -403,6 +405,7 @@ void Interface::Update() {
     RenderInput();
     RenderMemory();
     RenderInstructions();
+    RenderDebugger();
     RenderLogs();
     RenderMainMenu();
     RenderStatusBar();
@@ -510,6 +513,34 @@ void Interface::LoadCartRom(std::string_view file_path) {
   config_.settings.recent_files.Push(path.string());
 }
 
+void Interface::RenderDebugger() {
+  ZoneScoped;
+
+  if (!config_.settings.show_debugger) {
+    return;
+  }
+
+  if (ImGui::Begin("Debugger", &config_.settings.show_debugger)) {
+    ImGuiStyle& style = ImGui::GetStyle();
+    const int num_buttons = 5;
+    const float button_width = 40;
+    const float total_width = (num_buttons *  button_width);
+    const float avail = ImGui::GetContentRegionAvail().x;
+    const float offset_x = std::max(style.ItemSpacing.x, style.ItemSpacing.x + ((avail - total_width) / 2));
+    ImGui::SetCursorPosX(offset_x);
+    ImGui::Button(ICON_FA_PLAY, { 32, 32 });
+    ImGui::SameLine();
+    ImGui::Button(ICON_FA_FORWARD_STEP, { 32, 32 });
+    ImGui::SameLine();
+    ImGui::Button(ICON_FA_FORWARD_FAST, { 32, 32 });
+    ImGui::SameLine();
+    ImGui::Button(ICON_FA_ARROW_ROTATE_LEFT, { 32, 32 });
+    ImGui::SameLine();
+    ImGui::Button(ICON_FA_STOP, { 32, 32 });
+  }
+  ImGui::End();
+}
+
 void Interface::RenderLCD() {
   ZoneScoped;
 
@@ -517,9 +548,7 @@ void Interface::RenderLCD() {
     return;
   }
 
-  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
-  ImGui::Begin("LCD", &config_.settings.show_lcd);
-  {
+  if (ImGui::Begin("LCD", &config_.settings.show_lcd)) {
     rlImGuiImageTextureFit(&emulator_.GetTargetLCD(), true);
   }
   ImGui::End();
@@ -883,6 +912,7 @@ void Interface::RenderMainMenu() {
     ImGui::EndMenu();
   }
   if (ImGui::BeginMenu("View")) {
+    ImGui::MenuItem("Debugger", nullptr, &config_.settings.show_debugger);
     ImGui::MenuItem("Input", nullptr, &config_.settings.show_input);
     ImGui::MenuItem("Logs", nullptr, &config_.settings.show_logs);
     ImGui::Separator();
