@@ -65,7 +65,7 @@ void Emulator::Update(float dt) {
       running_ = false;
       break;
     }
-  } while (current_cycles < target_cycles_per_frame);
+  } while (running_ && current_cycles < target_cycles_per_frame);
   prev_cycles_ = current_cycles - prev_cycles;
   current_cycles -= target_cycles_per_frame;
 
