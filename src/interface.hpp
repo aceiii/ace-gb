@@ -84,6 +84,7 @@ private:
   void RenderLogs();
   void RenderMainMenu();
   void RenderSettingsPopup();
+  void RenderStatusBar();
   void ResetView();
 
   Args args_;
