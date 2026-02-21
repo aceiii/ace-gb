@@ -4,6 +4,7 @@
 #include <expected>
 #include <memory>
 #include <set>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -64,6 +65,7 @@ public:
   void ToggleChannel(AudioChannelID channel, bool enable);
   bool IsChannelEnabled(AudioChannelID channel) const;
   std::vector<float>& GetAudioSamples();
+  void OnAudioCallback(std::span<float> buffer);
 
   std::expected<void, std::string> SetBootRomPath(std::string_view path);
   std::string GetBootRomPath() const;

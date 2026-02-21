@@ -1,4 +1,5 @@
 #include <filesystem>
+#include <span>
 #include <string>
 #include <raylib.h>
 #include <imgui.h>
@@ -32,7 +33,7 @@ constexpr int kDefaultWindowHeight = 600;
 constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
 constexpr char const* kDefaultBootRomPath = "boot.bin";
 
-constexpr int kAudioSampleRate = 48000;
+constexpr int kAudioSampleRate = 44100;
 constexpr int kAudioSampleSize = 32;
 constexpr int kAudioNumChannels = 2;
 constexpr int kSamplesPerUpdate = 512;
@@ -46,6 +47,8 @@ constexpr double kTargetEmulatorFrameTime = 1.0 / kTargetEmulatorFrameRate;
 constexpr int kLockedFrameRate = 60;
 
 AudioStream stream;
+
+std::function<void(std::span<float>)> g_audio_callback;
 }
 
 void rlImGuiImageTextureFit(const Texture2D* image, bool center) {
@@ -219,6 +222,11 @@ static uint32_t MemEditorCustomBgColor(const uint8_t* data, size_t offset, void*
   return IM_COL32(0, 0, 0, 0);
 }
 
+static void AudioInputCallback(void *buffer, unsigned int frames) {
+  std::span<float> buffer_span{static_cast<float*>(buffer), frames * kAudioNumChannels};
+  g_audio_callback(buffer_span);
+}
+
 Interface::Interface(Args args)
     : args_{args},
       emulator_{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
@@ -274,6 +282,8 @@ Interface::Interface(Args args)
 
   SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
   stream = LoadAudioStream(kAudioSampleRate, kAudioSampleSize, kAudioNumChannels);
+  SetAudioStreamCallback(stream, AudioInputCallback);
+  g_audio_callback = std::bind(&Emulator::OnAudioCallback, &emulator_, std::placeholders::_1);
 
   int monitor = GetCurrentMonitor();
   spdlog::trace("Current monitor: {}", monitor);
@@ -376,11 +386,36 @@ void Interface::Update() {
 
   BeginDrawing();
   ClearBackground(DARKGRAY);
+  {
+    ZoneScopedN("ImGuiBegin");
+    rlImGuiBegin();
+    ConfigureDockSpace();
+    RenderLCD();
+    RenderTiles();
+    RenderTilemap1();
+    RenderTilemap2();
+    RenderSprites();
+    RenderRegisters();
+    RenderInput();
+    RenderMemory();
+    RenderInstructions();
+    RenderLogs();
+    RenderMainMenu();
+    RenderStatusBar();
+    RenderSettingsPopup();
+    {
+      ZoneScopedN("ImGuiEnd");
+      rlImGuiEnd();
+    }
+  }
+  RenderError();
+  EndDrawing();
 
-  rlImGuiBegin();
+  FrameMark;
+}
 
+void Interface::ConfigureDockSpace() {
   ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
-
   if (config_.settings.reset_view) {
     config_.settings.reset_view = false;
 
@@ -409,36 +444,6 @@ void Interface::Update() {
     ImGui::DockBuilderDockWindow("Instructions", right_bottom);
     ImGui::DockBuilderFinish(dockspace_id);
   }
-
-  RenderLCD();
-  RenderTiles();
-  RenderTilemap1();
-  RenderTilemap2();
-  RenderSprites();
-  RenderRegisters();
-  RenderInput();
-  RenderMemory();
-  RenderInstructions();
-  RenderLogs();
-  RenderMainMenu();
-  RenderStatusBar();
-  RenderSettingsPopup();
-
-  {
-    ZoneScopedN("ImGuiEnd");
-    rlImGuiEnd();
-  }
-
-  RenderError();
-
-  EndDrawing();
-
-  if (IsAudioStreamPlaying(stream) && IsAudioStreamProcessed(stream)) {
-    auto& samples = emulator_.GetAudioSamples();
-    UpdateAudioStream(stream, samples.data(), samples.size() / kAudioNumChannels);
-  }
-
-  FrameMark;
 }
 
 void Interface::RenderError() {
@@ -988,22 +993,18 @@ void Interface::Cleanup() {
 
 void Interface::Play() {
   emulator_.Play();
-  SetAudioStreamBufferSizeDefault(kSamplesPerUpdate);
-  stream = LoadAudioStream(kAudioSampleRate, kAudioSampleSize, kAudioNumChannels);
   PlayAudioStream(stream);
 }
 
 void Interface::Stop() {
   emulator_.Stop();
-  if (IsAudioStreamValid(stream)) {
-    StopAudioStream(stream);
-    UnloadAudioStream(stream);
-    stream = AudioStream();
-  }
+  StopAudioStream(stream);
 }
 
 void Interface::Step() {
-  emulator_.Step();
+  if (!emulator_.IsPlaying()) {
+    emulator_.Step();
+  }
 }
 
 void Interface::Reset() {

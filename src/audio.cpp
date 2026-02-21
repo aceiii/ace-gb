@@ -144,7 +144,7 @@ void Audio::Step() {
   }
 }
 
-void Audio::GetSamples(std::vector<float>& out_buffer) {
+void Audio::GetSamples(std::span<float> out_buffer) {
   for (auto it = out_buffer.begin(); it != out_buffer.end(); ++it) {
     if (buffer_read_idx_ == buffer_write_idx_) {
       *it = 0;

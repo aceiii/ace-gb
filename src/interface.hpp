@@ -73,6 +73,7 @@ private:
   void Reset();
 
   void Update();
+  void ConfigureDockSpace();
   void RenderError();
   void RenderLCD();
   void RenderTiles();

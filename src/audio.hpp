@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <span>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -44,7 +45,7 @@ public:
 
   void OnTick() override;
 
-  void GetSamples(std::vector<float>& out_buffer);
+  void GetSamples(std::span<float> out_buffer);
 
   bool IsChannelEnabled(AudioChannelID channel) const;
   void ToggleChannel(AudioChannelID channel, bool enable);
