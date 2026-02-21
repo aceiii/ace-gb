@@ -61,7 +61,7 @@ void Emulator::Update(float dt) {
       running_ = false;
       break;
     }
-  } while (running_ && current_cycles < target_cycles_per_frame);
+  } while (current_cycles < target_cycles_per_frame);
   prev_cycles_ = current_cycles - prev_cycles;
   current_cycles -= target_cycles_per_frame;
 
@@ -145,6 +145,7 @@ void Emulator::Step() {
     return;
   }
   num_cycles_ += cpu_.Execute();
+  ppu_.UpdateRenderTargets();
 }
 
 void Emulator::Play() {
@@ -167,7 +168,7 @@ const State& Emulator::GetState() const {
   return cpu_.state;
 }
 
-size_t Emulator::GetCycles() const {
+size_t Emulator::GetTotalCycles() const {
   return num_cycles_;
 }
 

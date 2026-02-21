@@ -34,6 +34,7 @@ public:
   void Update(float dt);
   void Reset();
   void Step();
+  void StepFrame();
   void Play();
   void Stop();
 
@@ -44,7 +45,7 @@ public:
 
   [[nodiscard]] const Registers& GetRegisters() const;
   [[nodiscard]] const State& GetState() const;
-  [[nodiscard]] size_t GetCycles() const;
+  [[nodiscard]] size_t GetTotalCycles() const;
   [[nodiscard]] PPUMode GetMode() const;
   [[nodiscard]] Instruction GetCurrentInstruction() const;
   [[nodiscard]] uint8_t Read8(uint16_t addr) const;

@@ -528,15 +528,38 @@ void Interface::RenderDebugger() {
     const float avail = ImGui::GetContentRegionAvail().x;
     const float offset_x = std::max(style.ItemSpacing.x, style.ItemSpacing.x + ((avail - total_width) / 2));
     ImGui::SetCursorPosX(offset_x);
-    ImGui::Button(ICON_FA_PLAY, { 32, 32 });
+
+    ImGui::BeginDisabled(emulator_.IsPlaying());
+    if (ImGui::Button(ICON_FA_PLAY, { 32, 32 })) {
+      emulator_.Play();
+    }
+    ImGui::EndDisabled();
+
     ImGui::SameLine();
-    ImGui::Button(ICON_FA_FORWARD_STEP, { 32, 32 });
+    ImGui::BeginDisabled(emulator_.IsPlaying());
+    if (ImGui::Button(ICON_FA_FORWARD_STEP, { 32, 32 })) {
+      emulator_.Step();
+    }
+    ImGui::EndDisabled();
+
     ImGui::SameLine();
-    ImGui::Button(ICON_FA_FORWARD_FAST, { 32, 32 });
+    ImGui::BeginDisabled(emulator_.IsPlaying());
+    if (ImGui::Button(ICON_FA_FORWARD_FAST, { 32, 32 })) {
+      emulator_.Update(GetFrameTime());
+    }
+    ImGui::EndDisabled();
+
     ImGui::SameLine();
-    ImGui::Button(ICON_FA_ARROW_ROTATE_LEFT, { 32, 32 });
+    if (ImGui::Button(ICON_FA_ARROW_ROTATE_LEFT, { 32, 32 })) {
+      emulator_.Reset();
+    }
+
     ImGui::SameLine();
-    ImGui::Button(ICON_FA_STOP, { 32, 32 });
+    ImGui::BeginDisabled(!emulator_.IsPlaying());
+    if (ImGui::Button(ICON_FA_STOP, { 32, 32 })) {
+      emulator_.Stop();
+    }
+    ImGui::EndDisabled();
   }
   ImGui::End();
 }
@@ -1006,6 +1029,11 @@ void Interface::RenderStatusBar() {
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
         ImGui::Text("GB FrameRate: %3lu", gb_frames);
+      }
+      {
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
+        ImGui::Text("Cycles: %09lu", emulator_.GetTotalCycles());
       }
       ImGui::EndMenuBar();
     }
