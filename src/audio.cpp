@@ -109,7 +109,13 @@ void Audio::PowerOff() {
 
 void Audio::OnTick() {
   ZoneScoped;
+  Step();
+  Step();
+  Step();
+  Step();
+}
 
+void Audio::Step() {
   ch1_.Tick();
   ch2_.Tick();
   ch3_.Tick();

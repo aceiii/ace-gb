@@ -50,6 +50,7 @@ public:
   void ToggleChannel(AudioChannelID channel, bool enable);
 
 private:
+  void Step();
   std::tuple<float, float> Sample() const;
 
 private:
