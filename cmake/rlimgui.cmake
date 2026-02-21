@@ -5,4 +5,4 @@ set(RLIMGUI_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/rlImGui)
 
 add_library(rlimgui STATIC ${rlimgui_SOURCES})
 
-target_link_libraries(rlimgui PUBLIC raylib imgui::imgui)
+target_link_libraries(rlimgui PRIVATE raylib imgui::imgui)
