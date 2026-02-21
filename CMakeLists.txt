@@ -123,10 +123,10 @@ target_link_libraries(${EXE_NAME} PRIVATE nfd)
 target_link_libraries(${EXE_NAME} PRIVATE glfw)
 target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(${EXE_NAME} PRIVATE tomlplusplus::tomlplusplus)
-target_link_libraries(${EXE_NAME} PUBLIC TracyClient)
+target_link_libraries(${EXE_NAME} PRIVATE TracyClient)
 
 
-target_include_directories(${EXE_NAME} PUBLIC ${RLIMGUI_INCLUDE_DIR})
+target_include_directories(${EXE_NAME} PRIVATE ${RLIMGUI_INCLUDE_DIR})
 
 if(BUILD_TESTS)
     set(TEST_FILES
