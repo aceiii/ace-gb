@@ -584,7 +584,6 @@ void Interface::RenderTiles() {
     return;
   }
 
-  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Tile Data", &config_.settings.show_tiles)) {
     auto& target = emulator_.GetTargetTiles();
     auto width = target.texture.width;
@@ -602,7 +601,6 @@ void Interface::RenderTilemap1() {
     return;
   }
 
-  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("TileMap 1", &config_.settings.show_tilemap1)) {
     auto& target = emulator_.GetTargetTilemap(0);
     auto width = target.texture.width;
@@ -620,7 +618,6 @@ void Interface::RenderTilemap2() {
     return;
   }
 
-  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("TileMap 2", &config_.settings.show_tilemap2)) {
     auto& target = emulator_.GetTargetTilemap(1);
     auto width = target.texture.width;
@@ -638,7 +635,6 @@ void Interface::RenderSprites() {
     return;
   }
 
-  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Sprites", &config_.settings.show_sprites)) {
     auto& target = emulator_.GetTargetSprites();
     auto width = target.texture.width;
@@ -656,7 +652,6 @@ void Interface::RenderRegisters() {
     return;
   }
 
-  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Registers", &config_.settings.show_cpu_registers)) {
     const auto& regs = emulator_.GetRegisters();
 
@@ -696,7 +691,6 @@ void Interface::RenderInput() {
     return;
   }
 
-  // ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Input", &config_.settings.show_input)) {
 
     static constexpr auto alignForWidth = [](float width, float alignment = 0.5f) {
@@ -785,7 +779,6 @@ void Interface::RenderMemory() {
     return;
   }
 
-  // ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Memory", &config_.settings.show_memory)) {
     mem_editor_.DrawContents(nullptr, 1<<16);
   }
@@ -799,7 +792,6 @@ void Interface::RenderInstructions() {
     return;
   }
 
-  // ImGui::SetNextWindowSize(ImVec2{300, 300}, ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Instructions", &config_.settings.show_instructions)) {
     assembly_viewer_.Draw();
   }
@@ -1033,7 +1025,7 @@ void Interface::RenderStatusBar() {
       {
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
-        ImGui::Text("Cycles: %09lu", emulator_.GetTotalCycles());
+        ImGui::Text("Cycles: %012lu", emulator_.GetTotalCycles());
       }
       ImGui::EndMenuBar();
     }
