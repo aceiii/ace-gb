@@ -190,6 +190,12 @@ uint8_t Emulator::Read8(uint16_t addr) const {
   return mmu_.Read8(addr);
 }
 
+uint16_t Emulator::Read16(uint16_t addr) const {
+  uint8_t lo = mmu_.Read8(addr);
+  uint8_t hi = mmu_.Read8(addr + 1);
+  return lo | (hi << 8);
+}
+
 void Emulator::Write8(uint16_t addr, uint8_t byte) {
   mmu_.Write8(addr, byte);
 }

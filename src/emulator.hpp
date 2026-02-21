@@ -34,7 +34,6 @@ public:
   void Update(float dt);
   void Reset();
   void Step();
-  void StepFrame();
   void Play();
   void Stop();
 
@@ -49,6 +48,7 @@ public:
   [[nodiscard]] PPUMode GetMode() const;
   [[nodiscard]] Instruction GetCurrentInstruction() const;
   [[nodiscard]] uint8_t Read8(uint16_t addr) const;
+  [[nodiscard]] uint16_t Read16(uint16_t addr) const;
   void Write8(uint16_t addr, uint8_t byte);
 
   [[nodiscard]] const Texture2D& GetTargetLCD() const;
