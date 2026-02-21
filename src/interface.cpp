@@ -294,7 +294,7 @@ Interface::Interface(Args args)
     // pass
   }
 
-  app_log_.AddLog("Hello");
+  // SetTargetFPS(60);
 }
 
 Interface::~Interface() {
@@ -409,11 +409,58 @@ void Interface::Update() {
   RenderMainMenu();
   RenderSettingsPopup();
 
-  rlImGuiEnd();
+  if (ImGui::BeginViewportSideBar("###MainStatusBar", ImGui::GetMainViewport(), ImGuiDir_Down, ImGui::GetFrameHeight(), ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar)) {
+    if (ImGui::BeginMenuBar()) {
+      {
+        ImVec4 color{0.0f, 0.617f, 0.184f, 1.0f}; // LIME
+        int fps = GetFPS();
+
+        if ((fps < 30) && (fps >= 15)) {
+          color = ImVec4{1.0f, 0.631f, 0.0f, 1.0f}; // ORANGE
+        } else if (fps < 15) {
+          color = ImVec4{0.902f, 0.160f, 0.216f, 1.0f}; // RED
+        }
+
+        ImGui::TextColored(color, "FPS: %3d", fps);
+      }
+      {
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
+        ImGui::Text("FrameTime: %0.4fms", frame_time);
+      }
+      {
+        size_t cycles = emulator_.GetPrevCycles();
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
+        ImGui::Text("Cycles/Update: %3lu", cycles);
+      }
+      {
+        static double last_update = 0.0;
+        static size_t gb_frames = 0;
+        double current_time = GetTime();
+        double delta_time = current_time - last_update;
+
+        if (delta_time >= 1.0) {
+          last_update = current_time;
+          gb_frames = emulator_.GetFrameCount();
+          emulator_.ResetFrameCount();
+        }
+
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
+        ImGui::Text("GB FrameRate: %3lu", gb_frames);
+      }
+      ImGui::EndMenuBar();
+    }
+    ImGui::End();
+  }
+
+  {
+    ZoneScopedN("ImGuiEnd");
+    rlImGuiEnd();
+  }
 
   RenderError();
-
-  DrawFPS(10, config_.settings.screen_height - 24);
 
   EndDrawing();
 
