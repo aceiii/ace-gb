@@ -138,6 +138,9 @@ public:
   void ClearTargetBuffers();
   void UpdateRenderTargets();
 
+  void ResetFrameCount();
+  size_t GetFrameCount() const;
+
 private:
   void SetMode(PPUMode mode);
   void DrawLcdRow();
@@ -162,4 +165,5 @@ private:
   uint8_t window_line_counter_ = 0;
 
   bool log_doctor_ = false;
+  size_t frame_count_ = 0;
 };

@@ -93,12 +93,15 @@ void Ppu::Cleanup() {
 void Ppu::Execute(uint8_t cycles) {
   do {
     Step();
-    cycles -= 4;
+    cycles -= 1;
   } while(cycles);
 }
 
 void Ppu::OnTick() {
   ZoneScoped;
+  Step();
+  Step();
+  Step();
   Step();
 }
 
@@ -153,6 +156,7 @@ inline void Ppu::Step() {
 }
 
 void Ppu::SwapLcdTargets() {
+  frame_count_ += 1;
   UpdateTexture(target_lcd_front_, target_lcd_back_.data);
 }
 
@@ -296,11 +300,15 @@ const RenderTexture2D& Ppu::GetTextureTiles() const {
 }
 
 void Ppu::UpdateRenderTargets() {
+  ZoneScoped;
+
   constexpr int tile_width = 16;
   constexpr int tile_height = 24;
 
   BeginTextureMode(target_tiles_);
   {
+    ZoneScopedN("BeginTextureMode:target_tiles");
+
     int x = 0;
     int y = 0;
     for (auto& tile : vram_.tile_data) {
@@ -328,6 +336,8 @@ void Ppu::UpdateRenderTargets() {
 
   BeginTextureMode(target_tilemap1_);
   {
+    ZoneScopedN("BeginTextureMode:target_tilemap1");
+
     auto tiledata_area = regs_.lcdc.tiledata_area;
     auto& tilemap = vram_.tile_map[0];
 
@@ -386,6 +396,8 @@ void Ppu::UpdateRenderTargets() {
 
   BeginTextureMode(target_tilemap2_);
   {
+    ZoneScopedN("BeginTextureMode:target_tilemap2");
+
     auto tiledata_area = regs_.lcdc.tiledata_area;
     auto& tilemap = vram_.tile_map[1];
 
@@ -444,6 +456,8 @@ void Ppu::UpdateRenderTargets() {
 
   BeginTextureMode(target_sprites_);
   {
+    ZoneScopedN("BeginTextureMode:target_sprites");
+
     ClearBackground(BLANK);
 
     auto sprite_tile_height = regs_.lcdc.sprite_size ? 2 : 1;
@@ -561,6 +575,7 @@ void Ppu::Reset() {
   regs_.reset();
   cycle_counter_ = 0;
   window_line_counter_ = 0;
+  frame_count_ = 0;
 
   BeginTextureMode(target_tiles_);
   ClearBackground(BLACK);
@@ -612,4 +627,12 @@ void Ppu::StartDma() {
   for (auto i = 0; i < oam_.bytes.size(); i += 1) {
     oam_.bytes[i] = mmu_.Read8(source + i);
   }
+}
+
+void Ppu::ResetFrameCount() {
+  frame_count_ = 0;
+}
+
+size_t Ppu::GetFrameCount() const {
+  return frame_count_;
 }
