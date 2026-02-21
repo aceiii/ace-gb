@@ -44,8 +44,9 @@ void AssemblyViewer::Draw() {
     while (clipper.Step()) {
       for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i += 1) {
         auto addr = static_cast<uint16_t>(i);
+        std::string instruction_text = GetInstruction(addr);
         bool is_current_line = addr == regs.pc;
-        bool is_greyed_out = false; // (addr < kRomStartIndex) && (hi == 0 && lo == 0);
+        bool is_greyed_out = instruction_text.empty() || instruction_text == "NOP";
 
         if (is_current_line) {
           ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 1.0, 0, 1.0));
@@ -64,13 +65,13 @@ void AssemblyViewer::Draw() {
         }
 
         ImGui::SameLine();
-        ImGui::TextUnformatted(std::format(" | {:02X}", emulator_->Read8(addr)).c_str());
+        ImGui::TextUnformatted(std::format(":  {:02X}", emulator_->Read8(addr)).c_str());
 
         ImGui::SameLine();
         ImGui::TextUnformatted("  ");
         ImGui::SameLine();
 
-        ImGui::TextUnformatted(GetInstruction(addr).c_str());
+        ImGui::TextUnformatted(instruction_text.c_str());
 
         if (is_greyed_out || is_current_line) {
           ImGui::PopStyleColor();
