@@ -118,7 +118,6 @@ public:
 
   void Init();
   void Cleanup();
-  void Execute(uint8_t cycles);
   void Step();
 
   void OnTick() override;

@@ -90,13 +90,6 @@ void Ppu::Cleanup() {
   UnloadTexture(target_lcd_front_);
 }
 
-void Ppu::Execute(uint8_t cycles) {
-  do {
-    Step();
-    cycles -= 1;
-  } while(cycles);
-}
-
 void Ppu::OnTick() {
   ZoneScoped;
   Step();
