@@ -257,7 +257,11 @@ std::vector<float>& Emulator::GetAudioSamples() {
 }
 
 void Emulator::OnAudioCallback(std::span<float> buffer) {
-  audio_.GetSamples(buffer);
+  if (IsPlaying()) {
+    audio_.GetSamples(buffer);
+  } else {
+    std::fill(buffer.begin(), buffer.end(), 0.0f);
+  }
 }
 
 std::expected<void, std::string> Emulator::SetBootRomPath(std::string_view path) {
