@@ -55,6 +55,7 @@ void Emulator::Update(float dt) {
   static constexpr auto target_cycles_per_frame = static_cast<int>(kClockSpeed / kFrameRate);
   static int current_cycles = 0;
 
+  int prev_cycles = current_cycles;
   do {
     auto cycles = cpu_.Execute();
     current_cycles += cycles;
@@ -65,6 +66,7 @@ void Emulator::Update(float dt) {
       break;
     }
   } while (current_cycles < target_cycles_per_frame);
+  prev_cycles_ = current_cycles - prev_cycles;
   current_cycles -= target_cycles_per_frame;
 
   ppu_.UpdateRenderTargets();
@@ -274,4 +276,16 @@ std::expected<void, std::string> Emulator::SetBootRomPath(std::string_view path)
 
 std::string Emulator::GetBootRomPath() const {
   return boot_rom_path_;
+}
+
+size_t Emulator::GetPrevCycles() const {
+  return prev_cycles_;
+}
+
+void Emulator::ResetFrameCount() {
+  ppu_.ResetFrameCount();
+}
+
+size_t Emulator::GetFrameCount() const {
+  return ppu_.GetFrameCount();
 }

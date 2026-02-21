@@ -68,6 +68,11 @@ public:
   std::expected<void, std::string> SetBootRomPath(std::string_view path);
   std::string GetBootRomPath() const;
 
+  size_t GetPrevCycles() const;
+
+  void ResetFrameCount();
+  size_t GetFrameCount() const;
+
 private:
   Mmu mmu_;
   Cpu cpu_;
@@ -89,6 +94,7 @@ private:
 
   std::vector<float> sample_bufffer_ {};
 
+  size_t prev_cycles_ = 0;
   size_t num_cycles_ = 0;
   bool running_ = false;
 
