@@ -40,6 +40,9 @@ constexpr int kSamplesPerUpdate = 512;
 constexpr char const* kBootRomErrorKey = "BootRomError";
 constexpr char const* kCartRomErrorKey = "CartRomError";
 
+constexpr double kTargetEmulatorFrameRate = 59.7;
+constexpr double kTargetEmulatorFrameTime = 1.0 / kTargetEmulatorFrameRate;
+
 AudioStream stream;
 }
 
@@ -358,7 +361,13 @@ void Interface::Update() {
   emulator_.UpdateInput(JoypadButton::B, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
   emulator_.UpdateInput(JoypadButton::A, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
 
-  emulator_.Update(frame_time);
+  static double last_update = 0;
+  const double current_time = GetTime();
+  const double delta_time = current_time - last_update;
+  if (delta_time >= kTargetEmulatorFrameTime) {
+    emulator_.Update(frame_time);
+    last_update = current_time;
+  }
 
   BeginDrawing();
   ClearBackground(DARKGRAY);
