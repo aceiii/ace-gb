@@ -378,10 +378,14 @@ void Interface::Update() {
   emulator_.UpdateInput(JoypadButton::A, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
 
   static double last_update = 0;
-  last_update += GetFrameTime();
-  while (last_update >= kTargetEmulatorFrameTime) {
-    emulator_.Update(frame_time);
-    last_update -= kTargetEmulatorFrameTime;
+  if (emulator_.IsPlaying()) {
+    last_update += GetFrameTime();
+    while (last_update >= kTargetEmulatorFrameTime) {
+      emulator_.Update(frame_time);
+      last_update -= kTargetEmulatorFrameTime;
+    }
+  } else {
+    last_update = 0;
   }
 
   BeginDrawing();
@@ -1002,9 +1006,7 @@ void Interface::Stop() {
 }
 
 void Interface::Step() {
-  if (!emulator_.IsPlaying()) {
-    emulator_.Step();
-  }
+  emulator_.Step();
 }
 
 void Interface::Reset() {

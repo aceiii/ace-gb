@@ -48,10 +48,6 @@ void Emulator::Init() {
 void Emulator::Update(float dt) {
   ZoneScoped;
 
-  if (!running_ && !cpu_.state.halt) {
-    return;
-  }
-
   static constexpr auto target_cycles_per_frame = static_cast<int>(kClockSpeed / kFrameRate);
   static int current_cycles = 0;
 
