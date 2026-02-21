@@ -40,8 +40,10 @@ constexpr int kSamplesPerUpdate = 512;
 constexpr char const* kBootRomErrorKey = "BootRomError";
 constexpr char const* kCartRomErrorKey = "CartRomError";
 
-constexpr double kTargetEmulatorFrameRate = 59.7;
+constexpr int kTargetEmulatorFrameRate = 60;
 constexpr double kTargetEmulatorFrameTime = 1.0 / kTargetEmulatorFrameRate;
+
+constexpr int kLockedFrameRate = 60;
 
 AudioStream stream;
 }
@@ -86,6 +88,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "width", settings.screen_width },
         { "height", settings.screen_height },
         { "reset_view", settings.reset_view },
+        { "lock_framerate", settings.lock_framerate },
       },
     },
     {
@@ -129,6 +132,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
 }
 
 static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSettings& settings) -> void {
+  settings.lock_framerate = table["window"]["lock_framerate"].value_or(false);
   settings.reset_view = table["window"]["reset_view"].value_or(true);
   settings.screen_x = table["window"]["x"].value_or(-1);
   settings.screen_y = table["window"]["y"].value_or(-1);
@@ -297,7 +301,9 @@ Interface::Interface(Args args)
     // pass
   }
 
-  // SetTargetFPS(60);
+  if (config_.settings.lock_framerate) {
+    SetTargetFPS(kLockedFrameRate);
+  }
 }
 
 Interface::~Interface() {
@@ -362,11 +368,10 @@ void Interface::Update() {
   emulator_.UpdateInput(JoypadButton::A, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
 
   static double last_update = 0;
-  const double current_time = GetTime();
-  const double delta_time = current_time - last_update;
-  if (delta_time >= kTargetEmulatorFrameTime) {
+  last_update += GetFrameTime();
+  while (last_update >= kTargetEmulatorFrameTime) {
     emulator_.Update(frame_time);
-    last_update = current_time;
+    last_update -= kTargetEmulatorFrameTime;
   }
 
   BeginDrawing();
@@ -871,6 +876,14 @@ void Interface::RenderMainMenu() {
   if (ImGui::BeginMenu("View")) {
     ImGui::MenuItem("Input", nullptr, &config_.settings.show_input);
     ImGui::MenuItem("Logs", nullptr, &config_.settings.show_logs);
+    ImGui::Separator();
+    if (ImGui::MenuItem("Lock FrameRate", nullptr, &config_.settings.lock_framerate)) {
+      if (config_.settings.lock_framerate) {
+        SetTargetFPS(kLockedFrameRate);
+      } else {
+        SetTargetFPS(0);
+      }
+    }
     ImGui::Separator();
     if (ImGui::MenuItem("Reset View")) {
       ResetView();

@@ -49,6 +49,8 @@ struct InterfaceSettings {
   bool enable_ch3;
   bool enable_ch4;
   float master_volume;
+
+  bool lock_framerate;
 };
 
 class Interface {
