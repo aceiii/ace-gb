@@ -5,6 +5,7 @@ My first GameBoy emulator!!
 
 ## Screenshots
 
+![Kirby's Dream Land 2](images/kirbys-dream-land2_2026-02-21.png)
 ![Kid Icarus](images/kid-icarus_2026-02-16.png)
 ![Final Fantasy Adventure](images/ff-adventure_2026-02-15.png)
 ![Zelda Link's Awakening](images/links-awakening_2026-02-12.png)
