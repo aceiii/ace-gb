@@ -52,6 +52,7 @@ struct InterfaceSettings {
   float master_volume;
 
   bool lock_framerate;
+  bool show_scanlines;
 };
 
 class Interface {

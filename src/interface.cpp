@@ -38,17 +38,24 @@ constexpr int kAudioSampleSize = 32;
 constexpr int kAudioNumChannels = 2;
 constexpr int kSamplesPerUpdate = 512;
 
-constexpr char const* kBootRomErrorKey = "BootRomError";
-constexpr char const* kCartRomErrorKey = "CartRomError";
+constexpr char const* kErrorKeyBootRom = "BootRomError";
+constexpr char const* kErrorKeyCartRom = "CartRomError";
+constexpr char const* kErrorKeyShader = "ShaderError";
 
 constexpr int kTargetEmulatorFrameRate = 60;
 constexpr double kTargetEmulatorFrameTime = 1.0 / kTargetEmulatorFrameRate;
 
 constexpr int kLockedFrameRate = 60;
 
+constexpr char const* kShaderNoop = "resources/shaders/noop.glsl";
+constexpr char const* kShaderScanline = "resources/shaders/scanlines.glsl";
+
 AudioStream stream;
 
 std::function<void(std::span<float>)> g_audio_callback;
+
+RenderTexture2D g_screen_target;
+Shader g_screen_shader;
 }
 
 void rlImGuiImageTextureFit(const Texture2D* image, bool center) {
@@ -92,6 +99,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "height", settings.screen_height },
         { "reset_view", settings.reset_view },
         { "lock_framerate", settings.lock_framerate },
+        { "show_scanlines", settings.show_scanlines },
       },
     },
     {
@@ -136,6 +144,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
 }
 
 static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSettings& settings) -> void {
+  settings.show_scanlines = table["window"]["show_scanlines"].value_or(false);
   settings.lock_framerate = table["window"]["lock_framerate"].value_or(false);
   settings.reset_view = table["window"]["reset_view"].value_or(true);
   settings.screen_x = table["window"]["x"].value_or(-1);
@@ -268,6 +277,7 @@ Interface::Interface(Args args)
 
   if (auto res = config_.Load(args.settings_filename); !res.has_value()) {
     spdlog::warn("Failed to load settings file '{}': {}", args.settings_filename, res.error());
+    DeserializeInterfaceSettings(toml::table{}, config_.settings);
   }
 
   NFD_Init();
@@ -303,10 +313,10 @@ Interface::Interface(Args args)
   emulator_.Init();
 
   if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
-    spdlog::error("Failed to set boot rom path");
-    error_messages_.AddError(kBootRomErrorKey, result.error());
+    spdlog::error("Failed to set boot rom path: {}", result.error());
+    error_messages_.AddError(kErrorKeyBootRom, std::format("Failed to load boot rom: {}", result.error()));
   } else {
-    error_messages_.ClearError(kBootRomErrorKey);
+    error_messages_.ClearError(kErrorKeyBootRom);
   }
 
   while (!IsWindowReady()) {
@@ -315,6 +325,21 @@ Interface::Interface(Args args)
 
   if (config_.settings.lock_framerate) {
     SetTargetFPS(kLockedFrameRate);
+  }
+
+  constexpr int kLCDWidth = 160;
+  constexpr int kLCDHeight = 144;
+  g_screen_target = LoadRenderTexture(kLCDWidth * 4, kLCDHeight * 4);
+
+  if (config_.settings.show_scanlines) {
+    g_screen_shader = LoadShader(nullptr, kShaderScanline);
+  } else {
+    g_screen_shader = LoadShader(nullptr, kShaderNoop);
+  }
+
+  if (!IsShaderValid(g_screen_shader)) {
+    spdlog::critical("Failed to load shader");
+    error_messages_.AddError(kErrorKeyShader, "Failed to load shader");
   }
 }
 
@@ -325,6 +350,9 @@ Interface::~Interface() {
 
   rlImGuiShutdown();
 
+  UnloadShader(g_screen_shader);
+  UnloadRenderTexture(g_screen_target);
+  UnloadAudioStream(stream);
   CloseAudioDevice();
   CloseWindow();
 }
@@ -388,6 +416,24 @@ void Interface::Update() {
     }
   } else {
     last_update = 0;
+  }
+
+  if (IsShaderValid(g_screen_shader)) {
+    BeginTextureMode(g_screen_target);
+    BeginShaderMode(g_screen_shader);
+    {
+      ClearBackground(BLACK);
+      const auto& target = emulator_.GetTargetLCD();
+      DrawTexturePro(target,
+        Rectangle{ 0, 0, (float)target.width, (float)-target.height },
+        Rectangle{0, 0, (float)g_screen_target.texture.width, (float)g_screen_target.texture.height},
+        Vector2{0, 0},
+        0.0f,
+        WHITE
+      );
+    }
+    EndShaderMode();
+    EndTextureMode();
   }
 
   BeginDrawing();
@@ -492,10 +538,10 @@ void Interface::LoadCartRom(std::string_view file_path) {
     config_.settings.recent_files.Remove(path);
     std::string error = std::format("Failed to load cart: {}", load_result.error());
     spdlog::error("Failed to load cart: {}", error);
-    error_messages_.AddError(kCartRomErrorKey, error);
+    error_messages_.AddError(kErrorKeyCartRom, std::format("Failed to load cart: {}", error));
     return;
   } else {
-    error_messages_.ClearError(kCartRomErrorKey);
+    error_messages_.ClearError(kErrorKeyCartRom);
   }
 
   emulator_.LoadCartBytes(std::move(load_result.value()));
@@ -572,7 +618,11 @@ void Interface::RenderLCD() {
   }
 
   if (ImGui::Begin("LCD", &config_.settings.show_lcd)) {
-    rlImGuiImageTextureFit(&emulator_.GetTargetLCD(), true);
+    if (IsShaderValid(g_screen_shader)) {
+      rlImGuiImageTextureFit(&g_screen_target.texture, true);
+    } else {
+      rlImGuiImageTextureFit(&emulator_.GetTargetLCD(), true);
+    }
   }
   ImGui::End();
 }
@@ -938,6 +988,23 @@ void Interface::RenderMainMenu() {
         SetTargetFPS(0);
       }
     }
+    if (ImGui::MenuItem("Show Scanlines", nullptr, &config_.settings.show_scanlines)) {
+      if (IsShaderValid(g_screen_shader)) {
+        UnloadShader(g_screen_shader);
+      }
+
+      if (config_.settings.show_scanlines) {
+        g_screen_shader = LoadShader(nullptr, kShaderScanline);
+      } else {
+        g_screen_shader = LoadShader(nullptr, kShaderNoop);
+      }
+
+      if (!IsShaderValid(g_screen_shader)) {
+        error_messages_.AddError(kErrorKeyShader, "Failed to load shader");
+      } else {
+        error_messages_.ClearError(kErrorKeyShader);
+      }
+    }
     ImGui::Separator();
     if (ImGui::MenuItem("Reset View")) {
       ResetView();
@@ -964,9 +1031,9 @@ void Interface::RenderSettingsPopup() {
       spdlog::debug("Set boot rom path: {}", boot_rom_path);
       config_.settings.boot_rom_path = boot_rom_path;
       if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
-        error_messages_.AddError(kBootRomErrorKey, std::format("Failed to load boot rom: {}", result.error()));
+        error_messages_.AddError(kErrorKeyBootRom, std::format("Failed to load boot rom: {}", result.error()));
       } else {
-        error_messages_.ClearError(kBootRomErrorKey);
+        error_messages_.ClearError(kErrorKeyBootRom);
       }
     }
     ImGui::SameLine();
