@@ -47,8 +47,8 @@ constexpr double kTargetEmulatorFrameTime = 1.0 / kTargetEmulatorFrameRate;
 
 constexpr int kLockedFrameRate = 60;
 
-constexpr char const* kShaderNoop = "resources/shaders/noop.glsl";
-constexpr char const* kShaderScanline = "resources/shaders/scanlines.glsl";
+constexpr char const* kShaderPathNoop = "resources/shaders/noop.glsl";
+constexpr char const* kShaderPathScanline = "resources/shaders/scanlines.glsl";
 
 AudioStream stream;
 
@@ -56,6 +56,26 @@ std::function<void(std::span<float>)> g_audio_callback;
 
 RenderTexture2D g_screen_target;
 Shader g_screen_shader;
+}
+
+enum ShaderType {
+  kShaderTypeNoop,
+  kShaderTypeScanline,
+};
+
+Shader LoadShaderByType(ShaderType type) {
+  fs::path shader_path;
+  switch (type) {
+    case kShaderTypeNoop: shader_path = kShaderPathNoop; break;
+    case kShaderTypeScanline: shader_path = kShaderPathScanline; break;
+    default: return {};
+  }
+
+  if (!fs::exists(shader_path) || fs::is_directory(shader_path)) {
+    return {};
+  }
+
+  return LoadShader(nullptr, shader_path.c_str());
 }
 
 void rlImGuiImageTextureFit(const Texture2D* image, bool center) {
@@ -331,12 +351,7 @@ Interface::Interface(Args args)
   constexpr int kLCDHeight = 144;
   g_screen_target = LoadRenderTexture(kLCDWidth * 4, kLCDHeight * 4);
 
-  if (config_.settings.show_scanlines) {
-    g_screen_shader = LoadShader(nullptr, kShaderScanline);
-  } else {
-    g_screen_shader = LoadShader(nullptr, kShaderNoop);
-  }
-
+  g_screen_shader = LoadShaderByType(config_.settings.show_scanlines ? kShaderTypeScanline : kShaderTypeNoop);
   if (!IsShaderValid(g_screen_shader)) {
     spdlog::critical("Failed to load shader");
     error_messages_.AddError(kErrorKeyShader, "Failed to load shader");
@@ -993,12 +1008,7 @@ void Interface::RenderMainMenu() {
         UnloadShader(g_screen_shader);
       }
 
-      if (config_.settings.show_scanlines) {
-        g_screen_shader = LoadShader(nullptr, kShaderScanline);
-      } else {
-        g_screen_shader = LoadShader(nullptr, kShaderNoop);
-      }
-
+      g_screen_shader = LoadShaderByType(config_.settings.show_scanlines ? kShaderTypeScanline : kShaderTypeNoop);
       if (!IsShaderValid(g_screen_shader)) {
         error_messages_.AddError(kErrorKeyShader, "Failed to load shader");
       } else {
