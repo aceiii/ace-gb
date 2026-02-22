@@ -520,6 +520,9 @@ void Interface::RenderError() {
 }
 
 void Interface::LoadCartridge() {
+  bool was_playing = emulator_.IsPlaying();
+  emulator_.Stop();
+
   nfdchar_t* file_path = nullptr;
   std::array<nfdfilteritem_t, 3> filter_items = {{
     { .name="GB", .spec="gb" },
@@ -532,6 +535,9 @@ void Interface::LoadCartridge() {
     LoadCartRom(file_path);
   } else if (result == NFD_CANCEL) {
     spdlog::info("Load cancelled by user.");
+    if (was_playing) {
+      emulator_.Play();
+    }
   } else {
     spdlog::error("Loading failed: {}", NFD_GetError());
   }
