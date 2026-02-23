@@ -10,6 +10,17 @@
       }
     },
     {
+      "name": "Web",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-web",
+      "environment": {},
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+        "BUILD_EXAMPLES": "OFF",
+        "PLATFORM": "Web"
+      }
+    },
+    {
       "name": "Debug",
       "displayName": "Configure Debug",
       "inherits": "vcpkg",
@@ -39,6 +50,11 @@
     }
   ],
   "buildPresets": [
+    {
+      "name": "Web",
+      "displayName": "Build Web",
+      "configurePreset": "Web"
+    },
     {
       "name": "Debug",
       "displayName": "Build Debug",
