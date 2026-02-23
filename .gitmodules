@@ -34,3 +34,6 @@
 [submodule "external/tracy"]
 	path = external/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "external/emscripten-browser-file"]
+	path = external/emscripten-browser-file
+	url = https://github.com/Armchair-Software/emscripten-browser-file.git
