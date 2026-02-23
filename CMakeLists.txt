@@ -94,8 +94,14 @@ set(SOURCE_FILES
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
-option(TRACY_ENABLE "" ON)
-option(TRACY_ON_DEMAND "" ON)
+
+if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
+    option(TRACY_ENABLE "" OFF)
+    option(TRACY_ON_DEMAND "" OFF)
+else()
+    option(TRACY_ENABLE "" ON)
+    option(TRACY_ON_DEMAND "" ON)
+endif()
 
 set(SPDLOG_USE_STD_FORMAT ON)
 add_subdirectory(external/spdlog)
