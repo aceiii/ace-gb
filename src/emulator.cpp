@@ -274,7 +274,7 @@ std::expected<void, std::string> Emulator::SetBootRomPath(std::string_view path)
   boot_rom_.fill(0);
   boot_rom_path_ = path;
 
-  auto result = File::LoadBin(boot_rom_path_);
+  auto result = file::LoadBin(boot_rom_path_);
   if (!result) {
     return std::unexpected{result.error()};
   }

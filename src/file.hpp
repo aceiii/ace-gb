@@ -6,7 +6,7 @@
 #include <vector>
 
 
-namespace File {
+namespace file {
 
 using U8Buffer = std::vector<uint8_t>;
 using LoadFileResult = std::expected<U8Buffer, std::string>;

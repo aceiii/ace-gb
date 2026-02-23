@@ -593,7 +593,7 @@ void Interface::LoadCartRom(std::string_view file_path) {
     return;
   }
 
-  auto load_result = File::LoadBin(path.string());
+  auto load_result = file::LoadBin(path.string());
   if (!load_result) {
     config_.settings.recent_files.Remove(path);
     std::string error = std::format("Failed to load cart: {}", load_result.error());
