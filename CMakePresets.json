@@ -13,7 +13,9 @@
       "name": "Web",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build-web",
-      "environment": {},
+      "environment": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
         "BUILD_EXAMPLES": "OFF",
