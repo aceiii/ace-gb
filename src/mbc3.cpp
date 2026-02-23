@@ -39,7 +39,7 @@ void Mbc3::WriteReg(uint16_t addr, uint8_t byte) {
   } else if (addr <= 0x5fff) {
     if (byte < 0x08) {
       auto& bank = ram_[byte];
-      ram_or_clock_ = bank.begin();
+      ram_or_clock_ = std::to_address(bank.begin());
       ram_or_clock_mod_ = bank.size();
     } else if (byte >= 0x08 && byte <= 0x0c) {
       ram_or_clock_ = &clock_regs_[byte - 0x08];

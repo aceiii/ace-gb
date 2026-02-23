@@ -7,7 +7,7 @@ AppLog::AppLog() : auto_scroll_{true} {
 
 void AppLog::AddLog(std::string_view log) {
   int old_size = buffer_.size();
-  buffer_.append(log.begin(), log.end());
+  buffer_.append(std::to_address(log.begin()), std::to_address(log.end()));
   for (int new_size = buffer_.size(); old_size < new_size; old_size += 1) {
     if (buffer_[old_size] == '\n') {
       line_offsets_.push_back(old_size + 1);
@@ -51,8 +51,8 @@ void AppLog::Draw() {
     }
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    const char* buf = buffer_.begin();
-    const char* buf_end = buffer_.end();
+    const char* buf = std::to_address(buffer_.begin());
+    const char* buf_end = std::to_address(buffer_.end());
     if (filter_.IsActive()) {
       for (int line_no = 0; line_no < line_offsets_.Size; line_no++) {
         const char* line_start = buf + line_offsets_[line_no];

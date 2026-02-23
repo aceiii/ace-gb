@@ -109,8 +109,6 @@ add_subdirectory(external/tracy)
 include(cmake/imgui.cmake)
 include(cmake/rlimgui.cmake)
 include(cmake/imgui_club.cmake)
-include(cmake/nfd.cmake)
-
 
 add_executable(${EXE_NAME} ${SOURCE_FILES})
 
@@ -119,14 +117,30 @@ target_link_libraries(${EXE_NAME} PRIVATE argparse::argparse)
 target_link_libraries(${EXE_NAME} PRIVATE magic_enum::magic_enum)
 target_link_libraries(${EXE_NAME} PRIVATE raylib)
 target_link_libraries(${EXE_NAME} PRIVATE rlimgui)
-target_link_libraries(${EXE_NAME} PRIVATE nfd)
 target_link_libraries(${EXE_NAME} PRIVATE glfw)
 target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(${EXE_NAME} PRIVATE tomlplusplus::tomlplusplus)
 target_link_libraries(${EXE_NAME} PRIVATE TracyClient)
 
-
 target_include_directories(${EXE_NAME} PRIVATE ${RLIMGUI_INCLUDE_DIR})
+
+if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+    target_link_options(${EXE_NAME} PUBLIC
+        #"--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+        "-o output.html"
+        "-sSTACK_SIZE=8MB"
+        "-sASYNCIFY"
+        "-sTOTAL_STACK=64MB"
+        "-sINITIAL_MEMORY=128MB"
+        "-sEXPORTED_RUNTIME_METHODS=[\"HEAPF32\"]"
+        "--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/resources@/resources"
+        "--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/roms/dmg_boot.bin@/boot.bin"
+    )
+else()
+    include(cmake/nfd.cmake)
+    target_link_libraries(${EXE_NAME} PRIVATE nfd)
+endif()
 
 if(BUILD_TESTS)
     set(TEST_FILES

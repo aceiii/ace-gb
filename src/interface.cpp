@@ -5,7 +5,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
-#include <nfd.h>
 #include <rlImGui.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/common.h>
@@ -17,6 +16,11 @@
 #include <toml++/toml.hpp>
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyOpenGL.hpp>
+
+#if defined(__EMSCRIPTEN__)
+#else
+#include <nfd.h>
+#endif
 
 #include "interface.hpp"
 #include "emulator.hpp"
@@ -31,7 +35,7 @@ namespace {
 constexpr int kDefaultWindowWidth = 800;
 constexpr int kDefaultWindowHeight = 600;
 constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
-constexpr char const* kDefaultBootRomPath = "boot.bin";
+constexpr char const* kDefaultBootRomPath = "/boot.bin";
 
 constexpr int kAudioSampleRate = 44100;
 constexpr int kAudioSampleSize = 32;
@@ -47,8 +51,8 @@ constexpr double kTargetEmulatorFrameTime = 1.0 / kTargetEmulatorFrameRate;
 
 constexpr int kLockedFrameRate = 60;
 
-constexpr char const* kShaderPathNoop = "resources/shaders/noop.glsl";
-constexpr char const* kShaderPathScanline = "resources/shaders/scanlines.glsl";
+constexpr char const* kShaderPathNoop = "/resources/shaders/noop.glsl";
+constexpr char const* kShaderPathScanline = "/resources/shaders/scanlines.glsl";
 
 AudioStream stream;
 
@@ -300,7 +304,10 @@ Interface::Interface(Args args)
     DeserializeInterfaceSettings(toml::table{}, config_.settings);
   }
 
+#if defined(__EMSCRIPTEN__)
+#else
   NFD_Init();
+#endif
 
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
@@ -519,6 +526,33 @@ void Interface::RenderError() {
   error_messages_.Draw();
 }
 
+#if defined(__EMSCRIPTEN__)
+void Interface::LoadCartridge() {
+  bool was_playing = emulator_.IsPlaying();
+  emulator_.Stop();
+
+  /*
+  nfdchar_t* file_path = nullptr;
+  std::array<nfdfilteritem_t, 3> filter_items = {{
+    { .name="GB", .spec="gb" },
+    { .name="BIN", .spec="bin" },
+    { .name="ROM", .spec="rom" }
+  }};
+
+  nfdresult_t result = NFD_OpenDialog(&file_path, filter_items.data(), filter_items.size(), nullptr);
+  if (result == NFD_OKAY) {
+    LoadCartRom(file_path);
+  } else if (result == NFD_CANCEL) {
+    spdlog::info("Load cancelled by user.");
+    if (was_playing) {
+      emulator_.Play();
+    }
+  } else {
+    spdlog::error("Loading failed: {}", NFD_GetError());
+  }
+  */
+}
+#else
 void Interface::LoadCartridge() {
   bool was_playing = emulator_.IsPlaying();
   emulator_.Stop();
@@ -542,6 +576,7 @@ void Interface::LoadCartridge() {
     spdlog::error("Loading failed: {}", NFD_GetError());
   }
 }
+#endif
 
 void Interface::LoadCartRom(std::string_view file_path) {
   Stop();

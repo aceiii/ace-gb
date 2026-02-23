@@ -13,8 +13,8 @@
 using namespace app;
 
 namespace {
-constexpr std::string kSettingsFileName = "settings.toml";
-constexpr std::string kDefaultLogLevel = "info";
+const std::string kSettingsFileName = "settings.toml";
+const std::string kDefaultLogLevel = "info";
 }
 
 static bool SetLoggingLevel(std::string_view level_name) {
