@@ -28,6 +28,13 @@
 #include "file.hpp"
 
 
+#if defined(PLATFORM_DESKTOP)
+    #define GLSL_VERSION            330
+#else   // PLATFORM_ANDROID, PLATFORM_WEB
+    #define GLSL_VERSION            100
+#endif
+
+
 namespace fs = std::filesystem;
 
 using namespace app;
@@ -36,7 +43,7 @@ namespace {
 constexpr int kDefaultWindowWidth = 800;
 constexpr int kDefaultWindowHeight = 600;
 constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
-constexpr char const* kDefaultBootRomPath = "/boot.bin";
+constexpr char const* kDefaultBootRomPath = "boot.bin";
 
 constexpr int kAudioSampleRate = 44100;
 constexpr int kAudioSampleSize = 32;
@@ -52,8 +59,8 @@ constexpr double kTargetEmulatorFrameTime = 1.0 / kTargetEmulatorFrameRate;
 
 constexpr int kLockedFrameRate = 60;
 
-constexpr char const* kShaderPathNoop = "/resources/shaders/noop.glsl";
-constexpr char const* kShaderPathScanline = "/resources/shaders/scanlines.glsl";
+constexpr char const* kShaderPathNoop = "resources/shaders/{}/noop.glsl";
+constexpr char const* kShaderPathScanline = "resources/shaders/{}/scanlines.glsl";
 
 AudioStream stream;
 
@@ -71,12 +78,13 @@ enum ShaderType {
 Shader LoadShaderByType(ShaderType type) {
   fs::path shader_path;
   switch (type) {
-    case kShaderTypeNoop: shader_path = kShaderPathNoop; break;
-    case kShaderTypeScanline: shader_path = kShaderPathScanline; break;
+    case kShaderTypeNoop: shader_path = std::format(kShaderPathNoop, GLSL_VERSION); break;
+    case kShaderTypeScanline: shader_path = std::format(kShaderPathScanline, GLSL_VERSION); break;
     default: return {};
   }
 
   if (!fs::exists(shader_path) || fs::is_directory(shader_path)) {
+    spdlog::warn("Shader path does not exist or is directory: {}", shader_path.string());
     return {};
   }
 
