@@ -18,6 +18,7 @@
 #include <tracy/TracyOpenGL.hpp>
 
 #if defined(__EMSCRIPTEN__)
+#include <emscripten_browser_file.h>
 #else
 #include <nfd.h>
 #endif
@@ -527,32 +528,26 @@ void Interface::RenderError() {
 }
 
 #if defined(__EMSCRIPTEN__)
+
+void HandleUploadFile(std::string const &filename, std::string const &mime_type, std::string_view buffer, void *callback_data) {
+  auto emulator = reinterpret_cast<Emulator*>(callback_data);
+  if (filename.empty()) {
+    return;
+  }
+
+  spdlog::info("Loading cartridge: filename={}, mime={}, buffer_size={}", filename, mime_type, buffer.size());
+  std::vector<uint8_t> rom_bytes(buffer.begin(), buffer.end());
+  emulator->LoadCartBytes(std::move(rom_bytes));
+}
+
 void Interface::LoadCartridge() {
   bool was_playing = emulator_.IsPlaying();
   emulator_.Stop();
-
-  /*
-  nfdchar_t* file_path = nullptr;
-  std::array<nfdfilteritem_t, 3> filter_items = {{
-    { .name="GB", .spec="gb" },
-    { .name="BIN", .spec="bin" },
-    { .name="ROM", .spec="rom" }
-  }};
-
-  nfdresult_t result = NFD_OpenDialog(&file_path, filter_items.data(), filter_items.size(), nullptr);
-  if (result == NFD_OKAY) {
-    LoadCartRom(file_path);
-  } else if (result == NFD_CANCEL) {
-    spdlog::info("Load cancelled by user.");
-    if (was_playing) {
-      emulator_.Play();
-    }
-  } else {
-    spdlog::error("Loading failed: {}", NFD_GetError());
-  }
-  */
+  emscripten_browser_file::upload(".gb,.bin,.rom", HandleUploadFile, &emulator_);
 }
+
 #else
+
 void Interface::LoadCartridge() {
   bool was_playing = emulator_.IsPlaying();
   emulator_.Stop();
@@ -576,6 +571,7 @@ void Interface::LoadCartridge() {
     spdlog::error("Loading failed: {}", NFD_GetError());
   }
 }
+
 #endif
 
 void Interface::LoadCartRom(std::string_view file_path) {

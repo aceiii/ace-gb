@@ -131,17 +131,19 @@ target_link_libraries(${EXE_NAME} PRIVATE TracyClient)
 target_include_directories(${EXE_NAME} PRIVATE ${RLIMGUI_INCLUDE_DIR})
 
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
+    target_include_directories(${EXE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external/emscripten-browser-file)
+
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     target_link_options(${EXE_NAME} PUBLIC
-        #"--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
-        "-o output.html"
+        "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
         "-sSTACK_SIZE=8MB"
         "-sASYNCIFY"
         "-sTOTAL_STACK=64MB"
         "-sINITIAL_MEMORY=128MB"
-        "-sEXPORTED_RUNTIME_METHODS=[\"HEAPF32\"]"
-        "--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/resources@/resources"
-        "--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/roms/dmg_boot.bin@/boot.bin"
+        "-sEXPORTED_RUNTIME_METHODS=[ccall,HEAPU8,HEAPF32]"
+        "-sEXPORTED_FUNCTIONS=[_main,_malloc,_free]"
+        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources@resources"
+        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/roms/dmg_boot.bin@boot.bin"
     )
 else()
     include(cmake/nfd.cmake)
