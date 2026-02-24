@@ -72,7 +72,7 @@ void Emulator::Cleanup() {
   ppu_.Cleanup();
 }
 
-void Emulator::LoadCartBytes(std::vector<uint8_t> bytes) {
+void Emulator::LoadCartBytes(std::vector<u8> bytes) {
   cart_bytes_ = std::move(bytes);
   Reset();
 }
@@ -186,17 +186,17 @@ Instruction Emulator::GetCurrentInstruction() const {
   return instr;
 }
 
-uint8_t Emulator::Read8(uint16_t addr) const {
+u8 Emulator::Read8(u16 addr) const {
   return mmu_.Read8(addr);
 }
 
-uint16_t Emulator::Read16(uint16_t addr) const {
-  uint8_t lo = mmu_.Read8(addr);
-  uint8_t hi = mmu_.Read8(addr + 1);
+u16 Emulator::Read16(u16 addr) const {
+  u8 lo = mmu_.Read8(addr);
+  u8 hi = mmu_.Read8(addr + 1);
   return lo | (hi << 8);
 }
 
-void Emulator::Write8(uint16_t addr, uint8_t byte) {
+void Emulator::Write8(u16 addr, u8 byte) {
   mmu_.Write8(addr, byte);
 }
 
@@ -208,7 +208,7 @@ const RenderTexture2D& Emulator::GetTargetTiles() const {
   return ppu_.GetTextureTiles();
 }
 
-const RenderTexture2D& Emulator::GetTargetTilemap(uint8_t idx) const {
+const RenderTexture2D& Emulator::GetTargetTilemap(u8 idx) const {
   if (idx == 0) {
     return ppu_.GetTextureTilemap1();
   } else if (idx == 1) {
@@ -221,11 +221,11 @@ const RenderTexture2D& Emulator::GetTargetSprites() const {
   return ppu_.GetTextureSprites();
 }
 
-void Emulator::AddBreakPoint(uint16_t addr) {
+void Emulator::AddBreakPoint(u16 addr) {
   breakpoints_.insert(addr);
 }
 
-void Emulator::RemoveBreakPoint(uint16_t addr) {
+void Emulator::RemoveBreakPoint(u16 addr) {
   breakpoints_.erase(addr);
 }
 

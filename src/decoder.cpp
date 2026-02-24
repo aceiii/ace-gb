@@ -9,15 +9,15 @@
 
 namespace Decoder {
 
-Instruction DecodePrefixed(uint8_t op) {
+Instruction DecodePrefixed(u8 op) {
   ZoneScoped;
   int r8 = op & 0x7;
 
-  uint8_t bytes = 2;
-  uint8_t cycles = r8 == 6 ? 16 : 8;
+  u8 bytes = 2;
+  u8 cycles = r8 == 6 ? 16 : 8;
 
   if (op & 0xC0) {
-    uint8_t b3 = (op & 0x38) >> 3;
+    u8 b3 = (op & 0x38) >> 3;
     auto operands = ([=]() -> Operands {
       switch (r8) {
       case 0:
@@ -100,7 +100,7 @@ Instruction DecodePrefixed(uint8_t op) {
   }
 }
 
-Instruction Decode(uint8_t op) {
+Instruction Decode(u8 op) {
   ZoneScoped;
   switch (op) {
   case 0x00:

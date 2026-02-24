@@ -9,16 +9,16 @@
 InputDevice::InputDevice(InterruptDevice& interrupts): interrupts_{interrupts} {
 }
 
-[[nodiscard]] bool InputDevice::IsValidFor(uint16_t addr) const {
+[[nodiscard]] bool InputDevice::IsValidFor(u16 addr) const {
   return addr == std::to_underlying(IO::P1);
 }
 
-void InputDevice::Write8(uint16_t addr, uint8_t byte) {
+void InputDevice::Write8(u16 addr, u8 byte) {
   reg_buttons_.select = (byte >> 4) & 0b11;
 }
 
-[[nodiscard]] uint8_t InputDevice::Read8(uint16_t addr) const {
-  uint8_t buttons = 0;
+[[nodiscard]] u8 InputDevice::Read8(u16 addr) const {
+  u8 buttons = 0;
   if (reg_buttons_.sel_buttons) {
     buttons |= ~reg_buttons_.buttons;
   }
@@ -37,7 +37,7 @@ void InputDevice::Reset() {
 void InputDevice::Update(JoypadButton button, bool pressed) {
   ZoneScoped;
 
-  uint8_t on_off = pressed ? 0 : 1;
+  u8 on_off = pressed ? 0 : 1;
   bool flipped;
 
   switch (button) {

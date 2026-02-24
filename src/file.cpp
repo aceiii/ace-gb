@@ -18,9 +18,9 @@ file::LoadFileResult file::LoadBin(std::string_view path) {
   auto size = input.tellg();
   input.seekg(0, std::ios::beg);
 
-  std::vector<uint8_t> bytes;
+  std::vector<u8> bytes;
   bytes.reserve(size);
-  std::copy(std::istream_iterator<uint8_t>(input), std::istream_iterator<uint8_t>(), std::back_inserter(bytes));
+  std::copy(std::istream_iterator<u8>(input), std::istream_iterator<u8>(), std::back_inserter(bytes));
 
   return bytes;
 }

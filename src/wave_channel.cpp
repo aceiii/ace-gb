@@ -6,9 +6,9 @@
 
 constexpr  auto kInitialLengthCounter = 256;
 
-constexpr std::array<uint8_t, 16> kInitialWaveRam {{ 0x84, 0x40, 0x43, 0xAA, 0x2D, 0x78, 0x92, 0x3C, 0x60, 0x59, 0x59, 0xB0, 0x34, 0xB8, 0x2E, 0xDA }};
+constexpr std::array<u8, 16> kInitialWaveRam {{ 0x84, 0x40, 0x43, 0xAA, 0x2D, 0x78, 0x92, 0x3C, 0x60, 0x59, 0x59, 0xB0, 0x34, 0xB8, 0x2E, 0xDA }};
 
-constexpr std::array<uint8_t, 5> kDefaultMasks {{ 0x7f, 0xff, 0x9f, 0xff, 0xbf }};
+constexpr std::array<u8, 5> kDefaultMasks {{ 0x7f, 0xff, 0x9f, 0xff, 0xbf }};
 
 WaveChannel::WaveChannel(): wave_pattern_ram_ { kInitialWaveRam }, masks_ { kDefaultMasks } {
 }
@@ -34,7 +34,7 @@ void WaveChannel::PowerOff() {
   regs.fill(0);
 }
 
-void WaveChannel::Write(AudioRegister reg, uint8_t value) {
+void WaveChannel::Write(AudioRegister reg, u8 value) {
   const auto idx = std::to_underlying(reg);
   regs[idx] = value;
 
@@ -59,7 +59,7 @@ void WaveChannel::Write(AudioRegister reg, uint8_t value) {
   }
 }
 
-uint8_t WaveChannel::Read(AudioRegister reg) const {
+u8 WaveChannel::Read(AudioRegister reg) const {
   const auto idx = std::to_underlying(reg);
   return regs[idx] | masks_[idx];
 }
@@ -78,7 +78,7 @@ float WaveChannel::Sample() const {
   return 1.0f - (static_cast<float>(byte) / 7.5f);
 }
 
-uint8_t WaveChannel::ReadWave(uint8_t idx) const {
+u8 WaveChannel::ReadWave(u8 idx) const {
   if (enable_channel_) {
     spdlog::info("wave channel read:{} = {:02x}, enable_channel:{}, last_read:{}", wave_index_, wave_pattern_ram_[wave_index_], enable_channel_, last_read_);
     if (last_read_) {
@@ -89,7 +89,7 @@ uint8_t WaveChannel::ReadWave(uint8_t idx) const {
   return wave_pattern_ram_[idx];
 }
 
-void WaveChannel::SetWave(uint8_t idx, uint8_t byte) {
+void WaveChannel::SetWave(u8 idx, u8 byte) {
   if (enable_channel_) {
     if (last_read_) {
       wave_pattern_ram_[idx] = byte;
@@ -156,11 +156,11 @@ void WaveChannel::TickEnvenlope() {
 void WaveChannel::TickSweep() {
 }
 
-uint16_t WaveChannel::SetFrequency() const {
+u16 WaveChannel::SetFrequency() const {
   return nrx3 | (nrx4.period << 8);
 }
 
-void WaveChannel::SetFrequency(uint16_t freq) {
+void WaveChannel::SetFrequency(u16 freq) {
   nrx3 = freq & 0xff;
   nrx4.period = (freq >> 8) & 0b111;
 }

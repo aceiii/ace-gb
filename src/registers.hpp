@@ -37,50 +37,50 @@ enum class Reg16 {
 };
 
 struct Registers {
-  std::array<uint8_t, std::to_underlying(Reg8::Count)> vals {};
-  uint16_t pc {};
-  uint16_t sp {};
+  std::array<u8, std::to_underlying(Reg8::Count)> vals {};
+  u16 pc {};
+  u16 sp {};
 
-  uint8_t& At(Reg8 reg) {
+  u8& At(Reg8 reg) {
     ZoneScoped;
     return vals[std::to_underlying(reg)];
   }
 
-  [[nodiscard]] uint8_t Get(Reg8 reg) const {
+  [[nodiscard]] u8 Get(Reg8 reg) const {
     ZoneScoped;
     return vals[std::to_underlying(reg)];
   }
 
-  void Set(Reg8 reg, uint8_t val) {
+  void Set(Reg8 reg, u8 val) {
     ZoneScoped;
     vals[std::to_underlying(reg)] = val & (reg == Reg8::F ? 0xf0 : 0xff);
   }
 
-  [[nodiscard]] uint16_t Get(Reg16 reg) const {
+  [[nodiscard]] u16 Get(Reg16 reg) const {
     ZoneScoped;
     int idx = std::to_underlying(reg);
     return (vals[idx] << 8) | vals[idx + 1];
   }
 
-  void Set(Reg16 reg, uint16_t val) {
+  void Set(Reg16 reg, u16 val) {
     ZoneScoped;
     int idx = std::to_underlying(reg);
     vals[idx] = val >> 8;
     vals[idx + 1] = val & (reg == Reg16::AF ? 0xf0 : 0xff);
   }
 
-  [[nodiscard]] uint8_t Get(Flag flag) const {
+  [[nodiscard]] u8 Get(Flag flag) const {
     ZoneScoped;
     return (vals[std::to_underlying(Reg8::F)] >> std::to_underlying(flag)) & 1;
   }
 
-  void Set(Flag flag, uint8_t bit) {
+  void Set(Flag flag, u8 bit) {
     ZoneScoped;
     auto& val = vals[std::to_underlying(Reg8::F)];
     val = (val & ~(1 << std::to_underlying(flag))) | ((bit & 1) << std::to_underlying(flag));
   }
 
-  void SetFlags(uint8_t flag_bits) {
+  void SetFlags(u8 flag_bits) {
     ZoneScoped;
     auto& val = vals[std::to_underlying(Reg8::F)];
     val = (flag_bits & 0xf) << 4;

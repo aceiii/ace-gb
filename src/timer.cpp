@@ -5,7 +5,7 @@
 #include "cpu.hpp"
 
 namespace {
-  constexpr uint16_t kTimerFreqs[] = {
+  constexpr u16 kTimerFreqs[] = {
     kClockSpeed / 4096,
     kClockSpeed / 262144,
     kClockSpeed / 65535,
@@ -15,7 +15,7 @@ namespace {
 
 Timer::Timer(InterruptDevice& interrupts):interrupts_{interrupts} {}
 
-bool Timer::IsValidFor(uint16_t addr) const {
+bool Timer::IsValidFor(u16 addr) const {
   switch (addr) {
 //    case std::to_underlying(IO::DIV)-1:
     case std::to_underlying(IO::DIV):
@@ -27,7 +27,7 @@ bool Timer::IsValidFor(uint16_t addr) const {
   }
 }
 
-void Timer::Write8(uint16_t addr, uint8_t byte) {
+void Timer::Write8(u16 addr, u8 byte) {
   ZoneScoped;
   switch (addr) {
 //    case std::to_underlying(IO::DIV)-1:
@@ -49,7 +49,7 @@ void Timer::Write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-uint8_t Timer::Read8(uint16_t addr) const {
+u8 Timer::Read8(u16 addr) const {
   ZoneScoped;
   switch (addr) {
 //    case std::to_underlying(IO::DIV)-1:
@@ -73,7 +73,7 @@ void Timer::Reset() {
   regs_.tac = 0;
 }
 
-void Timer::Execute(uint8_t cycles) {
+void Timer::Execute(u8 cycles) {
   ZoneScoped;
   regs_.div += cycles;
 
@@ -100,6 +100,6 @@ void Timer::OnTick() {
   Execute(4);
 }
 
-uint16_t Timer::div() const {
+u16 Timer::div() const {
   return regs_.div >> 8;
 }

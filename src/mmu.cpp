@@ -11,7 +11,7 @@ void Mmu::AddDevice(MmuDevicePtr device) {
   devices_.emplace_back(device);
 }
 
-void Mmu::Write8(uint16_t addr, uint8_t byte) {
+void Mmu::Write8(u16 addr, u8 byte) {
   ZoneScoped;
   for (auto& device : devices_) {
     if (device->IsValidFor(addr)) {
@@ -22,7 +22,7 @@ void Mmu::Write8(uint16_t addr, uint8_t byte) {
   spdlog::error("No device implemented for address: 0x{:02x}", addr);
 }
 
-uint8_t Mmu::Read8(uint16_t addr) const {
+u8 Mmu::Read8(u16 addr) const {
   ZoneScoped;
   for (const auto& device : devices_) {
     if (device->IsValidFor(addr)) {

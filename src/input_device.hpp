@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types.hpp"
 #include "mmu_device.hpp"
 #include "joypad.hpp"
 #include "interrupt_device.hpp"
@@ -9,23 +10,23 @@ struct InputRegister {
     struct {
       union {
         struct {
-          uint8_t a_right: 1;
-          uint8_t b_left: 1;
-          uint8_t select_up: 1;
-          uint8_t start_down: 1;
+          u8 a_right: 1;
+          u8 b_left: 1;
+          u8 select_up: 1;
+          u8 start_down: 1;
         };
-        uint8_t buttons : 4;
+        u8 buttons : 4;
       };
       union {
         struct {
-          uint8_t sel_buttons: 1;
-          uint8_t sel_dpad: 1;
+          u8 sel_buttons: 1;
+          u8 sel_dpad: 1;
         };
-        uint8_t select : 2;
+        u8 select : 2;
       };
-      uint8_t unused: 2;
+      u8 unused: 2;
     };
-    uint8_t val;
+    u8 val;
   };
 
   inline void reset() {
@@ -37,9 +38,9 @@ class InputDevice : public MmuDevice {
 public:
   explicit InputDevice(InterruptDevice& interrupts);
 
-  [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
-  void Write8(uint16_t addr, uint8_t byte) override;
-  [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
+  [[nodiscard]] bool IsValidFor(u16 addr) const override;
+  void Write8(u16 addr, u8 byte) override;
+  [[nodiscard]] u8 Read8(u16 addr) const override;
   void Reset() override;
 
   void Update(JoypadButton button, bool pressed);

@@ -1,18 +1,20 @@
 #pragma once
 
+#include "types.hpp"
 #include "mmu_device.hpp"
 #include "interrupt.hpp"
+
 
 struct InterruptRegister {
   union {
     struct {
-      uint8_t vblank: 1;
-      uint8_t lcd: 1;
-      uint8_t timer: 1;
-      uint8_t serial: 1;
-      uint8_t joypad: 1;
+      u8 vblank: 1;
+      u8 lcd: 1;
+      u8 timer: 1;
+      u8 serial: 1;
+      u8 joypad: 1;
     };
-    uint8_t val;
+    u8 val;
   };
 
   void reset() {
@@ -22,9 +24,9 @@ struct InterruptRegister {
 
 class InterruptDevice : public MmuDevice {
 public:
-  [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
-  void Write8(uint16_t addr, uint8_t byte) override;
-  [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
+  [[nodiscard]] bool IsValidFor(u16 addr) const override;
+  void Write8(u16 addr, u8 byte) override;
+  [[nodiscard]] u8 Read8(u16 addr) const override;
   void Reset() override;
 
   void EnableInterrupt(Interrupt interrupt);

@@ -10,15 +10,15 @@ constexpr int kWaveRamEnd = kWaveRamStart + 15;
 Audio::Audio(Timer& timer, audio_config cfg) : timer_{ timer }, config_{ cfg } {
 }
 
-bool Audio::IsValidFor(uint16_t addr) const {
+bool Audio::IsValidFor(u16 addr) const {
   return addr >= kAudioStart && addr <= kAudioEnd;
 }
 
-void Audio::Write8(uint16_t addr, uint8_t byte) {
+void Audio::Write8(u16 addr, u8 byte) {
   if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
     ch3_.SetWave(addr - kWaveRamStart, byte);
   } else if (addr == std::to_underlying(IO::NR52)) {
-    uint8_t enable_audio = byte >> 7;
+    u8 enable_audio = byte >> 7;
     nr52_.val = byte;
     if (!enable_audio) {
       PowerOff();
@@ -48,7 +48,7 @@ void Audio::Write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-uint8_t Audio::Read8(uint16_t addr) const {
+u8 Audio::Read8(u16 addr) const {
   if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
     return ch3_.ReadWave(addr - kWaveRamStart);
   }
@@ -61,7 +61,7 @@ uint8_t Audio::Read8(uint16_t addr) const {
   }
   if (addr == std::to_underlying(IO::NR52)) {
     auto hi = ((nr52_.val | 0b01110000) & 0b11110000);
-    uint8_t lo = (ch1_.IsEnabled() & 0b1) | ((ch2_.IsEnabled() & 0b1) << 1) | ((ch3_.IsEnabled() & 0b1) << 2) | ((ch4_.IsEnabled() & 0b1) << 3);
+    u8 lo = (ch1_.IsEnabled() & 0b1) | ((ch2_.IsEnabled() & 0b1) << 1) | ((ch3_.IsEnabled() & 0b1) << 2) | ((ch4_.IsEnabled() & 0b1) << 3);
     spdlog::info("NR52: {:08b}, div_timer:{}", (hi | lo), timer_.div());
     return hi | lo;
   }

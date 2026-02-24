@@ -8,18 +8,18 @@
 
 class Mbc5 : public MemoryBankController {
 public:
-  explicit Mbc5(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool has_battery, bool has_rumble);
+  explicit Mbc5(const std::vector<u8>& bytes, CartInfo info, bool has_ram, bool has_battery, bool has_rumble);
 
-  [[nodiscard]] uint8_t ReadRom0(uint16_t addr) const override;
-  [[nodiscard]] uint8_t ReadRom1(uint16_t addr) const override;
-  [[nodiscard]] uint8_t ReadRam(uint16_t addr) const override;
+  [[nodiscard]] u8 ReadRom0(u16 addr) const override;
+  [[nodiscard]] u8 ReadRom1(u16 addr) const override;
+  [[nodiscard]] u8 ReadRam(u16 addr) const override;
 
-  void WriteReg(uint16_t addr, uint8_t byte) override;
-  void WriteRam(uint16_t addr, uint8_t byte) override;
+  void WriteReg(u16 addr, u8 byte) override;
+  void WriteRam(u16 addr, u8 byte) override;
 
 private:
-  using rom_bank = std::array<uint8_t, 16384>;
-  using ram_bank = std::array<uint8_t, 8192>;
+  using rom_bank = std::array<u8, 16384>;
+  using ram_bank = std::array<u8, 8192>;
 
   std::array<rom_bank, 512> rom_ {};
   std::array<ram_bank, 16> ram_ {};
@@ -27,6 +27,6 @@ private:
   CartInfo info_;
   bool ram_enable_ = false;
 
-  uint16_t rom_bank_number_ = 1;
-  uint8_t ram_bank_number_ = 0;
+  u16 rom_bank_number_ = 1;
+  u8 ram_bank_number_ = 0;
 };

@@ -4,14 +4,14 @@
 
 #include "square_channel.hpp"
 
-std::array<uint8_t, 4> waveforms {{
+std::array<u8, 4> waveforms {{
   0b00000001,
   0b10000001,
   0b10000111,
   0b01111110,
 }};
 
-constexpr std::array<uint8_t, 5> defaultMask(bool sweep) {
+constexpr std::array<u8, 5> defaultMask(bool sweep) {
   if (sweep) {
     return { 0x80, 0x3f, 0x00, 0xff, 0xbf };
   }
@@ -51,7 +51,7 @@ void SquareChannel::PowerOff() {
   regs.fill(0);
 }
 
-void SquareChannel::Write(AudioRegister reg, uint8_t value) {
+void SquareChannel::Write(AudioRegister reg, u8 value) {
   const auto idx = std::to_underlying(reg);
   const auto prev_direction = nrx0.period_sweep_direction;
   regs[idx] = value;
@@ -68,14 +68,14 @@ void SquareChannel::Write(AudioRegister reg, uint8_t value) {
         period_.timer = 0;
         period_.current = 0;
       }
-//      spdlog::info("NRx0: {:02x}, sweep_step:{}, sweep_direction:{}, sweep_pace:{}, length_counter:{}", value, static_cast<uint8_t>(nrx0.period_sweep_step), static_cast<uint8_t>(nrx0.period_sweep_direction), static_cast<uint8_t>(nrx0.period_sweep_pace), length_counter);
+//      spdlog::info("NRx0: {:02x}, sweep_step:{}, sweep_direction:{}, sweep_pace:{}, length_counter:{}", value, static_cast<u8>(nrx0.period_sweep_step), static_cast<u8>(nrx0.period_sweep_direction), static_cast<u8>(nrx0.period_sweep_pace), length_counter);
       break;
     case AudioRegister::NRx1:
       length_counter_ = kInitialLengthCounter - nrx1.initial_length_timer;
-//      spdlog::info("NRx1: {:02x}, initial_length_timer: {}, length_counter:{}", value, static_cast<uint8_t>(nrx1.initial_length_timer), length_counter);
+//      spdlog::info("NRx1: {:02x}, initial_length_timer: {}, length_counter:{}", value, static_cast<u8>(nrx1.initial_length_timer), length_counter);
       break;
     case AudioRegister::NRx2:
-//      spdlog::info("NRx2: {:02x}, initial_volume: {}, envelope_direction:{}, sweep_pace:{}", value, static_cast<uint8_t>(nrx2.initial_volume), static_cast<uint8_t>(nrx2.envelope_direction), static_cast<uint8_t>(nrx2.envelope_sweep_pace));
+//      spdlog::info("NRx2: {:02x}, initial_volume: {}, envelope_direction:{}, sweep_pace:{}", value, static_cast<u8>(nrx2.initial_volume), static_cast<u8>(nrx2.envelope_direction), static_cast<u8>(nrx2.envelope_sweep_pace));
       volume_ = nrx2.initial_volume;
       envelope_timer_ = nrx2.envelope_sweep_pace;
       if (!nrx2.dac) {
@@ -86,7 +86,7 @@ void SquareChannel::Write(AudioRegister reg, uint8_t value) {
 //      spdlog::info("NRx3: {:02x}", value);
       break;
     case AudioRegister::NRx4:
-//      spdlog::info("NRx4: {:02x}, trigger:{}, length_enable:{}, period:{}", value, static_cast<uint8_t>(nrx4.trigger), static_cast<uint8_t>(nrx4.length_enable), static_cast<uint8_t>(nrx4.period));
+//      spdlog::info("NRx4: {:02x}, trigger:{}, length_enable:{}, period:{}", value, static_cast<u8>(nrx4.trigger), static_cast<u8>(nrx4.length_enable), static_cast<u8>(nrx4.period));
       if (nrx4.trigger) {
         Trigger();
       }
@@ -95,7 +95,7 @@ void SquareChannel::Write(AudioRegister reg, uint8_t value) {
   }
 }
 
-uint8_t SquareChannel::Read(AudioRegister reg) const {
+u8 SquareChannel::Read(AudioRegister reg) const {
   const auto idx = std::to_underlying(reg);
   return regs[idx] | masks_[idx];
 }
@@ -235,8 +235,8 @@ void SquareChannel::TickSweep() {
   }
 }
 
-uint16_t SquareChannel::CalcSweep() {
-//  spdlog::info("square_channel calc_sweep: enable_sweep:{}, period_sweep_step:{}, period_sweep_pace:{}", enable_sweep, static_cast<uint8_t>(nrx0.period_sweep_step), static_cast<uint8_t>(nrx0.period_sweep_pace));
+u16 SquareChannel::CalcSweep() {
+//  spdlog::info("square_channel calc_sweep: enable_sweep:{}, period_sweep_step:{}, period_sweep_pace:{}", enable_sweep, static_cast<u8>(nrx0.period_sweep_step), static_cast<u8>(nrx0.period_sweep_pace));
   auto val = period_.current >> nrx0.period_sweep_step;
   if (nrx0.period_sweep_direction) {
     val = period_.current - val;
@@ -253,11 +253,11 @@ uint16_t SquareChannel::CalcSweep() {
   return val;
 }
 
-uint16_t SquareChannel::GetFrequency() const {
+u16 SquareChannel::GetFrequency() const {
   return nrx3 | (nrx4.period << 8);
 }
 
-void SquareChannel::SetFrequency(uint16_t freq) {
+void SquareChannel::SetFrequency(u16 freq) {
   nrx3 = freq & 0xff;
   nrx4.period = (freq >> 8) & 0b111;
 }

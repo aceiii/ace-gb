@@ -6,15 +6,15 @@
 
 
 struct TimerRegisters {
-  uint16_t div;
-  uint8_t tima;
-  uint8_t tma;
+  u16 div;
+  u8 tima;
+  u8 tma;
   union {
-    uint8_t tac;
+    u8 tac;
     struct {
-      uint8_t clock_select : 2;
-      uint8_t enable_tima : 1;
-      uint8_t : 5;
+      u8 clock_select : 2;
+      u8 enable_tima : 1;
+      u8 : 5;
     };
   };
 };
@@ -23,18 +23,18 @@ class Timer : public MmuDevice, public SyncedDevice {
 public:
   explicit Timer(InterruptDevice& interrupts);
 
-  [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
-  void Write8(uint16_t addr, uint8_t byte) override;
-  [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
+  [[nodiscard]] bool IsValidFor(u16 addr) const override;
+  void Write8(u16 addr, u8 byte) override;
+  [[nodiscard]] u8 Read8(u16 addr) const override;
   void Reset() override;
 
-  void Execute(uint8_t cycles);
+  void Execute(u8 cycles);
   void OnTick() override;
 
-  uint16_t div() const;
+  u16 div() const;
 
 private:
   InterruptDevice& interrupts_;
-  uint16_t tima_counter_;
+  u16 tima_counter_;
   TimerRegisters regs_;
 };

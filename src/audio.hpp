@@ -37,9 +37,9 @@ class Audio : public MmuDevice, public SyncedDevice {
 public:
   explicit Audio(Timer& timer, audio_config cfg);
 
-  [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
-  void Write8(uint16_t addr, uint8_t byte) override;
-  [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
+  [[nodiscard]] bool IsValidFor(u16 addr) const override;
+  void Write8(u16 addr, u8 byte) override;
+  [[nodiscard]] u8 Read8(u16 addr) const override;
   void Reset() override;
   void PowerOff();
 
@@ -58,47 +58,47 @@ private:
   Timer& timer_;
   audio_config config_;
 
-  uint8_t frame_sequencer_ {};
-  uint16_t frame_sequencer_counter_ {};
-  uint16_t sample_timer_ {};
+  u8 frame_sequencer_ {};
+  u16 frame_sequencer_counter_ {};
+  u16 sample_timer_ {};
   std::array<bool, 5> enable_channel_ {{ true, true, true, true, true }};
   std::array<float, kSampleBufferMaxSize> sample_buffer_ {};
-  uint16_t buffer_write_idx_ {};
-  uint16_t buffer_read_idx_ {};
+  u16 buffer_write_idx_ {};
+  u16 buffer_read_idx_ {};
 
   union {
-    uint8_t val;
+    u8 val;
     struct {
-      uint8_t right_volume: 3;
-      uint8_t vin_right: 1;
-      uint8_t left_volume: 3;
-      uint8_t vin_left: 1;
+      u8 right_volume: 3;
+      u8 vin_right: 1;
+      u8 left_volume: 3;
+      u8 vin_left: 1;
     };
   } nr50_ {};
 
   union {
-    uint8_t val;
+    u8 val;
     struct {
-      uint8_t ch1_right: 1;
-      uint8_t ch2_right: 1;
-      uint8_t ch3_right: 1;
-      uint8_t ch4_right: 1;
-      uint8_t ch1_left: 1;
-      uint8_t ch2_left: 1;
-      uint8_t ch3_left: 1;
-      uint8_t ch4_left: 1;
+      u8 ch1_right: 1;
+      u8 ch2_right: 1;
+      u8 ch3_right: 1;
+      u8 ch4_right: 1;
+      u8 ch1_left: 1;
+      u8 ch2_left: 1;
+      u8 ch3_left: 1;
+      u8 ch4_left: 1;
     };
   } nr51_ {};
 
   union {
-    uint8_t val;
+    u8 val;
     struct {
-      uint8_t ch1: 1;
-      uint8_t ch2: 1;
-      uint8_t ch3: 1;
-      uint8_t ch4: 1;
-      uint8_t unused: 3;
-      uint8_t audio: 1;
+      u8 ch1: 1;
+      u8 ch2: 1;
+      u8 ch3: 1;
+      u8 ch4: 1;
+      u8 unused: 3;
+      u8 audio: 1;
     };
   } nr52_ {};
 

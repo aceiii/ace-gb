@@ -3,10 +3,10 @@
 
 #include "mbc5.hpp"
 
-constexpr uint16_t kLogoStart = 0x0104;
-constexpr uint16_t kLogoEnd = 0x0133;
+constexpr u16 kLogoStart = 0x0104;
+constexpr u16 kLogoEnd = 0x0133;
 
-Mbc5::Mbc5(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool has_battery, bool has_rumble): info_ {std::move(info)} {
+Mbc5::Mbc5(const std::vector<u8>& bytes, CartInfo info, bool has_ram, bool has_battery, bool has_rumble): info_ {std::move(info)} {
   size_t size_left = bytes.size();
   auto byte_it = bytes.begin();
 
@@ -18,22 +18,22 @@ Mbc5::Mbc5(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool 
   }
 }
 
-uint8_t Mbc5::ReadRom0(uint16_t addr) const {
+u8 Mbc5::ReadRom0(u16 addr) const {
   return rom_[0][addr];
 }
 
-uint8_t Mbc5::ReadRom1(uint16_t addr) const {
+u8 Mbc5::ReadRom1(u16 addr) const {
   return rom_[rom_bank_number_ % info_.rom_num_banks][addr & 0x3fff];
 }
 
-uint8_t Mbc5::ReadRam(uint16_t addr) const {
+u8 Mbc5::ReadRam(u16 addr) const {
   if (!ram_enable_) {
     return 0xff;
   }
   return ram_[ram_bank_number_ % info_.ram_num_banks][addr & 0x1fff];
 }
 
-void Mbc5::WriteReg(uint16_t addr, uint8_t byte) {
+void Mbc5::WriteReg(u16 addr, u8 byte) {
   if (addr <= 0x1fff) {
     ram_enable_ = (byte & 0b1111) == 0x0a;
   } else if (addr <= 0x2fff) {
@@ -45,7 +45,7 @@ void Mbc5::WriteReg(uint16_t addr, uint8_t byte) {
   }
 }
 
-void Mbc5::WriteRam(uint16_t addr, uint8_t byte) {
+void Mbc5::WriteRam(u16 addr, u8 byte) {
   if (!ram_enable_) {
     return;
   }

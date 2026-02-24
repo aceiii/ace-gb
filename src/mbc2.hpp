@@ -3,27 +3,29 @@
 #include <cstdint>
 #include <vector>
 
+#include "types.hpp"
 #include "cart_info.hpp"
 #include "memory_bank_controller.hpp"
 
+
 class Mbc2 : public MemoryBankController {
 public:
-  explicit Mbc2(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool has_battery);
+  explicit Mbc2(const std::vector<u8>& bytes, CartInfo info, bool has_ram, bool has_battery);
 
-  [[nodiscard]] uint8_t ReadRom0(uint16_t addr) const override;
-  [[nodiscard]] uint8_t ReadRom1(uint16_t addr) const override;
-  [[nodiscard]] uint8_t ReadRam(uint16_t addr) const override;
+  [[nodiscard]] u8 ReadRom0(u16 addr) const override;
+  [[nodiscard]] u8 ReadRom1(u16 addr) const override;
+  [[nodiscard]] u8 ReadRam(u16 addr) const override;
 
-  void WriteReg(uint16_t addr, uint8_t byte) override;
-  void WriteRam(uint16_t addr, uint8_t byte) override;
+  void WriteReg(u16 addr, u8 byte) override;
+  void WriteRam(u16 addr, u8 byte) override;
 
 private:
-  using rom_bank = std::array<uint8_t, 16384>;
+  using rom_bank = std::array<u8, 16384>;
 
   std::array<rom_bank, 16> rom_ {};
-  std::array<uint8_t, 512> ram_ {};
+  std::array<u8, 512> ram_ {};
   CartInfo info_;
 
   bool ram_enable_ = false;
-  uint16_t rom_bank_number_ = 1;
+  u16 rom_bank_number_ = 1;
 };

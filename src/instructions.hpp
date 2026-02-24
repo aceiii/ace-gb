@@ -8,6 +8,7 @@
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
+#include "types.hpp"
 #include "opcodes.hpp"
 #include "overloaded.h"
 #include "registers.hpp"
@@ -37,29 +38,29 @@ struct Operands_Reg16 {
 };
 
 struct Operands_Imm8 {
-  uint8_t imm;
+  u8 imm;
 };
 
 struct Operands_Imm8_Literal {
-  uint8_t imm;
+  u8 imm;
 };
 
 struct Operands_Imm8_Literal_Reg8 {
-  uint8_t imm;
+  u8 imm;
   Reg8 reg;
 };
 
 struct Operands_Imm8_Literal_Reg16_Ptr {
-  uint16_t imm;
+  u16 imm;
   Reg16 reg;
 };
 
 struct Operands_Offset {
-  int8_t offset;
+  i8 offset;
 };
 
 struct Operands_Imm16 {
-  uint16_t imm;
+  u16 imm;
 };
 
 struct Operands_Reg8_Reg8 {
@@ -69,7 +70,7 @@ struct Operands_Reg8_Reg8 {
 
 struct Operands_Reg8_Imm8 {
   Reg8 reg;
-  uint8_t imm;
+  u8 imm;
 };
 
 struct Operands_Reg16_Reg16 {
@@ -79,17 +80,17 @@ struct Operands_Reg16_Reg16 {
 
 struct Operands_Reg16_Imm16 {
   Reg16 reg;
-  uint16_t imm;
+  u16 imm;
 };
 
 struct Operands_Cond_Imm16 {
   Cond cond;
-  uint16_t imm;
+  u16 imm;
 };
 
 struct Operands_Cond_Offset {
   Cond cond;
-  int8_t offset;
+  i8 offset;
 };
 
 struct Operands_SP_Reg16 {
@@ -97,24 +98,24 @@ struct Operands_SP_Reg16 {
 };
 
 struct Operands_SP_Imm16 {
-  uint16_t imm;
+  u16 imm;
 };
 
 struct Operands_SP_Offset {
-  int8_t offset;
+  i8 offset;
 };
 
 struct Operands_Imm16_Ptr_Reg8 {
-  uint16_t addr;
+  u16 addr;
   Reg8 reg;
 };
 
 struct Operands_Imm16_Ptr_SP {
-  uint16_t addr;
+  u16 addr;
 };
 
 struct Operands_Imm8_Ptr_Reg8 {
-  uint8_t addr;
+  u8 addr;
   Reg8 reg;
 };
 
@@ -145,12 +146,12 @@ struct Operands_Reg8_Ptr_Reg8 {
 
 struct Operands_Reg8_Imm8_Ptr {
   Reg8 reg;
-  uint8_t addr;
+  u8 addr;
 };
 
 struct Operands_Reg8_Imm16_Ptr {
   Reg8 reg;
-  uint16_t addr;
+  u16 addr;
 };
 
 struct Operands_Reg16_SP {
@@ -159,7 +160,7 @@ struct Operands_Reg16_SP {
 
 struct Operands_Reg16_SP_Offset {
   Reg16 reg;
-  int8_t offset;
+  i8 offset;
 };
 
 struct Operands_Reg16_Ptr {
@@ -178,7 +179,7 @@ struct Operands_Reg16_Ptr_Inc_Reg8 {
 
 struct Operands_Reg16_Ptr_Imm8 {
   Reg16 reg;
-  uint8_t imm;
+  u8 imm;
 };
 
 struct Operands_Reg16_Ptr_Dec_Reg8 {
@@ -228,9 +229,9 @@ typedef std::variant<
 
 struct Instruction {
   Opcode opcode;
-  uint8_t bytes;
-  uint8_t cycles;
-  uint8_t cycles_cond;
+  u8 bytes;
+  u8 cycles;
+  u8 cycles_cond;
   Operands operands;
 };
 

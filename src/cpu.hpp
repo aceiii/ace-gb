@@ -1,5 +1,10 @@
 #pragma once
 
+#include <memory>
+#include <valarray>
+#include <vector>
+
+#include "types.hpp"
 #include "decoder.hpp"
 #include "registers.hpp"
 #include "memory.h"
@@ -8,10 +13,6 @@
 #include "interrupt.hpp"
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
-
-#include <memory>
-#include <valarray>
-#include <vector>
 
 
 constexpr size_t kClockSpeed = 4194304;
@@ -37,16 +38,16 @@ public:
   explicit Cpu(Mmu& mmu, InterruptDevice& interrupts);
 
   void Reset();
-  uint8_t Execute();
-  uint8_t ReadNext8();
-  uint16_t ReadNext16();
+  u8 Execute();
+  u8 ReadNext8();
+  u16 ReadNext16();
 
-  uint8_t Read8(uint16_t addr);
-  void Write8(uint16_t addr, uint8_t val);
-  uint16_t Read16(uint16_t addr);
-  void Write16(uint16_t addr, uint16_t val);
-  void Push16(uint16_t val);
-  uint16_t Pop16();
+  u8 Read8(u16 addr);
+  void Write8(u16 addr, u8 val);
+  u16 Read16(u16 addr);
+  void Write16(u16 addr, u16 val);
+  void Push16(u16 val);
+  u16 Pop16();
 
   void AddSyncedDevice(SyncedDevice* device);
   void Tick();
@@ -62,5 +63,5 @@ public:
   uint64_t tick_counter = 0;
 
 private:
-  uint8_t ExecuteInterrupts();
+  u8 ExecuteInterrupts();
 };

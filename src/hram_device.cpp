@@ -1,14 +1,14 @@
 #include "hram_device.hpp"
 
-bool HramDevice::IsValidFor(uint16_t addr) const {
+bool HramDevice::IsValidFor(u16 addr) const {
   return addr >= kHramStart && addr <= kHramEnd;
 }
 
-void HramDevice::Write8(uint16_t addr, uint8_t byte) {
+void HramDevice::Write8(u16 addr, u8 byte) {
   ram_[addr - kHramStart] = byte;
 }
 
-uint8_t HramDevice::Read8(uint16_t addr) const {
+u8 HramDevice::Read8(u16 addr) const {
   return ram_[addr - kHramStart];
 }
 

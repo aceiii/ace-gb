@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "types.hpp"
 #include "cpu.hpp"
 #include "ppu.hpp"
 #include "registers.hpp"
@@ -37,7 +38,7 @@ public:
   void Play();
   void Stop();
 
-  void LoadCartBytes(std::vector<uint8_t> bytes);
+  void LoadCartBytes(std::vector<u8> bytes);
   [[nodiscard]] bool IsPlaying() const;
   void SetSkipBootRom(bool skip);
   [[nodiscard]] bool ShouldSkipBootRom() const;
@@ -47,17 +48,17 @@ public:
   [[nodiscard]] size_t GetTotalCycles() const;
   [[nodiscard]] PPUMode GetMode() const;
   [[nodiscard]] Instruction GetCurrentInstruction() const;
-  [[nodiscard]] uint8_t Read8(uint16_t addr) const;
-  [[nodiscard]] uint16_t Read16(uint16_t addr) const;
-  void Write8(uint16_t addr, uint8_t byte);
+  [[nodiscard]] u8 Read8(u16 addr) const;
+  [[nodiscard]] u16 Read16(u16 addr) const;
+  void Write8(u16 addr, u8 byte);
 
   [[nodiscard]] const Texture2D& GetTargetLCD() const;
   [[nodiscard]] const RenderTexture2D& GetTargetTiles() const;
-  [[nodiscard]] const RenderTexture2D& GetTargetTilemap(uint8_t id) const;
+  [[nodiscard]] const RenderTexture2D& GetTargetTilemap(u8 id) const;
   [[nodiscard]] const RenderTexture2D& GetTargetSprites() const;
 
-  void AddBreakPoint(uint16_t addr);
-  void RemoveBreakPoint(uint16_t addr);
+  void AddBreakPoint(u16 addr);
+  void RemoveBreakPoint(u16 addr);
   void ClearBreakPoints();
 
   void UpdateInput(JoypadButton btn, bool pressed);
@@ -91,9 +92,9 @@ private:
   InputDevice input_device_;
   SerialDevice serial_device_;
 
-  std::array<uint8_t, kBootRomSize> boot_rom_;
-  std::vector<uint8_t> cart_bytes_;
-  std::set<uint16_t> breakpoints_;
+  std::array<u8, kBootRomSize> boot_rom_;
+  std::vector<u8> cart_bytes_;
+  std::set<u16> breakpoints_;
 
   std::vector<float> sample_bufffer_ {};
 

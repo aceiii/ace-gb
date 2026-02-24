@@ -4,7 +4,7 @@
 #include "interrupt_device.hpp"
 #include "io.hpp"
 
-bool InterruptDevice::IsValidFor(uint16_t addr) const {
+bool InterruptDevice::IsValidFor(u16 addr) const {
   switch (addr) {
     case std::to_underlying(IO::IF):
     case std::to_underlying(IO::IE):
@@ -13,7 +13,7 @@ bool InterruptDevice::IsValidFor(uint16_t addr) const {
   }
 }
 
-void InterruptDevice::Write8(uint16_t addr, uint8_t byte) {
+void InterruptDevice::Write8(u16 addr, u8 byte) {
   switch (addr) {
     case std::to_underlying(IO::IF):
       flag_.val = byte;
@@ -25,7 +25,7 @@ void InterruptDevice::Write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-uint8_t InterruptDevice::Read8(uint16_t addr) const {
+u8 InterruptDevice::Read8(u16 addr) const {
   switch (addr) {
     case std::to_underlying(IO::IF):
       return flag_.val | 0b11100000;

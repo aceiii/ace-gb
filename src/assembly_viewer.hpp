@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types.hpp"
 #include "emulator.hpp"
 
 
@@ -9,9 +10,9 @@ public:
   void Draw();
 
 private:
-  std::string GetInstruction(uint16_t addr) const;
-  std::string Decode(uint8_t op, uint8_t imm8, uint16_t imm16) const;
-  std::string DecodePrefixed(uint8_t op) const;
+  std::string GetInstruction(u16 addr) const;
+  std::string Decode(u8 op, u8 imm8, u16 imm16) const;
+  std::string DecodePrefixed(u8 op) const;
 
   bool auto_scroll_ = true;
   Emulator* emulator_;

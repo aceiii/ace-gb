@@ -10,18 +10,18 @@ constexpr size_t kEchoRamEnd = 0xFDFF;
 
 }
 
-bool WramDevice::IsValidFor(uint16_t addr) const {
+bool WramDevice::IsValidFor(u16 addr) const {
   return addr >= kWramStart && addr <= kEchoRamEnd;
 }
 
-void WramDevice::Write8(uint16_t addr, uint8_t byte) {
+void WramDevice::Write8(u16 addr, u8 byte) {
   auto wram_addr = addr - kWramStart;
   if (wram_addr < wram.size()) {
     wram[wram_addr] = byte;
   }
 }
 
-uint8_t WramDevice::Read8(uint16_t addr) const {
+u8 WramDevice::Read8(u16 addr) const {
   auto wram_addr = addr - kWramStart;
   if (wram_addr < wram.size()) {
     return wram[wram_addr];

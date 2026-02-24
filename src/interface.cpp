@@ -240,25 +240,25 @@ static auto SpdLogTraceLog(int log_level, const char* text, va_list args) -> voi
   }
 }
 
-static uint8_t MemEditorCustomRead(const uint8_t* data, size_t offset, void* user_data) {
+static u8 MemEditorCustomRead(const u8* data, size_t offset, void* user_data) {
   auto emulator = static_cast<Emulator*>(user_data);
   return emulator->Read8(offset);
 }
 
-static void MemEditorCustomWrite(uint8_t* data, size_t offset, uint8_t d, void* user_data) {
+static void MemEditorCustomWrite(u8* data, size_t offset, u8 d, void* user_data) {
   auto emulator = static_cast<Emulator*>(user_data);
   emulator->Write8(offset, d);
 }
 
-static uint32_t MemEditorCustomBgColor(const uint8_t* data, size_t offset, void* user_data) {
+static u32 MemEditorCustomBgColor(const u8* data, size_t offset, void* user_data) {
   auto emulator = static_cast<Emulator*>(user_data);
 
-  uint16_t pc = emulator->GetRegisters().pc;
+  u16 pc = emulator->GetRegisters().pc;
   if (pc == offset || pc == offset + 1) {
     return IM_COL32(128, 24, 21, 255);
   }
 
-  uint16_t sp = emulator->GetRegisters().sp;
+  u16 sp = emulator->GetRegisters().sp;
   if (sp == offset || sp == offset + 1) {
     return IM_COL32(32, 72, 128, 255);
   }
@@ -544,7 +544,7 @@ void HandleUploadFile(std::string const &filename, std::string const &mime_type,
   }
 
   spdlog::info("Loading cartridge: filename={}, mime={}, buffer_size={}", filename, mime_type, buffer.size());
-  std::vector<uint8_t> rom_bytes(buffer.begin(), buffer.end());
+  std::vector<u8> rom_bytes(buffer.begin(), buffer.end());
   emulator->LoadCartBytes(std::move(rom_bytes));
 }
 

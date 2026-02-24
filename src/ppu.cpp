@@ -7,19 +7,19 @@
 
 namespace {
 
-constexpr uint16_t kLCDWidth = 160;
-constexpr uint16_t kLCDHeight = 144;
+constexpr u16 kLCDWidth = 160;
+constexpr u16 kLCDHeight = 144;
 
-constexpr uint16_t kVRAMAddrStart = 0x8000;
-constexpr uint16_t kVRAMAddrEnd = 0x9FFF;
-constexpr uint16_t kVRAMRelStart = 0x9000;
+constexpr u16 kVRAMAddrStart = 0x8000;
+constexpr u16 kVRAMAddrEnd = 0x9FFF;
+constexpr u16 kVRAMRelStart = 0x9000;
 
-constexpr uint16_t kOAMAddrStart = 0xFE00;
-constexpr uint16_t kOAMAddrEnd = 0xFE9F;
+constexpr u16 kOAMAddrStart = 0xFE00;
+constexpr u16 kOAMAddrEnd = 0xFE9F;
 
-constexpr uint16_t kExtRamBusStart = 0xA000;
-constexpr uint16_t kExtRamBusEnd = 0xDFFF;
-constexpr uint16_t kExtRamBusMask = kExtRamBusEnd - kExtRamBusStart;
+constexpr u16 kExtRamBusStart = 0xA000;
+constexpr u16 kExtRamBusEnd = 0xDFFF;
+constexpr u16 kExtRamBusMask = kExtRamBusEnd - kExtRamBusStart;
 
 constexpr size_t kDotsPerOAM = 80;
 constexpr size_t kDotsPerDraw = 172;
@@ -34,19 +34,19 @@ constexpr std::array<Color, 4> kLCDPalette {
 
 }
 
-inline uint8_t get_palette_index(uint8_t id, uint8_t palette) {
+inline u8 get_palette_index(u8 id, u8 palette) {
   return (palette >> (2 * id)) & 0b11;
 }
 
-inline uint16_t addr_mode_8000(uint8_t addr) {
+inline u16 addr_mode_8000(u8 addr) {
   return kVRAMAddrStart + addr * 16;
 }
 
-inline uint16_t addr_mode_8800(uint8_t addr) {
-  return kVRAMRelStart + (static_cast<int8_t>(addr) * 16);
+inline u16 addr_mode_8800(u8 addr) {
+  return kVRAMRelStart + (static_cast<i8>(addr) * 16);
 }
 
-inline uint16_t addr_with_mode(uint8_t mode, uint8_t addr) {
+inline u16 addr_with_mode(u8 mode, u8 addr) {
   return mode ? addr_mode_8000(addr) : addr_mode_8800(addr);
 }
 
@@ -155,17 +155,17 @@ void Ppu::SwapLcdTargets() {
 
 void Ppu::DrawLcdRow() {
   ZoneScoped;
-  static std::array<uint8_t, kLCDWidth> bg_win_pixels;
+  static std::array<u8, kLCDWidth> bg_win_pixels;
   bg_win_pixels.fill(0);
 
   if (regs_.lcdc.bg_window_enable) {
     const bool enable_window_flag = regs_.lcdc.window_enable &&
       regs_.wx >= 0 && regs_.wx <= 166 && regs_.wy >= 0 && regs_.wy <= 143;
-    const uint8_t y = regs_.ly;
+    const u8 y = regs_.ly;
 
-    uint8_t py = regs_.scy + y;
-    uint8_t ty = (py >> 3 ) & 31;
-    uint8_t row = py % 8;
+    u8 py = regs_.scy + y;
+    u8 ty = (py >> 3 ) & 31;
+    u8 row = py % 8;
 
     bool enable_window = false;
     for (auto x = 0; x < kLCDWidth; x += 1) {
@@ -178,18 +178,18 @@ void Ppu::DrawLcdRow() {
 
       auto& tilemap = vram_.tile_map[enable_window ? regs_.lcdc.window_tilemap_area : regs_.lcdc.bg_tilemap_area];
 
-      uint8_t px = enable_window ? x - (regs_.wx - 7) : regs_.scx + x;
-      uint8_t tx = (px >> 3) & 31;
-      uint8_t sub_x = px % 8;
+      u8 px = enable_window ? x - (regs_.wx - 7) : regs_.scx + x;
+      u8 tx = (px >> 3) & 31;
+      u8 sub_x = px % 8;
 
       auto map_idx = (ty * 32) + tx;
       auto tile_id = tilemap[map_idx];
       auto tile_idx = (addr_with_mode(regs_.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
       auto tile = vram_.tile_data[tile_idx];
 
-      uint16_t hi = (tile[row] >> 8) >> (7 - sub_x);
-      uint8_t lo = tile[row] >> (7 - sub_x);
-      uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
+      u16 hi = (tile[row] >> 8) >> (7 - sub_x);
+      u8 lo = tile[row] >> (7 - sub_x);
+      u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
       auto cid = get_palette_index(bits, regs_.bgp);
       auto color = kLCDPalette[cid];
@@ -225,13 +225,13 @@ void Ppu::DrawLcdRow() {
       }
     }
 
-    static std::array<uint8_t, kLCDWidth> sprite_prio;
+    static std::array<u8, kLCDWidth> sprite_prio;
     sprite_prio.fill(0xff);
 
     for (const auto sprite : valid_sprites) {
       auto top = sprite->y - 16;
       auto row = sprite->attrs.y_flip ? height - (y - top) - 1  : y - top;
-      uint8_t tile_id = sprite->tile;
+      u8 tile_id = sprite->tile;
       if (regs_.lcdc.sprite_size) {
         if (row < 8) {
           tile_id &= 0xfe;
@@ -258,9 +258,9 @@ void Ppu::DrawLcdRow() {
         }
 
         auto xi = sprite->attrs.x_flip ? x - left : 7 - (x - left);
-        uint16_t hi = (tile[row % 8] >> 8) >> xi;
-        uint8_t lo = tile[row % 8] >> xi;
-        uint8_t bits = ((hi & 0b1) << 1) | (lo & 0b1);
+        u16 hi = (tile[row % 8] >> 8) >> xi;
+        u8 lo = tile[row % 8] >> xi;
+        u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
         if (bits) {
         auto cid = get_palette_index(bits, palette);
@@ -306,10 +306,10 @@ void Ppu::UpdateRenderTargets() {
     int y = 0;
     for (auto& tile : vram_.tile_data) {
       for (int row = 0; row < tile.size(); row += 1) {
-        uint16_t hi = (tile[row] >> 8) << 1;
-        uint8_t lo = tile[row];
+        u16 hi = (tile[row] >> 8) << 1;
+        u8 lo = tile[row];
         for (int b = 7; b >= 0; b -= 1) {
-          uint8_t bits = (hi & 0b10) | (lo & 0b1);
+          u8 bits = (hi & 0b10) | (lo & 0b1);
           auto color = kLCDPalette[bits];
           DrawPixel((x * 8) + b, (y * 8) + row, color);
 
@@ -488,7 +488,7 @@ void Ppu::UpdateRenderTargets() {
   EndTextureMode();
 }
 
-bool Ppu::IsValidFor(uint16_t addr) const {
+bool Ppu::IsValidFor(u16 addr) const {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     return true;
   }
@@ -504,7 +504,7 @@ bool Ppu::IsValidFor(uint16_t addr) const {
   return false;
 }
 
-void Ppu::Write8(uint16_t addr, uint8_t byte) {
+void Ppu::Write8(u16 addr, u8 byte) {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     vram_.bytes[addr - kVRAMAddrStart] = byte;
     return;
@@ -542,7 +542,7 @@ void Ppu::Write8(uint16_t addr, uint8_t byte) {
   }
 }
 
-uint8_t Ppu::Read8(uint16_t addr) const {
+u8 Ppu::Read8(u16 addr) const {
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     return vram_.bytes[addr - kVRAMAddrStart];
   }

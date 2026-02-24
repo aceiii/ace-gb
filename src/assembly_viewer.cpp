@@ -43,7 +43,7 @@ void AssemblyViewer::Draw() {
 
     while (clipper.Step()) {
       for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i += 1) {
-        auto addr = static_cast<uint16_t>(i);
+        auto addr = static_cast<u16>(i);
         std::string instruction_text = GetInstruction(addr);
         bool is_current_line = addr == regs.pc;
         bool is_greyed_out = instruction_text.empty() || instruction_text == "NOP";
@@ -91,7 +91,7 @@ void AssemblyViewer::Draw() {
   ImGui::EndChild();
 }
 
-std::string AssemblyViewer::Decode(uint8_t op, uint8_t imm8, uint16_t imm16) const {
+std::string AssemblyViewer::Decode(u8 op, u8 imm8, u16 imm16) const {
   switch (op) {
   case 0x00: return "NOP";
   case 0x01: return std::format("LD BC, ${:04X}", imm16);
@@ -343,7 +343,7 @@ std::string AssemblyViewer::Decode(uint8_t op, uint8_t imm8, uint16_t imm16) con
   }
 }
 
-std::string AssemblyViewer::DecodePrefixed(uint8_t op) const {
+std::string AssemblyViewer::DecodePrefixed(u8 op) const {
   switch (op) {
   case 0x00: return "RLC B";
   case 0x01: return "RLC C";
@@ -636,9 +636,9 @@ std::string AssemblyViewer::DecodePrefixed(uint8_t op) const {
   }
 }
 
-std::string AssemblyViewer::GetInstruction(uint16_t addr) const {
-  uint8_t op = emulator_->Read8(addr);
-  uint8_t imm8 = emulator_->Read8(addr+1);
-  uint16_t imm16 = emulator_->Read16(addr+1);
+std::string AssemblyViewer::GetInstruction(u16 addr) const {
+  u8 op = emulator_->Read8(addr);
+  u8 imm8 = emulator_->Read8(addr+1);
+  u16 imm16 = emulator_->Read16(addr+1);
   return Decode(op, imm8, imm16);
 }

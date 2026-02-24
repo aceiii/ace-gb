@@ -5,9 +5,9 @@
 
 constexpr auto kInitialLengthCounter = 64;
 
-constexpr std::array<uint8_t, 5> kDefaultMasks {{ 0xff, 0xff, 0x00, 0x00, 0xbf }};
+constexpr std::array<u8, 5> kDefaultMasks {{ 0xff, 0xff, 0x00, 0x00, 0xbf }};
 
-uint8_t clock_divisor(uint8_t div) {
+u8 clock_divisor(u8 div) {
   if (!div) {
     return 8;
   }
@@ -40,7 +40,7 @@ void NoiseChannel::PowerOff() {
   nrx1.initial_length_timer = initial_length_timer;
 }
 
-void NoiseChannel::Write(AudioRegister reg, uint8_t value) {
+void NoiseChannel::Write(AudioRegister reg, u8 value) {
   auto prev_clock_divider = nrx3.clock_divider;
 
   const auto idx = std::to_underlying(reg);
@@ -70,7 +70,7 @@ void NoiseChannel::Write(AudioRegister reg, uint8_t value) {
   }
 }
 
-uint8_t NoiseChannel::Read(AudioRegister reg) const {
+u8 NoiseChannel::Read(AudioRegister reg) const {
   const auto idx = std::to_underlying(reg);
   return regs[idx] | masks[idx];
 }

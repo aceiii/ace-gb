@@ -4,13 +4,14 @@
 
 #include "mmu_device.hpp"
 
+
 class WramDevice : public MmuDevice {
 public:
-  [[nodiscard]] bool IsValidFor(uint16_t addr) const override;
-  void Write8(uint16_t addr, uint8_t byte) override;
-  [[nodiscard]] uint8_t Read8(uint16_t addr) const override;
+  [[nodiscard]] bool IsValidFor(u16 addr) const override;
+  void Write8(u16 addr, u8 byte) override;
+  [[nodiscard]] u8 Read8(u16 addr) const override;
   void Reset() override;
 
 public:
-  std::array<uint8_t, 8192> wram;
+  std::array<u8, 8192> wram;
 };

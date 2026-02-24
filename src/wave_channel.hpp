@@ -2,7 +2,9 @@
 
 #include <array>
 
+#include "types.hpp"
 #include "audio_channel.hpp"
+
 
 class WaveChannel : public AudioChannel {
 public:
@@ -10,62 +12,62 @@ public:
 
   void Reset() override;
   void PowerOff() override;
-  void Write(AudioRegister reg, uint8_t value) override;
-  uint8_t Read(AudioRegister reg) const override;
+  void Write(AudioRegister reg, u8 value) override;
+  u8 Read(AudioRegister reg) const override;
   float Sample() const override;
   void Tick() override;
   void Trigger() override;
   bool IsEnabled() const override;
 
-  uint8_t ReadWave(uint8_t idx) const;
-  void SetWave(uint8_t idx, uint8_t byte);
+  u8 ReadWave(u8 idx) const;
+  void SetWave(u8 idx, u8 byte);
 
 private:
   void TickLength() override;
   void TickEnvenlope() override;
   void TickSweep() override;
 
-  uint16_t SetFrequency() const;
-  void SetFrequency(uint16_t freq);
+  u16 SetFrequency() const;
+  void SetFrequency(u16 freq);
 
 private:
   bool enable_channel_ {};
-  uint16_t length_counter_ {};
-  uint16_t timer_ {};
-  uint8_t volume_ {};
-  uint8_t wave_index_ {};
-  uint8_t buffer_ {};
-  uint16_t last_read_ {};
+  u16 length_counter_ {};
+  u16 timer_ {};
+  u8 volume_ {};
+  u8 wave_index_ {};
+  u8 buffer_ {};
+  u16 last_read_ {};
 
-  std::array<uint8_t, 16> wave_pattern_ram_;
-  std::array<uint8_t, 5> masks_;
+  std::array<u8, 16> wave_pattern_ram_;
+  std::array<u8, 5> masks_;
 
   union {
-    std::array<uint8_t, 5> regs {};
+    std::array<u8, 5> regs {};
 
     struct {
       struct {
-        uint8_t : 7;
-        uint8_t dac : 1;
+        u8 : 7;
+        u8 dac : 1;
       } nrx0;
 
       struct {
-        uint8_t initial_length_timer : 8;
+        u8 initial_length_timer : 8;
       } nrx1;
 
       struct {
-        uint8_t : 5;
-        uint8_t output_level : 2;
-        uint8_t : 1;
+        u8 : 5;
+        u8 output_level : 2;
+        u8 : 1;
       } nrx2;
 
-      uint8_t nrx3;
+      u8 nrx3;
 
       struct {
-        uint8_t period : 3;
-        uint8_t : 3;
-        uint8_t length_enable : 1;
-        uint8_t trigger : 1;
+        u8 period : 3;
+        u8 : 3;
+        u8 length_enable : 1;
+        u8 trigger : 1;
       } nrx4;
     };
   };

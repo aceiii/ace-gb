@@ -9,8 +9,8 @@ public:
   void ClearDevices();
   void AddDevice(MmuDevicePtr device);
 
-  [[nodiscard]] uint8_t Read8(uint16_t addr) const;
-  void Write8(uint16_t addr, uint8_t byte);
+  [[nodiscard]] u8 Read8(u16 addr) const;
+  void Write8(u16 addr, u8 byte);
 
   void ResetDevices();
 

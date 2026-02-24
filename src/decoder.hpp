@@ -1,10 +1,11 @@
 #pragma once
 
+#include "types.hpp"
 #include "instructions.hpp"
 #include "registers.hpp"
 
 
 namespace Decoder {
-  Instruction Decode(uint8_t byte);
-  Instruction DecodePrefixed(uint8_t byte);
+  Instruction Decode(u8 byte);
+  Instruction DecodePrefixed(u8 byte);
 };

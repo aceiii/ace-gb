@@ -91,6 +91,7 @@ set(SOURCE_FILES
         src/wave_channel.hpp
         src/wram_device.cpp
         src/wram_device.hpp
+        src/types.hpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)

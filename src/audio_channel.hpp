@@ -1,6 +1,7 @@
 #pragma once
 
-#include <cstdint>
+#include "types.hpp"
+
 
 enum class AudioRegister {
   NRx0 = 0,
@@ -17,14 +18,14 @@ public:
 
   virtual void Reset() = 0;
   virtual void PowerOff() = 0;
-  virtual void Write(AudioRegister reg, uint8_t value) = 0;
-  virtual uint8_t Read(AudioRegister reg) const = 0;
+  virtual void Write(AudioRegister reg, u8 value) = 0;
+  virtual u8 Read(AudioRegister reg) const = 0;
   virtual float Sample() const = 0;
   virtual void Tick() = 0;
   virtual void Trigger() = 0;
   virtual bool IsEnabled() const = 0;
 
-  void Clock(uint8_t sequence) {
+  void Clock(u8 sequence) {
     if (sequence == 7) {
       TickEnvenlope();
     } else if (sequence == 2 || sequence == 6) {

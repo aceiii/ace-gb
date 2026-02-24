@@ -8,16 +8,16 @@
 class NoMbc : public MemoryBankController {
 public:
   explicit NoMbc() = default;
-  explicit NoMbc(const std::vector<uint8_t>& bytes);
+  explicit NoMbc(const std::vector<u8>& bytes);
 
-  [[nodiscard]] uint8_t ReadRom0(uint16_t addr) const override;
-  [[nodiscard]] uint8_t ReadRom1(uint16_t addr) const override;
-  [[nodiscard]] uint8_t ReadRam(uint16_t addr) const override;
+  [[nodiscard]] u8 ReadRom0(u16 addr) const override;
+  [[nodiscard]] u8 ReadRom1(u16 addr) const override;
+  [[nodiscard]] u8 ReadRam(u16 addr) const override;
 
-  void WriteReg(uint16_t addr, uint8_t byte) override;
-  void WriteRam(uint16_t addr, uint8_t byte) override;
+  void WriteReg(u16 addr, u8 byte) override;
+  void WriteRam(u16 addr, u8 byte) override;
 
 private:
-  std::array<uint8_t, 32 * 1024> rom_ {};
-  std::array<uint8_t, 8 * 1024> ram_ {};
+  std::array<u8, 32 * 1024> rom_ {};
+  std::array<u8, 8 * 1024> ram_ {};
 };

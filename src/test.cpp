@@ -17,21 +17,21 @@ using json = nlohmann::json;
 
 constexpr size_t kTestMemSize = 65536;
 
-using TestMemory = std::array<uint8_t, kTestMemSize>;
+using TestMemory = std::array<u8, kTestMemSize>;
 
 class TestMemoryDevice : public MmuDevice {
 public:
   explicit TestMemoryDevice(TestMemory& mem_):mem_{mem_} {}
 
-  bool IsValidFor(uint16_t addr) const override {
+  bool IsValidFor(u16 addr) const override {
     return true;
   }
 
-  void Write8(uint16_t addr, uint8_t byte) override {
+  void Write8(u16 addr, u8 byte) override {
     mem_[addr] = byte;
   }
 
-  [[nodiscard]] uint8_t Read8(uint16_t addr) const override {
+  [[nodiscard]] u8 Read8(u16 addr) const override {
     return mem_[addr];
   }
 
@@ -58,22 +58,22 @@ struct TestResult {
 };
 
 void LoadRegisters(const json& data, Registers& regs) {
-  regs.Set(Reg8::A, data.at("a").get<uint8_t>());
-  regs.Set(Reg8::B, data.at("b").get<uint8_t>());
-  regs.Set(Reg8::C, data.at("c").get<uint8_t>());
-  regs.Set(Reg8::D, data.at("d").get<uint8_t>());
-  regs.Set(Reg8::E, data.at("e").get<uint8_t>());
-  regs.Set(Reg8::F, data.at("f").get<uint8_t>());
-  regs.Set(Reg8::H, data.at("h").get<uint8_t>());
-  regs.Set(Reg8::L, data.at("l").get<uint8_t>());
-  regs.pc = data.at("pc").get<uint16_t>();
-  regs.sp = data.at("sp").get<uint16_t>();
+  regs.Set(Reg8::A, data.at("a").get<u8>());
+  regs.Set(Reg8::B, data.at("b").get<u8>());
+  regs.Set(Reg8::C, data.at("c").get<u8>());
+  regs.Set(Reg8::D, data.at("d").get<u8>());
+  regs.Set(Reg8::E, data.at("e").get<u8>());
+  regs.Set(Reg8::F, data.at("f").get<u8>());
+  regs.Set(Reg8::H, data.at("h").get<u8>());
+  regs.Set(Reg8::L, data.at("l").get<u8>());
+  regs.pc = data.at("pc").get<u16>();
+  regs.sp = data.at("sp").get<u16>();
 }
 
 void LoadMemory(const json& data, TestMemory& mem) {
   for (const auto& ram : data.items()) {
-    auto addr = ram.value().at(0).get<uint16_t>();
-    auto val = ram.value().at(1).get<uint16_t>();
+    auto addr = ram.value().at(0).get<u16>();
+    auto val = ram.value().at(1).get<u16>();
     spdlog::debug("load_memory: {:02x} => {:02x}", addr, val);
     mem[addr] = val;
   }
@@ -81,8 +81,8 @@ void LoadMemory(const json& data, TestMemory& mem) {
 
 bool CheckMemory(const json& data, const TestMemory& mem) {
   for (const auto& ram : data.items()) {
-    auto addr = ram.value().at(0).get<uint16_t>();
-    auto val = ram.value().at(1).get<uint8_t>();
+    auto addr = ram.value().at(0).get<u16>();
+    auto val = ram.value().at(1).get<u8>();
     if (mem[addr] != val) {
       return false;
     }
@@ -90,12 +90,12 @@ bool CheckMemory(const json& data, const TestMemory& mem) {
   return true;
 }
 
-std::vector<std::tuple<std::string, uint8_t, uint8_t>> MismatchedRegisters(const Registers& regs, const Registers& target) {
-  std::vector<std::tuple<std::string, uint8_t, uint8_t>> failed;
+std::vector<std::tuple<std::string, u8, u8>> MismatchedRegisters(const Registers& regs, const Registers& target) {
+  std::vector<std::tuple<std::string, u8, u8>> failed;
   for (int i = 0; i < std::to_underlying(Reg8::Count); i += 1) {
     Reg8 r {i};
-    uint8_t a = regs.get(r);
-    uint8_t b = target.get(r);
+    u8 a = regs.get(r);
+    u8 b = target.get(r);
     if (a != b) {
       failed.emplace_back(magic_enum::enum_name(r), a, b);
     }
@@ -112,11 +112,11 @@ std::vector<std::tuple<std::string, uint8_t, uint8_t>> MismatchedRegisters(const
   return failed;
 }
 
-std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> MismatchedMemory(const json& data, const TestMemory& mem) {
-  std::vector<std::tuple<uint16_t, uint8_t, uint8_t>> failed;
+std::vector<std::tuple<u16, u8, u8>> MismatchedMemory(const json& data, const TestMemory& mem) {
+  std::vector<std::tuple<u16, u8, u8>> failed;
   for (const auto& ram : data.items()) {
-    auto addr = ram.value().at(0).get<uint16_t>();
-    auto val = ram.value().at(1).get<uint8_t>();
+    auto addr = ram.value().at(0).get<u16>();
+    auto val = ram.value().at(1).get<u8>();
     auto mem_val = mem[addr];
     if (mem_val != val) {
       failed.emplace_back(addr, mem_val, val);

@@ -3,10 +3,10 @@
 
 #include "mbc1.hpp"
 
-constexpr uint16_t kLogoStart = 0x0104;
-constexpr uint16_t kLogoEnd = 0x0133;
+constexpr u16 kLogoStart = 0x0104;
+constexpr u16 kLogoEnd = 0x0133;
 
-Mbc1::Mbc1(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool has_battery): info_ {std::move(info)} {
+Mbc1::Mbc1(const std::vector<u8>& bytes, CartInfo info, bool has_ram, bool has_battery): info_ {std::move(info)} {
   size_t size_left = bytes.size();
   auto byte_it = bytes.begin();
 
@@ -23,7 +23,7 @@ Mbc1::Mbc1(const std::vector<uint8_t>& bytes, CartInfo info, bool has_ram, bool 
   }
 }
 
-uint8_t Mbc1::ReadRom0(uint16_t addr) const {
+u8 Mbc1::ReadRom0(u16 addr) const {
   if (mbc1m_ && banking_mode_) {
       return rom_[(ram_bank_number << 4) % info_.rom_num_banks][addr];
   }
@@ -35,8 +35,8 @@ uint8_t Mbc1::ReadRom0(uint16_t addr) const {
   return rom_[(ram_bank_number << 5) % info_.rom_num_banks][addr];
 }
 
-uint8_t Mbc1::ReadRom1(uint16_t addr) const {
-  uint16_t bank = rom_bank_number & 0b11111;
+u8 Mbc1::ReadRom1(u16 addr) const {
+  u16 bank = rom_bank_number & 0b11111;
   if (bank == 0) {
     bank = 1;
   }
@@ -52,7 +52,7 @@ uint8_t Mbc1::ReadRom1(uint16_t addr) const {
   return rom_[bank % info_.rom_num_banks][addr & 0x3fff];
 }
 
-uint8_t Mbc1::ReadRam(uint16_t addr) const {
+u8 Mbc1::ReadRam(u16 addr) const {
   if (!ram_enable_ | !info_.ram_size_bytes) {
     return 0xff;
   }
@@ -61,7 +61,7 @@ uint8_t Mbc1::ReadRam(uint16_t addr) const {
   return ram_[bank_idx][addr & 0x1fff];
 }
 
-void Mbc1::WriteReg(uint16_t addr, uint8_t byte) {
+void Mbc1::WriteReg(u16 addr, u8 byte) {
   if (addr <= 0x1fff) {
     ram_enable_ = (byte & 0b1111) == 0x0a;
     return;
@@ -80,7 +80,7 @@ void Mbc1::WriteReg(uint16_t addr, uint8_t byte) {
   banking_mode_ = byte & 0b1;
 }
 
-void Mbc1::WriteRam(uint16_t addr, uint8_t byte) {
+void Mbc1::WriteRam(u16 addr, u8 byte) {
   if (!ram_enable_ || !info_.ram_num_banks) {
     return;
   }

@@ -2,11 +2,11 @@
 
 #include "null_device.h"
 
-[[nodiscard]] bool NullDevice::IsValidFor(uint16_t addr) const {
+[[nodiscard]] bool NullDevice::IsValidFor(u16 addr) const {
   return true;
 }
 
-void NullDevice::Write8(uint16_t addr, uint8_t byte) {
+void NullDevice::Write8(u16 addr, u8 byte) {
   if (auto it = overrides.find(addr); it != overrides.end() && it->second.writeable) {
     it->second.value = byte;
   }
@@ -14,9 +14,9 @@ void NullDevice::Write8(uint16_t addr, uint8_t byte) {
   spdlog::warn("NullDevice: Write to 0x{:02x} = {:02x}", addr, byte);
 }
 
-[[nodiscard]] uint8_t NullDevice::Read8(uint16_t addr) const {
+[[nodiscard]] u8 NullDevice::Read8(u16 addr) const {
   if (auto it = overrides.find(addr); it != overrides.end()) {
-    uint8_t val = it->second.value | it->second.mask;
+    u8 val = it->second.value | it->second.mask;
     spdlog::info("NullDevice: Read from override:0x{:02x} -> {:02x}", addr, val);
     return it->second.value | it->second.mask;
   }
@@ -28,6 +28,6 @@ void NullDevice::Write8(uint16_t addr, uint8_t byte) {
 void NullDevice::Reset() {
 }
 
-void NullDevice::add_override(uint16_t addr, uint8_t default_value, bool writable, uint8_t mask) {
+void NullDevice::add_override(u16 addr, u8 default_value, bool writable, u8 mask) {
   overrides[addr] = { default_value, writable, mask };
 }

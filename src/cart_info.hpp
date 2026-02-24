@@ -2,8 +2,10 @@
 
 #include <string>
 
+#include "types.hpp"
 
-enum class CartType : uint8_t {
+
+enum class CartType : u8 {
   ROM_ONLY = 0x00,
   MBC1 = 0x01,
   MBC1_RAM = 0x02,
@@ -34,7 +36,7 @@ enum class CartType : uint8_t {
   HUC1_RAM_BATTERY = 0xFF,
 };
 
-enum class RamType : uint8_t {
+enum class RamType : u8 {
   NO_RAM = 0x00,
   UNUSED = 0x01,
   BANKS_1 = 0X02,
