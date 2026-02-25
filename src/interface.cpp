@@ -958,11 +958,14 @@ void Interface::RenderMainMenu() {
     }
 
     ImGui::Separator();
+#if defined(__EMSCRIPTEN__)
+    ImGui::MenuItem("Exit", nullptr, nullptr, false);
+#else
     if (ImGui::MenuItem("Exit")) {
       spdlog::info("Exiting...");
       should_close_ = true;
     }
-
+#endif
     ImGui::EndMenu();
   }
   if (ImGui::BeginMenu("Emulator")) {
