@@ -135,6 +135,10 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     target_include_directories(${EXE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external/emscripten-browser-file)
 
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
+
+    target_link_options(raylib PUBLIC
+        "-sEXPORTED_RUNTIME_METHODS=['ccall','HEAPU8','HEAPF32']")
+
     target_link_options(${EXE_NAME} PUBLIC
         "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
         "-sSTACK_SIZE=8MB"
