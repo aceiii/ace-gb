@@ -359,6 +359,9 @@ Interface::Interface(Args args)
     // pass
   }
 
+#if defined(__EMSCRIPTEN__)
+  config_.settings.lock_framerate = true;
+#endif
   if (config_.settings.lock_framerate) {
     SetTargetFPS(kLockedFrameRate);
   }
@@ -1041,6 +1044,9 @@ void Interface::RenderMainMenu() {
     ImGui::MenuItem("Input", nullptr, &config_.settings.show_input);
     ImGui::MenuItem("Logs", nullptr, &config_.settings.show_logs);
     ImGui::Separator();
+#if defined(__EMSCRIPTEN__)
+    ImGui::MenuItem("Lock FrameRate", nullptr, true, false);
+#else
     if (ImGui::MenuItem("Lock FrameRate", nullptr, &config_.settings.lock_framerate)) {
       if (config_.settings.lock_framerate) {
         SetTargetFPS(kLockedFrameRate);
@@ -1048,6 +1054,7 @@ void Interface::RenderMainMenu() {
         SetTargetFPS(0);
       }
     }
+#endif
     if (ImGui::MenuItem("Show Scanlines", nullptr, &config_.settings.show_scanlines)) {
       if (IsShaderValid(g_screen_shader)) {
         UnloadShader(g_screen_shader);
