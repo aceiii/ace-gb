@@ -6,7 +6,7 @@ varying vec2 fragTexCoord;
 
 uniform sampler2D texture0;
 
-const float renderHeight = 144;
+const float renderHeight = 144.0;
 float offset = 0.0;
 
 void main() {
