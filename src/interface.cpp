@@ -540,24 +540,43 @@ void Interface::RenderError() {
 
 #if defined(__EMSCRIPTEN__)
 
-void HandleUploadFile(std::string const &filename, std::string const &mime_type, std::string_view buffer, void *callback_data) {
-  auto emulator = reinterpret_cast<Emulator*>(callback_data);
-  if (filename.empty()) {
-    return;
-  }
+namespace {
+  bool g_was_playing = false;
+}
 
+void HandleUploadFile(std::string const &filename, std::string const &mime_type, std::string_view buffer, void *callback_data) {
+  auto interface = reinterpret_cast<Interface*>(callback_data);
   spdlog::info("Loading cartridge: filename={}, mime={}, buffer_size={}", filename, mime_type, buffer.size());
-  std::vector<u8> rom_bytes(buffer.begin(), buffer.end());
-  emulator->LoadCartBytes(std::move(rom_bytes));
+  return interface->LoadCartridgeCallback(buffer);
 }
 
 void Interface::LoadCartridge() {
-  bool was_playing = emulator_.IsPlaying();
+  g_was_playing = emulator_.IsPlaying();
   emulator_.Stop();
-  emscripten_browser_file::upload(".gb,.bin,.rom", HandleUploadFile, &emulator_);
+  emscripten_browser_file::upload(".gb,.bin,.rom", HandleUploadFile, this);
+}
+
+void Interface::LoadCartridgeCallback(std::string_view buffer) {
+  if (buffer.empty()) {
+    if (g_was_playing) {
+      emulator_.Play();
+    }
+    return;
+  }
+
+  spdlog::info("File upload succeeded...");
+  std::vector<u8> rom_bytes(buffer.begin(), buffer.end());
+  emulator_.LoadCartBytes(std::move(rom_bytes));
+
+  if (config_.settings.auto_start) {
+    Play();
+  }
 }
 
 #else
+
+void Interface::LoadCartidgeCallback(std::string_view) {
+}
 
 void Interface::LoadCartridge() {
   bool was_playing = emulator_.IsPlaying();
