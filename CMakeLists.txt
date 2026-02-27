@@ -136,8 +136,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
 
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
-    target_link_options(raylib PUBLIC
-        "-sEXPORTED_RUNTIME_METHODS=['ccall','HEAPU8','HEAPF32']")
+    set(EXPORTED_RUNTIME_METHODS "ccall,requestFullscreen,HEAPU8,HEAPF32")
+
+    target_link_options(raylib PUBLIC "-sEXPORTED_RUNTIME_METHODS=${EXPORTED_RUNTIME_METHODS}") # for some reason this requires NO brackets
 
     target_link_options(${EXE_NAME} PUBLIC
         "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
@@ -145,7 +146,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
         "-sASYNCIFY"
         "-sTOTAL_STACK=64MB"
         "-sINITIAL_MEMORY=128MB"
-        "-sEXPORTED_RUNTIME_METHODS=[ccall,HEAPU8,HEAPF32]"
+        "-sEXPORTED_RUNTIME_METHODS=[${EXPORTED_RUNTIME_METHODS}]" # for some reason this one requires the brackets
         "-sEXPORTED_FUNCTIONS=[_main,_malloc,_free]"
         "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources@resources"
         "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/roms/dmg_boot.bin@boot.bin"
