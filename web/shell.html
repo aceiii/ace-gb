@@ -9,10 +9,10 @@
       .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
       textarea.emscripten { font-family: monospace; width: 80%; }
       div.emscripten { text-align: center; }
-      div.emscripten_border { position: relative; border: 0px solid black; margin: 16px; }
-      div.emscripten_loader { position: absolute; top: 0; left: 0; right: 0; bottom: 0; align-content: center; }
+      div.emscripten_border { position: relative; border: 0px solid black; margin: 0; }
+      div.emscripten_loader { position: absolute; top: 0; left: 0; right: 0; bottom: 0; align-content: center; pointer-events: none; }
       /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
-      canvas.emscripten { border: 0px none; width: 100%; height: 100%; max-height: calc(100vh - 32px); }
+      canvas.emscripten { border: 0px none; width: 100%; height: 100%; max-height: calc(100vh - 32px); background: black; }
 
       .spinner {
         height: 50px;
