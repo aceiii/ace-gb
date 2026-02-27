@@ -27,7 +27,7 @@
 	url = https://github.com/Neargye/magic_enum.git
 [submodule "external/raylib"]
 	path = external/raylib
-	url = https://github.com/aceiii/raylib.git
+	url = https://github.com/raysan5/raylib.git
 [submodule "external/json"]
 	path = external/json
 	url = https://github.com/nlohmann/json.git
