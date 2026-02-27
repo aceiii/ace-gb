@@ -4,6 +4,7 @@
 #include <raylib.h>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <magic_enum/magic_enum.hpp>
 #include <misc/cpp/imgui_stdlib.h>
 #include <rlImGui.h>
 #include <spdlog/spdlog.h>
@@ -26,6 +27,7 @@
 #include "interface.hpp"
 #include "emulator.hpp"
 #include "file.hpp"
+#include "joypad.hpp"
 
 
 #if defined(PLATFORM_DESKTOP)
@@ -68,6 +70,17 @@ std::function<void(std::span<float>)> g_audio_callback;
 
 RenderTexture2D g_screen_target;
 Shader g_screen_shader;
+
+std::array<bool, magic_enum::enum_integer(JoypadButton::COUNT)> g_button_state {};
+
+}
+
+void ClearButtonState() {
+  g_button_state.fill(false);
+}
+
+void SetButtonPressed(JoypadButton btn) {
+  g_button_state[magic_enum::enum_integer(btn)] = true;
 }
 
 enum ShaderType {
@@ -432,14 +445,16 @@ void Interface::Update() {
     UnloadDroppedFiles(dropped_files);
   }
 
-  emulator_.UpdateInput(JoypadButton::Up, IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
-  emulator_.UpdateInput(JoypadButton::Down, IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
-  emulator_.UpdateInput(JoypadButton::Left, IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
-  emulator_.UpdateInput(JoypadButton::Right, IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
-  emulator_.UpdateInput(JoypadButton::Select, IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
-  emulator_.UpdateInput(JoypadButton::Start, IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
-  emulator_.UpdateInput(JoypadButton::B, IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
-  emulator_.UpdateInput(JoypadButton::A, IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
+  emulator_.UpdateInput(JoypadButton::Up, g_button_state[magic_enum::enum_integer(JoypadButton::Up)] || IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
+  emulator_.UpdateInput(JoypadButton::Down, g_button_state[magic_enum::enum_integer(JoypadButton::Down)] || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
+  emulator_.UpdateInput(JoypadButton::Left, g_button_state[magic_enum::enum_integer(JoypadButton::Left)] || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
+  emulator_.UpdateInput(JoypadButton::Right, g_button_state[magic_enum::enum_integer(JoypadButton::Right)] || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
+  emulator_.UpdateInput(JoypadButton::Select, g_button_state[magic_enum::enum_integer(JoypadButton::Select)] || IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
+  emulator_.UpdateInput(JoypadButton::Start, g_button_state[magic_enum::enum_integer(JoypadButton::Start)] || IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
+  emulator_.UpdateInput(JoypadButton::B, g_button_state[magic_enum::enum_integer(JoypadButton::B)] || IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
+  emulator_.UpdateInput(JoypadButton::A, g_button_state[magic_enum::enum_integer(JoypadButton::A)] || IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
+
+  ClearButtonState();
 
   static double last_update = 0;
   if (emulator_.IsPlaying()) {
@@ -575,7 +590,8 @@ void Interface::LoadCartridgeCallback(std::string_view buffer) {
 
 #else
 
-void Interface::LoadCartidgeCallback(std::string_view) {
+void Interface::LoadCartridgeCallback(std::string_view) {
+  spdlog::info("This does nothing.");
 }
 
 void Interface::LoadCartridge() {
@@ -834,17 +850,15 @@ void Interface::RenderInput() {
       }
     };
 
-    static constexpr auto drawMaybeDisabled = [](bool disabled, auto draw) {
-      if (disabled) {
-        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+    static constexpr auto drawMaybePressed = [](bool pressed, auto draw) {
+      if (pressed) {
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5);
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
       }
       draw();
-      if (disabled) {
+      if (pressed) {
         ImGui::PopStyleColor();
         ImGui::PopStyleVar();
-        ImGui::PopItemFlag();
       }
     };
 
@@ -853,49 +867,73 @@ void Interface::RenderInput() {
 
     alignForWidth(288);
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
-    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Up), []() {
+    drawMaybePressed(emulator_.IsButtonPressed(JoypadButton::Up), [&]() {
       ImGui::Button(ICON_FA_CARET_UP, { 32, 32 });
+      if (ImGui::IsItemActive()) {
+        SetButtonPressed(JoypadButton::Up);
+      }
     });
 
     ImGui::SameLine(0, 32);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
-    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Select), []() {
+    drawMaybePressed(emulator_.IsButtonPressed(JoypadButton::Select), [&]() {
       ImGui::Button("select");
+      if (ImGui::IsItemActive()) {
+        SetButtonPressed(JoypadButton::Select);
+      }
     });
     ImGui::SameLine(0, 4);
-    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Start), []() {
+    drawMaybePressed(emulator_.IsButtonPressed(JoypadButton::Start), [&]() {
       ImGui::Button("start");
+      if (ImGui::IsItemActive()) {
+        SetButtonPressed(JoypadButton::Start);
+      }
     });
     ImGui::PopStyleVar();
     ImGui::PopStyleVar();
 
     ImGui::NewLine();
     alignForWidth(288);
-    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Left), []() {
+    drawMaybePressed(emulator_.IsButtonPressed(JoypadButton::Left), [&]() {
       ImGui::Button(ICON_FA_CARET_LEFT, { 32, 32 });
+      if (ImGui::IsItemActive()) {
+        SetButtonPressed(JoypadButton::Left);
+      }
     });
     ImGui::SameLine(0, 32);
-    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Right), []() {
+    drawMaybePressed(emulator_.IsButtonPressed(JoypadButton::Right), [&]() {
       ImGui::Button(ICON_FA_CARET_RIGHT, { 32, 32 });
+      if (ImGui::IsItemActive()) {
+        SetButtonPressed(JoypadButton::Right);
+      }
     });
 
     ImGui::SameLine(0, 64);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 24.0f);
-    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::B), []() {
+    drawMaybePressed(emulator_.IsButtonPressed(JoypadButton::B), [&]() {
       ImGui::Button("B", { 32, 32 });
+      if (ImGui::IsItemActive()) {
+        SetButtonPressed(JoypadButton::B);
+      }
     });
     ImGui::SameLine();
-    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::A), []() {
+    drawMaybePressed(emulator_.IsButtonPressed(JoypadButton::A), [&]() {
       ImGui::Button("A", { 32, 32 });
+      if (ImGui::IsItemActive()) {
+        SetButtonPressed(JoypadButton::A);
+      }
     });
     ImGui::PopStyleVar();
 
     ImGui::NewLine();
     alignForWidth(288);
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
-    drawMaybeDisabled(emulator_.IsButtonPressed(JoypadButton::Down), []() {
+    drawMaybePressed(emulator_.IsButtonPressed(JoypadButton::Down), [&]() {
       ImGui::Button(ICON_FA_CARET_DOWN, { 32, 32 });
+      if (ImGui::IsItemActive()) {
+        SetButtonPressed(JoypadButton::Down);
+      }
     });
 
     ImGui::PopStyleVar();

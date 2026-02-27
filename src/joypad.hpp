@@ -1,6 +1,8 @@
 #pragma once
 
-enum class JoypadButton {
+#include "types.hpp"
+
+enum class JoypadButton : u8 {
   Start,
   Select,
   Up,
@@ -9,4 +11,5 @@ enum class JoypadButton {
   Right,
   A,
   B,
+  COUNT
 };
