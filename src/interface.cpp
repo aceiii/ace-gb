@@ -445,14 +445,16 @@ void Interface::Update() {
     UnloadDroppedFiles(dropped_files);
   }
 
-  emulator_.UpdateInput(JoypadButton::Up, g_button_state[magic_enum::enum_integer(JoypadButton::Up)] || IsKeyDown(KEY_UP) || IsKeyDown(KEY_W));
-  emulator_.UpdateInput(JoypadButton::Down, g_button_state[magic_enum::enum_integer(JoypadButton::Down)] || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S));
-  emulator_.UpdateInput(JoypadButton::Left, g_button_state[magic_enum::enum_integer(JoypadButton::Left)] || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A));
-  emulator_.UpdateInput(JoypadButton::Right, g_button_state[magic_enum::enum_integer(JoypadButton::Right)] || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D));
-  emulator_.UpdateInput(JoypadButton::Select, g_button_state[magic_enum::enum_integer(JoypadButton::Select)] || IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT));
-  emulator_.UpdateInput(JoypadButton::Start, g_button_state[magic_enum::enum_integer(JoypadButton::Start)] || IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER));
-  emulator_.UpdateInput(JoypadButton::B, g_button_state[magic_enum::enum_integer(JoypadButton::B)] || IsKeyDown(KEY_J) || IsKeyDown(KEY_Z));
-  emulator_.UpdateInput(JoypadButton::A, g_button_state[magic_enum::enum_integer(JoypadButton::A)] || IsKeyDown(KEY_K) || IsKeyDown(KEY_X));
+  const int gamepad = 0;
+
+  emulator_.UpdateInput(JoypadButton::Up, g_button_state[magic_enum::enum_integer(JoypadButton::Up)] || IsKeyDown(KEY_UP) || IsKeyDown(KEY_W) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_LEFT_FACE_UP));
+  emulator_.UpdateInput(JoypadButton::Down, g_button_state[magic_enum::enum_integer(JoypadButton::Down)] || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_LEFT_FACE_DOWN));
+  emulator_.UpdateInput(JoypadButton::Left, g_button_state[magic_enum::enum_integer(JoypadButton::Left)] || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_LEFT_FACE_LEFT));
+  emulator_.UpdateInput(JoypadButton::Right, g_button_state[magic_enum::enum_integer(JoypadButton::Right)] || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_LEFT_FACE_RIGHT));
+  emulator_.UpdateInput(JoypadButton::Select, g_button_state[magic_enum::enum_integer(JoypadButton::Select)] || IsKeyDown(KEY_U) || IsKeyDown(KEY_RIGHT_SHIFT) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_MIDDLE_LEFT));
+  emulator_.UpdateInput(JoypadButton::Start, g_button_state[magic_enum::enum_integer(JoypadButton::Start)] || IsKeyDown(KEY_I) || IsKeyDown(KEY_ENTER) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_MIDDLE_RIGHT));
+  emulator_.UpdateInput(JoypadButton::B, g_button_state[magic_enum::enum_integer(JoypadButton::B)] || IsKeyDown(KEY_J) || IsKeyDown(KEY_Z) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_RIGHT_FACE_LEFT) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_RIGHT_FACE_UP));
+  emulator_.UpdateInput(JoypadButton::A, g_button_state[magic_enum::enum_integer(JoypadButton::A)] || IsKeyDown(KEY_K) || IsKeyDown(KEY_X) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT) || IsGamepadButtonDown(gamepad, GAMEPAD_BUTTON_RIGHT_FACE_DOWN));
 
   ClearButtonState();
 
