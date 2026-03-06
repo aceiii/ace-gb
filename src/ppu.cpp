@@ -25,13 +25,6 @@ constexpr size_t kDotsPerOAM = 80;
 constexpr size_t kDotsPerDraw = 172;
 constexpr size_t kDotsPerRow = 456;
 
-constexpr std::array<Color, 4> kLCDPalette {
-  Color { 223, 247, 207, 255 },
-  Color { 135, 192, 111, 255 },
-  Color { 51, 104, 85, 255 },
-  Color { 8, 23, 32, 255 },
-};
-
 }
 
 inline u8 get_palette_index(u8 id, u8 palette) {
@@ -57,7 +50,7 @@ Ppu::Ppu(Mmu& mmu, InterruptDevice& interrupts)
   log_doctor_ = logger != nullptr;
 }
 
-void Ppu::Init() {
+void Ppu::Init(PpuConfig cfg) {
   target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
   ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
 
@@ -78,6 +71,8 @@ void Ppu::Init() {
 
   target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
   ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+
+  palette_ = std::move(cfg.palette);
 }
 
 void Ppu::Cleanup() {
@@ -192,7 +187,7 @@ void Ppu::DrawLcdRow() {
       u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
       auto cid = get_palette_index(bits, regs_.bgp);
-      auto color = kLCDPalette[cid];
+      auto color = palette_[cid];
       ImageDrawPixel(&target_lcd_back_, x, y, color);
       bg_win_pixels[x] = bits; // NOTE: might be cid...
     }
@@ -202,7 +197,7 @@ void Ppu::DrawLcdRow() {
     }
   } else {
     auto cid = get_palette_index(0, regs_.bgp);
-    auto color = kLCDPalette[cid];
+    auto color = palette_[cid];
     ImageDrawLine(&target_lcd_back_, 0, regs_.ly, kLCDWidth -1, regs_.ly,  color);
   }
 
@@ -264,7 +259,7 @@ void Ppu::DrawLcdRow() {
 
         if (bits) {
         auto cid = get_palette_index(bits, palette);
-          ImageDrawPixel(&target_lcd_back_, x, y, kLCDPalette[cid]);
+          ImageDrawPixel(&target_lcd_back_, x, y, palette_[cid]);
           sprite_prio[x] = sprite->x;
         }
       }
@@ -310,7 +305,7 @@ void Ppu::UpdateRenderTargets() {
         u8 lo = tile[row];
         for (int b = 7; b >= 0; b -= 1) {
           u8 bits = (hi & 0b10) | (lo & 0b1);
-          auto color = kLCDPalette[bits];
+          auto color = palette_[bits];
           DrawPixel((x * 8) + b, (y * 8) + row, color);
 
           hi >>= 1;
@@ -628,4 +623,8 @@ void Ppu::ResetFrameCount() {
 
 size_t Ppu::GetFrameCount() const {
   return frame_count_;
+}
+
+void Ppu::UpdatePalette(std::array<Color, 4> palette) {
+  palette_ = std::move(palette);
 }

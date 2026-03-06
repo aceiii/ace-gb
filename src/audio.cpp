@@ -7,7 +7,7 @@ constexpr int kClockSpeed = 4194304;
 constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
 constexpr int kWaveRamEnd = kWaveRamStart + 15;
 
-Audio::Audio(Timer& timer, audio_config cfg) : timer_{ timer }, config_{ cfg } {
+Audio::Audio(Timer& timer, AudioConfig cfg) : timer_{ timer }, config_{ cfg } {
 }
 
 bool Audio::IsValidFor(u16 addr) const {

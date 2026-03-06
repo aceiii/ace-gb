@@ -23,14 +23,18 @@
 #include "serial_device.hpp"
 
 
+struct EmulatorConfig {
+  std::array<Color, 4> palette;
+};
+
 class Emulator {
 public:
-  explicit Emulator(audio_config cfg);
+  explicit Emulator(AudioConfig cfg);
   Emulator() = delete;
   Emulator(const Emulator&) = delete;
   ~Emulator() = default;
 
-  void Init();
+  void Init(EmulatorConfig cfg);
   void Cleanup();
   void Update(float dt);
   void Reset();
@@ -76,6 +80,8 @@ public:
 
   void ResetFrameCount();
   size_t GetFrameCount() const;
+
+  void UpdatePalette(std::array<Color, 4> palette);
 
 private:
   Mmu mmu_;

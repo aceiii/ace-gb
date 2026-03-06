@@ -28,6 +28,7 @@
 #include "emulator.hpp"
 #include "file.hpp"
 #include "joypad.hpp"
+#include "util.hpp"
 
 
 #if defined(PLATFORM_DESKTOP)
@@ -63,6 +64,14 @@ constexpr int kLockedFrameRate = 60;
 
 constexpr char const* kShaderPathNoop = "resources/shaders/{}/noop.glsl";
 constexpr char const* kShaderPathScanline = "resources/shaders/{}/scanlines.glsl";
+
+constexpr std::array<Color, 4> kDefaultPalette {
+  Color { 223, 247, 207, 255 },
+  Color { 135, 192, 111, 255 },
+  Color { 51, 104, 85, 255 },
+  Color { 8, 23, 32, 255 },
+};
+
 
 AudioStream stream;
 
@@ -184,6 +193,18 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "master_volume", settings.master_volume },
       }
     },
+    {
+      "graphics",
+      toml::table{
+        { "show_options", settings.show_graphic_options },
+        { "palette", toml::array{
+            ColorToString(settings.palette[0]),
+            ColorToString(settings.palette[1]),
+            ColorToString(settings.palette[2]),
+            ColorToString(settings.palette[3]),
+        }}
+      }
+    }
   };
 
   return table;
@@ -237,6 +258,23 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
   settings.enable_ch3 = table["hardware"]["enable_ch3"].value_or(true);
   settings.enable_ch4 = table["hardware"]["enable_ch4"].value_or(true);
   settings.master_volume = std::clamp(table["hardware"]["master_volume"].value_or(100.0f), 0.0f, 100.0f);
+
+  settings.show_graphic_options = table["graphics"]["show_options"].value_or(false);
+
+  std::array<Color, 4> palette = kDefaultPalette;
+  if (auto arr = table["graphics"]["palette"].as_array()) {
+    int idx = 0;
+    arr->for_each([&](auto&& file) {
+      if (idx >= palette.size()) {
+        return;
+      }
+      if constexpr (toml::is_string<decltype(file)>) {
+        palette[idx] = StringToColor(*file);
+        idx += 1;
+      }
+    });
+  }
+  settings.palette = palette;
 }
 
 static auto SpdLogTraceLog(int log_level, const char* text, va_list args) -> void {
@@ -359,7 +397,9 @@ Interface::Interface(Args args)
   auto& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-  emulator_.Init();
+  emulator_.Init({
+    .palette = config_.settings.palette,
+  });
 
   if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
     spdlog::error("Failed to set boot rom path: {}", result.error());
@@ -504,6 +544,7 @@ void Interface::Update() {
     RenderInstructions();
     RenderDebugger();
     RenderLogs();
+    RenderGraphicOptions();
     RenderMainMenu();
     RenderStatusBar();
     RenderSettingsPopup();
@@ -983,6 +1024,57 @@ void Interface::RenderLogs() {
   ImGui::End();
 }
 
+void Interface::RenderGraphicOptions() {
+  ZoneScoped;
+
+  if (!config_.settings.show_graphic_options) {
+    return;
+  }
+
+  static bool update_palette = false;
+  if (ImGui::Begin("Graphics", &config_.settings.show_graphic_options)) {
+    update_palette = false;
+
+    static ImVec4 palette0 = ColorToImVec4(config_.settings.palette[0]);
+    static ImVec4 palette1 = ColorToImVec4(config_.settings.palette[1]);
+    static ImVec4 palette2 = ColorToImVec4(config_.settings.palette[2]);
+    static ImVec4 palette3 = ColorToImVec4(config_.settings.palette[3]);
+
+    if (ImGui::ColorEdit4("GB Palette 0", &palette0.x)) {
+      update_palette = true;
+    }
+    if (ImGui::ColorEdit4("GB Palette 1", &palette1.x)) {
+      update_palette = true;
+    }
+    if (ImGui::ColorEdit4("GB Palette 2", &palette2.x)) {
+      update_palette = true;
+    }
+    if (ImGui::ColorEdit4("GB Palette 3", &palette3.x)) {
+      update_palette = true;
+    }
+
+    if (update_palette) {
+      config_.settings.palette = {
+        ImVec4ToColor(palette0),
+        ImVec4ToColor(palette1),
+        ImVec4ToColor(palette2),
+        ImVec4ToColor(palette3),
+      };
+
+      auto& p = config_.settings.palette;
+      spdlog::debug("Updated palette:");
+      spdlog::debug("  0: ({}, {}, {}, {})", palette0.x,  palette0.y,  palette0.z,  palette0.w);
+      spdlog::debug("  0: ({}, {}, {}, {})", p[0].r, p[0].g, p[0].b, p[0].a);
+      spdlog::debug("  1: ({}, {}, {}, {})", p[1].r, p[1].g, p[1].b, p[1].a);
+      spdlog::debug("  2: ({}, {}, {}, {})", p[2].r, p[2].g, p[2].b, p[2].a);
+      spdlog::debug("  3: ({}, {}, {}, {})", p[3].r, p[3].g, p[3].b, p[3].a);
+
+      emulator_.UpdatePalette(config_.settings.palette);
+    }
+  }
+  ImGui::End();
+}
+
 void Interface::RenderMainMenu() {
   ZoneScoped;
 
@@ -1102,6 +1194,7 @@ void Interface::RenderMainMenu() {
     ImGui::EndMenu();
   }
   if (ImGui::BeginMenu("View")) {
+    ImGui::MenuItem("Graphic Options", nullptr, &config_.settings.show_graphic_options);
     ImGui::MenuItem("Debugger", nullptr, &config_.settings.show_debugger);
     ImGui::MenuItem("Input", nullptr, &config_.settings.show_input);
     ImGui::MenuItem("Logs", nullptr, &config_.settings.show_logs);

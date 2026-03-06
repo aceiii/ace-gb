@@ -113,11 +113,15 @@ struct VramMemory {
   }
 };
 
+struct PpuConfig {
+  std::array<Color, 4> palette;
+};
+
 class Ppu : public MmuDevice, public SyncedDevice {
 public:
   explicit Ppu(Mmu& mmu, InterruptDevice& interrupts);
 
-  void Init();
+  void Init(PpuConfig config);
   void Cleanup();
   void Step();
 
@@ -140,6 +144,8 @@ public:
 
   void ResetFrameCount();
   size_t GetFrameCount() const;
+
+  void UpdatePalette(std::array<Color, 4> palette);
 
 private:
   void SetMode(PPUMode mode);
@@ -166,4 +172,6 @@ private:
 
   bool log_doctor_ = false;
   size_t frame_count_ = 0;
+
+  std::array<Color, 4> palette_;
 };

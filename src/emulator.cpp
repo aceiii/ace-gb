@@ -12,10 +12,7 @@
 #include "file.hpp"
 #include "mmu.hpp"
 
-// NOTE: not sure why, but my emulator seems to be 4x slower than it should be...
-constexpr auto kStaticSpeedMultiplier = 4;
-
-Emulator::Emulator(audio_config cfg):cpu_{mmu_, interrupts_}, ppu_{mmu_, interrupts_}, serial_device_{interrupts_}, timer_{interrupts_}, input_device_{interrupts_}, audio_{timer_, cfg} {
+Emulator::Emulator(AudioConfig cfg):cpu_{mmu_, interrupts_}, ppu_{mmu_, interrupts_}, serial_device_{interrupts_}, timer_{interrupts_}, input_device_{interrupts_}, audio_{timer_, cfg} {
   serial_device_.OnLine([] (std::string_view str) {
     spdlog::info("Serial: {}", str);
   });
@@ -23,8 +20,10 @@ Emulator::Emulator(audio_config cfg):cpu_{mmu_, interrupts_}, ppu_{mmu_, interru
   sample_bufffer_.resize(cfg.num_channels * cfg.buffer_size);
 }
 
-void Emulator::Init() {
-  ppu_.Init();
+void Emulator::Init(EmulatorConfig cfg) {
+  ppu_.Init({
+    .palette = std::move(cfg.palette),
+  });
 
   mmu_.ClearDevices();
   mmu_.AddDevice(&boot_);
@@ -299,4 +298,8 @@ void Emulator::ResetFrameCount() {
 
 size_t Emulator::GetFrameCount() const {
   return ppu_.GetFrameCount();
+}
+
+void Emulator::UpdatePalette(std::array<Color, 4> palette) {
+  ppu_.UpdatePalette(std::move(palette));
 }

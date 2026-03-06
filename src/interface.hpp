@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <string>
 #include <string_view>
 #include <imgui.h>
@@ -43,6 +44,7 @@ struct InterfaceSettings {
   bool show_instructions;
   bool show_logs;
   bool show_debugger;
+  bool show_graphic_options;
 
   bool enable_audio;
   bool enable_ch1;
@@ -53,6 +55,8 @@ struct InterfaceSettings {
 
   bool lock_framerate;
   bool show_scanlines;
+
+  std::array<Color, 4> palette;
 };
 
 class Interface {
@@ -89,6 +93,7 @@ private:
   void RenderMemory();
   void RenderInstructions();
   void RenderLogs();
+  void RenderGraphicOptions();
   void RenderMainMenu();
   void RenderSettingsPopup();
   void RenderStatusBar();
