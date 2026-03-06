@@ -20,11 +20,19 @@ std::string ColorToString(const Color& color) {
 }
 
 ImVec4 ColorToImVec4(const Color& color) {
-  ImColor col(color.r, color.g, color.b, color.a);
-  return col.Value;
+  return ImVec4(
+    color.r / 255.0f,
+    color.g / 255.0f,
+    color.b / 255.0f,
+    color.a / 255.0f
+  );
 }
 
 Color ImVec4ToColor(const ImVec4& vec) {
-  ImU32 col = ImColor(vec);
-  return GetColor(col);
+  return Color{
+    .r = static_cast<unsigned char>(vec.x * 255.0f),
+    .g = static_cast<unsigned char>(vec.y * 255.0f),
+    .b = static_cast<unsigned char>(vec.z * 255.0f),
+    .a = static_cast<unsigned char>(vec.w * 255.0f),
+  };
 }
