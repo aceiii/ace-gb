@@ -269,7 +269,9 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
         return;
       }
       if constexpr (toml::is_string<decltype(file)>) {
-        palette[idx] = StringToColor(*file);
+        auto color = StringToColor(*file);
+        color.a = 255;
+        palette[idx] = color;
         idx += 1;
       }
     });
@@ -1040,20 +1042,25 @@ void Interface::RenderGraphicOptions() {
     static ImVec4 palette2 = ColorToImVec4(config_.settings.palette[2]);
     static ImVec4 palette3 = ColorToImVec4(config_.settings.palette[3]);
 
-    if (ImGui::ColorEdit4("GB Palette 0", &palette0.x)) {
+    if (ImGui::ColorEdit4("GB Palette 0", &palette0.x, ImGuiColorEditFlags_NoAlpha)) {
       update_palette = true;
     }
-    if (ImGui::ColorEdit4("GB Palette 1", &palette1.x)) {
+    if (ImGui::ColorEdit4("GB Palette 1", &palette1.x, ImGuiColorEditFlags_NoAlpha)) {
       update_palette = true;
     }
-    if (ImGui::ColorEdit4("GB Palette 2", &palette2.x)) {
+    if (ImGui::ColorEdit4("GB Palette 2", &palette2.x, ImGuiColorEditFlags_NoAlpha)) {
       update_palette = true;
     }
-    if (ImGui::ColorEdit4("GB Palette 3", &palette3.x)) {
+    if (ImGui::ColorEdit4("GB Palette 3", &palette3.x, ImGuiColorEditFlags_NoAlpha)) {
       update_palette = true;
     }
 
     if (update_palette) {
+      palette0.w = 1.0f;
+      palette1.w = 1.0f;
+      palette2.w = 1.0f;
+      palette3.w = 1.0f;
+
       config_.settings.palette = {
         ImVec4ToColor(palette0),
         ImVec4ToColor(palette1),
