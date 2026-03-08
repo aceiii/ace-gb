@@ -324,12 +324,11 @@ static void AudioInputCallback(void *buffer, unsigned int frames) {
   g_audio_callback(buffer_span);
 }
 
-Interface::Interface(Args args)
-    : args_{args},
-      emulator_{{ .sample_rate=kAudioSampleRate, .buffer_size=kSamplesPerUpdate, .num_channels=kAudioNumChannels }},
-      config_{.serialize=SerializeInterfaceSettings, .deserialize=DeserializeInterfaceSettings},
-      error_messages_{}
-{
+void Interface::Init(Args args) {
+  args_ = std::move(args);
+  config_.serialize = SerializeInterfaceSettings;
+  config_.deserialize = DeserializeInterfaceSettings;
+
   mem_editor_.ReadFn = MemEditorCustomRead;
   mem_editor_.WriteFn = MemEditorCustomWrite;
   mem_editor_.BgColorFn = MemEditorCustomBgColor;
@@ -361,8 +360,8 @@ Interface::Interface(Args args)
 
   spdlog::info("Initializing interface");
 
-  if (auto res = config_.Load(args.settings_filename); !res.has_value()) {
-    spdlog::warn("Failed to load settings file '{}': {}", args.settings_filename, res.error());
+  if (auto res = config_.Load(args_.settings_filename); !res.has_value()) {
+    spdlog::warn("Failed to load settings file '{}': {}", args_.settings_filename, res.error());
     DeserializeInterfaceSettings(toml::table{}, config_.settings);
   }
 
@@ -399,9 +398,18 @@ Interface::Interface(Args args)
   auto& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-  emulator_.Init({
+  size_t default_clock_speed = kDmgClockSpeed;
+
+  EmulatorConfig emu_cfg{
     .palette = config_.settings.palette,
-  });
+    .clock_speed = default_clock_speed,
+    .sample_rate = kAudioSampleRate,
+    .buffer_size = kSamplesPerUpdate,
+    .num_channels = kAudioNumChannels,
+    .frame_rate = kFrameRate,
+  };
+
+  emulator_.Init(emu_cfg);
 
   if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
     spdlog::error("Failed to set boot rom path: {}", result.error());
@@ -1283,7 +1291,7 @@ void Interface::RenderStatusBar() {
           color = ImVec4{0.902f, 0.160f, 0.216f, 1.0f}; // RED
         }
 
-        ImGui::TextColored(color, "FPS: %3d", fps);
+        ImGui::TextColored(color, "FPS: %4d", fps);
       }
       {
         const float frame_time = GetFrameTime();
@@ -1317,6 +1325,11 @@ void Interface::RenderStatusBar() {
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
         ImGui::Text("Cycles: %012lu", emulator_.GetTotalCycles());
+      }
+      {
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32);
+        ImGui::Text("Clock Speed: %lu", emulator_.GetClockSpeed());
       }
       ImGui::EndMenuBar();
     }

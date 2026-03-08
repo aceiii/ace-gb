@@ -28,14 +28,17 @@ constexpr int kAudioSize = kAudioEnd - kAudioStart + 1;
 constexpr int kSampleBufferMaxSize = 4096 * 4;
 
 struct AudioConfig {
-  int sample_rate;
-  int buffer_size;
-  int num_channels;
+  size_t clock_speed;
+  size_t sample_rate;
+  size_t buffer_size;
+  size_t num_channels;
 };
 
 class Audio : public MmuDevice, public SyncedDevice {
 public:
-  explicit Audio(Timer& timer, AudioConfig cfg);
+  explicit Audio() = default;
+
+  void Init(AudioConfig cfg);
 
   [[nodiscard]] bool IsValidFor(u16 addr) const override;
   void Write8(u16 addr, u8 byte) override;
@@ -55,7 +58,6 @@ private:
   std::tuple<float, float> Sample() const;
 
 private:
-  Timer& timer_;
   AudioConfig config_;
 
   u8 frame_sequencer_ {};

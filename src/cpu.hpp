@@ -15,9 +15,6 @@
 #include "synced_device.hpp"
 
 
-constexpr size_t kClockSpeed = 4194304;
-constexpr float kFrameRate = 59.73;
-
 struct State {
   bool ime = false;
   bool halt = false;
@@ -30,6 +27,10 @@ struct State {
     stop = false;
     hard_lock = false;
   }
+};
+
+struct CpuConfig {
+  size_t clock_speed;
 };
 
 class Cpu {

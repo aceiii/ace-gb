@@ -3,11 +3,14 @@
 
 #include "audio.hpp"
 
-constexpr int kClockSpeed = 4194304;
-constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
-constexpr int kWaveRamEnd = kWaveRamStart + 15;
 
-Audio::Audio(Timer& timer, AudioConfig cfg) : timer_{ timer }, config_{ cfg } {
+namespace {
+  constexpr int kWaveRamStart = std::to_underlying(IO::WAVE);
+  constexpr int kWaveRamEnd = kWaveRamStart + 15;
+}
+
+void Audio::Init(AudioConfig cfg) {
+  config_ = std::move(cfg);
 }
 
 bool Audio::IsValidFor(u16 addr) const {
@@ -62,7 +65,6 @@ u8 Audio::Read8(u16 addr) const {
   if (addr == std::to_underlying(IO::NR52)) {
     auto hi = ((nr52_.val | 0b01110000) & 0b11110000);
     u8 lo = (ch1_.IsEnabled() & 0b1) | ((ch2_.IsEnabled() & 0b1) << 1) | ((ch3_.IsEnabled() & 0b1) << 2) | ((ch4_.IsEnabled() & 0b1) << 3);
-    spdlog::info("NR52: {:08b}, div_timer:{}", (hi | lo), timer_.div());
     return hi | lo;
   }
 
@@ -140,7 +142,7 @@ void Audio::Step() {
     sample_buffer_[buffer_write_idx_] = left;
     sample_buffer_[buffer_write_idx_ + 1] = right;
     buffer_write_idx_ = (buffer_write_idx_ + 2) % sample_buffer_.size();
-    sample_timer_ += kClockSpeed / config_.sample_rate;
+    sample_timer_ += config_.clock_speed / config_.sample_rate;
   }
 }
 

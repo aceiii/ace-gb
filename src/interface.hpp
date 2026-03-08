@@ -17,6 +17,10 @@
 
 namespace app {
 
+constexpr size_t kDmgClockSpeed = 4194304;
+constexpr size_t kGbcClockSpeed = 8388608;
+constexpr float kFrameRate = 59.73;
+
 constexpr size_t kMaxRecentFiles = 10;
 
 struct InterfaceSettings {
@@ -61,11 +65,11 @@ struct InterfaceSettings {
 
 class Interface {
 public:
-  explicit Interface(Args args);
-  Interface() = delete;
+  Interface() = default;
   Interface(const Interface&) = delete;
   ~Interface();
 
+  void Init(Args args);
   void Run();
   void LoadCartridge();
   void LoadCartridgeCallback(std::string_view);

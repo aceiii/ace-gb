@@ -12,17 +12,27 @@
 #include "file.hpp"
 #include "mmu.hpp"
 
-Emulator::Emulator(AudioConfig cfg):cpu_{mmu_, interrupts_}, ppu_{mmu_, interrupts_}, serial_device_{interrupts_}, timer_{interrupts_}, input_device_{interrupts_}, audio_{timer_, cfg} {
-  serial_device_.OnLine([] (std::string_view str) {
-    spdlog::info("Serial: {}", str);
-  });
 
-  sample_bufffer_.resize(cfg.num_channels * cfg.buffer_size);
+Emulator::Emulator()
+  : cpu_{mmu_, interrupts_}, ppu_{mmu_, interrupts_}, serial_device_{interrupts_},
+    timer_{interrupts_}, input_device_{interrupts_}
+{
 }
 
-void Emulator::Init(EmulatorConfig cfg) {
+void Emulator::Init(EmulatorConfig emu_cfg) {
+  config_ = std::move(emu_cfg);
+
+  sample_bufffer_.resize(config_.num_channels * config_.buffer_size);
+
   ppu_.Init({
-    .palette = std::move(cfg.palette),
+    .palette = config_.palette,
+  });
+
+  audio_.Init({
+    .clock_speed = config_.clock_speed,
+    .buffer_size = config_.buffer_size,
+    .num_channels = config_.num_channels,
+    .sample_rate = config_.sample_rate,
   });
 
   mmu_.ClearDevices();
@@ -42,13 +52,17 @@ void Emulator::Init(EmulatorConfig cfg) {
   cpu_.AddSyncedDevice(&ppu_);
   cpu_.AddSyncedDevice(&audio_);
   cpu_.AddSyncedDevice(&serial_device_);
+
+  serial_device_.OnLine([] (std::string_view str) {
+    spdlog::info("Serial: {}", str);
+  });
 }
 
 void Emulator::Update(float dt) {
   ZoneScoped;
 
-  static constexpr auto target_cycles_per_frame = static_cast<int>(kClockSpeed / kFrameRate);
   static int current_cycles = 0;
+  const auto target_cycles_per_frame = static_cast<int>(config_.clock_speed / config_.frame_rate);
 
   int prev_cycles = current_cycles;
   do {
@@ -302,4 +316,12 @@ size_t Emulator::GetFrameCount() const {
 
 void Emulator::UpdatePalette(std::array<Color, 4> palette) {
   ppu_.UpdatePalette(std::move(palette));
+}
+
+void Emulator::SetClockSpeed(size_t clock_speed) {
+  config_.clock_speed = clock_speed;
+}
+
+size_t Emulator::GetClockSpeed() const {
+  return config_.clock_speed;
 }

@@ -25,16 +25,20 @@
 
 struct EmulatorConfig {
   std::array<Color, 4> palette;
+  size_t clock_speed;
+  size_t sample_rate;
+  size_t buffer_size;
+  size_t num_channels;
+  float frame_rate;
 };
 
 class Emulator {
 public:
-  explicit Emulator(AudioConfig cfg);
-  Emulator() = delete;
+  explicit Emulator();
   Emulator(const Emulator&) = delete;
   ~Emulator() = default;
 
-  void Init(EmulatorConfig cfg);
+  void Init(EmulatorConfig emu_cfg);
   void Cleanup();
   void Update(float dt);
   void Reset();
@@ -83,7 +87,11 @@ public:
 
   void UpdatePalette(std::array<Color, 4> palette);
 
+  void SetClockSpeed(size_t clock_speed);
+  size_t GetClockSpeed() const;
+
 private:
+  EmulatorConfig config_;
   Mmu mmu_;
   Cpu cpu_;
   Ppu ppu_;
@@ -106,8 +114,9 @@ private:
 
   size_t prev_cycles_ = 0;
   size_t num_cycles_ = 0;
-  bool running_ = false;
+  size_t clock_speed_ = 0;
 
   std::string boot_rom_path_;
   bool skip_bootrom_ = true;
+  bool running_ = false;
 };

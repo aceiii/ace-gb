@@ -5,6 +5,8 @@
 #include "cpu.hpp"
 
 namespace {
+  constexpr int kClockSpeed = 4194304;
+
   constexpr u16 kTimerFreqs[] = {
     kClockSpeed / 4096,
     kClockSpeed / 262144,
