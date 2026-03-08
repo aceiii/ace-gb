@@ -710,6 +710,10 @@ void Interface::LoadCartRom(std::string_view file_path) {
   config_.settings.recent_files.Push(path.string());
 }
 
+void Interface::UnloadCartridge() {
+  emulator_.ClearCartBytes();
+}
+
 void Interface::RenderDebugger() {
   ZoneScoped;
 
@@ -718,6 +722,9 @@ void Interface::RenderDebugger() {
   }
 
   if (ImGui::Begin("Debugger", &config_.settings.show_debugger)) {
+    const auto is_cart_loaded = emulator_.IsCartLoaded();
+    const auto is_playing = emulator_.IsPlaying();
+
     ImGuiStyle& style = ImGui::GetStyle();
     const int num_buttons = 5;
     const float button_width = 40;
@@ -726,33 +733,35 @@ void Interface::RenderDebugger() {
     const float offset_x = std::max(style.ItemSpacing.x, style.ItemSpacing.x + ((avail - total_width) / 2));
     ImGui::SetCursorPosX(offset_x);
 
-    ImGui::BeginDisabled(emulator_.IsPlaying());
+    ImGui::BeginDisabled(!is_cart_loaded || is_playing);
     if (ImGui::Button(ICON_FA_PLAY, { 32, 32 })) {
       emulator_.Play();
     }
     ImGui::EndDisabled();
 
     ImGui::SameLine();
-    ImGui::BeginDisabled(emulator_.IsPlaying());
+    ImGui::BeginDisabled(!is_cart_loaded || is_playing);
     if (ImGui::Button(ICON_FA_FORWARD_STEP, { 32, 32 })) {
       emulator_.Step();
     }
     ImGui::EndDisabled();
 
     ImGui::SameLine();
-    ImGui::BeginDisabled(emulator_.IsPlaying());
+    ImGui::BeginDisabled(!is_cart_loaded || is_playing);
     if (ImGui::Button(ICON_FA_FORWARD_FAST, { 32, 32 })) {
       emulator_.Update(GetFrameTime());
     }
     ImGui::EndDisabled();
 
     ImGui::SameLine();
+    ImGui::BeginDisabled(!is_cart_loaded);
     if (ImGui::Button(ICON_FA_ARROW_ROTATE_LEFT, { 32, 32 })) {
       emulator_.Reset();
     }
+    ImGui::EndDisabled();
 
     ImGui::SameLine();
-    ImGui::BeginDisabled(!emulator_.IsPlaying());
+    ImGui::BeginDisabled(!is_cart_loaded || !is_playing);
     if (ImGui::Button(ICON_FA_STOP, { 32, 32 })) {
       emulator_.Stop();
     }
@@ -1101,6 +1110,12 @@ void Interface::RenderMainMenu() {
       LoadCartridge();
     }
 
+    if (ImGui::MenuItem("Unload Cartridge", nullptr, nullptr, emulator_.IsCartLoaded())) {
+      spdlog::info("Unloading cart...");
+      Stop();
+      UnloadCartridge();
+    }
+
     auto& recent_files = config_.settings.recent_files;
     if (ImGui::BeginMenu("Recent files", !recent_files.IsEmpty())) {
       for (auto& file : recent_files) {
@@ -1135,23 +1150,25 @@ void Interface::RenderMainMenu() {
     ImGui::EndMenu();
   }
   if (ImGui::BeginMenu("Emulator")) {
+    const auto is_cart_loaded = emulator_.IsCartLoaded();
+
     ImGui::MenuItem("Auto-Start", nullptr, &config_.settings.auto_start);
     if (ImGui::MenuItem("Skip Boot ROM", nullptr, &config_.settings.skip_boot_rom)) {
       emulator_.SetSkipBootRom(config_.settings.skip_boot_rom);
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("Play", nullptr, nullptr, !emulator_.IsPlaying())) {
+    if (ImGui::MenuItem("Play", nullptr, nullptr, is_cart_loaded && !emulator_.IsPlaying())) {
       Play();
     }
-    if (ImGui::MenuItem("Stop", nullptr, nullptr, emulator_.IsPlaying())) {
+    if (ImGui::MenuItem("Stop", nullptr, nullptr, is_cart_loaded && emulator_.IsPlaying())) {
       Stop();
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("Step", nullptr, nullptr, !emulator_.IsPlaying())) {
+    if (ImGui::MenuItem("Step", nullptr, nullptr, is_cart_loaded && !emulator_.IsPlaying())) {
       Step();
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("Reset")) {
+    if (ImGui::MenuItem("Reset", nullptr, nullptr, is_cart_loaded)) {
       Reset();
       if (config_.settings.auto_start) {
         Play();
@@ -1363,22 +1380,37 @@ void Interface::Cleanup() {
 }
 
 void Interface::Play() {
+  if (!emulator_.IsCartLoaded()) {
+    return;
+  }
+
   emulator_.Play();
   PlayAudioStream(stream);
 }
 
 void Interface::Stop() {
+  if (!emulator_.IsCartLoaded()) {
+    return;
+  }
+
   emulator_.Stop();
   StopAudioStream(stream);
 }
 
 void Interface::Step() {
+  if (!emulator_.IsCartLoaded()) {
+    return;
+  }
+
   emulator_.Step();
 }
 
 void Interface::Reset() {
+  if (!emulator_.IsCartLoaded()) {
+    return;
+  }
+
   emulator_.Reset();
-  StopAudioStream(stream);
 }
 
 void Interface::ResetView() {

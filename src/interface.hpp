@@ -74,6 +74,7 @@ public:
   void LoadCartridge();
   void LoadCartridgeCallback(std::string_view);
   void LoadCartRom(std::string_view path);
+  void UnloadCartridge();
 
 private:
   void Cleanup();

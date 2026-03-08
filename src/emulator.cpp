@@ -90,7 +90,17 @@ void Emulator::LoadCartBytes(std::vector<u8> bytes) {
   Reset();
 }
 
+void Emulator::ClearCartBytes() {
+  cart_bytes_.clear();
+  Reset();
+}
+
+bool Emulator::IsCartLoaded() const {
+  return !cart_bytes_.empty();
+}
+
 void Emulator::Reset() {
+  prev_cycles_ = 0;
   num_cycles_ = 0;
   running_ = false;
 

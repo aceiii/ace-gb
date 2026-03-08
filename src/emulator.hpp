@@ -47,6 +47,9 @@ public:
   void Stop();
 
   void LoadCartBytes(std::vector<u8> bytes);
+  void ClearCartBytes();
+  [[nodiscard]] bool IsCartLoaded() const;
+
   [[nodiscard]] bool IsPlaying() const;
   void SetSkipBootRom(bool skip);
   [[nodiscard]] bool ShouldSkipBootRom() const;
@@ -114,7 +117,6 @@ private:
 
   size_t prev_cycles_ = 0;
   size_t num_cycles_ = 0;
-  size_t clock_speed_ = 0;
 
   std::string boot_rom_path_;
   bool skip_bootrom_ = true;
