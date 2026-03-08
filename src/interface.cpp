@@ -640,8 +640,9 @@ void Interface::LoadCartridge() {
   emulator_.Stop();
 
   nfdchar_t* file_path = nullptr;
-  std::array<nfdfilteritem_t, 3> filter_items = {{
+  std::array<nfdfilteritem_t, 4> filter_items = {{
     { .name="GB", .spec="gb" },
+    { .name="GBC", .spec="gbc" },
     { .name="BIN", .spec="bin" },
     { .name="ROM", .spec="rom" }
   }};
@@ -666,7 +667,7 @@ void Interface::LoadCartRom(std::string_view file_path) {
 
   fs::path path { file_path };
   auto ext = path.extension();
-  if (ext != ".gb" && ext != ".bin" && ext != ".rom") {
+  if (ext != ".gb" && ext != ".gbc" && ext != ".bin" && ext != ".rom") {
     config_.settings.recent_files.Remove(path);
     spdlog::error("Invalid file extension: {}. Only supports loading .gb, .bin, .rom", ext.string());
     return;
