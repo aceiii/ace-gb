@@ -11,7 +11,7 @@
 #include "synced_device.hpp"
 #include "timer.hpp"
 #include "square_channel.hpp"
-#include "noise_channel.h"
+#include "noise_channel.hpp"
 #include "wave_channel.hpp"
 
 enum class AudioChannelID {

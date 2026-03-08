@@ -18,7 +18,7 @@
 #include "hram_device.hpp"
 #include "timer.hpp"
 #include "audio.hpp"
-#include "null_device.h"
+#include "null_device.hpp"
 #include "input_device.hpp"
 #include "serial_device.hpp"
 

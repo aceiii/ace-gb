@@ -1,7 +1,7 @@
 #include <spdlog/spdlog.h>
 #include <utility>
 
-#include "noise_channel.h"
+#include "noise_channel.hpp"
 
 constexpr auto kInitialLengthCounter = 64;
 

@@ -1,6 +1,6 @@
 #include <spdlog/spdlog.h>
 
-#include "null_device.h"
+#include "null_device.hpp"
 
 [[nodiscard]] bool NullDevice::IsValidFor(u16 addr) const {
   return true;

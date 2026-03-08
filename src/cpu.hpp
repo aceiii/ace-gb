@@ -7,7 +7,6 @@
 #include "types.hpp"
 #include "decoder.hpp"
 #include "registers.hpp"
-#include "memory.h"
 #include "mmu.hpp"
 #include "io.hpp"
 #include "interrupt.hpp"

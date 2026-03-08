@@ -69,11 +69,11 @@ set(SOURCE_FILES
         src/no_mbc.cpp
         src/no_mbc.hpp
         src/noise_channel.cpp
-        src/noise_channel.h
+        src/noise_channel.hpp
         src/null_device.cpp
-        src/null_device.h
+        src/null_device.hpp
         src/opcodes.hpp
-        src/overloaded.h
+        src/overloaded.hpp
         src/ppu.cpp
         src/ppu.hpp
         src/recent_files.cpp
@@ -165,7 +165,7 @@ if(BUILD_TESTS)
             src/decoder.cpp
             src/instructions.hpp
             src/opcodes.hpp
-            src/overloaded.h
+            src/overloaded.hpp
             src/registers.hpp
             src/util.hpp
             src/io.hpp
