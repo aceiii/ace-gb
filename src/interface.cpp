@@ -1160,6 +1160,19 @@ void Interface::RenderMainMenu() {
     ImGui::EndMenu();
   }
   if (ImGui::BeginMenu("Hardware")) {
+    if (ImGui::BeginMenu("CPU")) {
+      if (ImGui::BeginMenu("Clock speed")) {
+        const auto clock_speed = emulator_.GetClockSpeed();
+        if (ImGui::MenuItem("4MHz", nullptr, clock_speed == kDmgClockSpeed)) {
+          emulator_.SetClockSpeed(kDmgClockSpeed);
+        }
+        if (ImGui::MenuItem("8MHz", nullptr, clock_speed == kGbcClockSpeed)) {
+          emulator_.SetClockSpeed(kGbcClockSpeed);
+        }
+        ImGui::EndMenu();
+      }
+      ImGui::EndMenu();
+    }
     if (ImGui::BeginMenu("PPU")) {
       ImGui::MenuItem("LCD", nullptr, &config_.settings.show_lcd);
       ImGui::MenuItem("TileMap 1", nullptr, &config_.settings.show_tilemap1);
