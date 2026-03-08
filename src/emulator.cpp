@@ -286,7 +286,7 @@ std::vector<float>& Emulator::GetAudioSamples() {
 }
 
 void Emulator::OnAudioCallback(std::span<float> buffer) {
-  if (IsPlaying()) {
+  if (IsCartLoaded() && IsPlaying()) {
     audio_.GetSamples(buffer);
   } else {
     std::fill(buffer.begin(), buffer.end(), 0.0f);

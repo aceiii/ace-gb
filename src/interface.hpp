@@ -82,6 +82,7 @@ private:
   void Play();
   void Stop();
   void Step();
+  void StepFrame();
   void Reset();
 
   void Update();
