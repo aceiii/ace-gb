@@ -82,7 +82,7 @@ void Emulator::Update(float dt) {
     current_cycles += cycles;
     num_cycles_ += cycles;
 
-    if (breakpoints_.contains(cpu_.regs.pc)) {
+    if (breakpoints_.contains(cpu_.GetRegisters().pc)) {
       running_ = false;
       break;
     }
@@ -122,16 +122,17 @@ void Emulator::Reset() {
   cart_.LoadCartBytes(cart_bytes_);
 
   if (skip_bootrom_) {
-    cpu_.regs.Set(Reg8::A, 0x01);
-    cpu_.regs.Set(Reg8::F, 0xb0);
-    cpu_.regs.Set(Reg8::B, 0x00);
-    cpu_.regs.Set(Reg8::C, 0x13);
-    cpu_.regs.Set(Reg8::D, 0x00);
-    cpu_.regs.Set(Reg8::E, 0xd8);
-    cpu_.regs.Set(Reg8::H, 0x01);
-    cpu_.regs.Set(Reg8::L, 0x4d);
-    cpu_.regs.sp = 0xfffe;
-    cpu_.regs.pc = 0x0100;
+    auto& regs = cpu_.GetRegisters();
+    regs.Set(Reg8::A, 0x01);
+    regs.Set(Reg8::F, 0xb0);
+    regs.Set(Reg8::B, 0x00);
+    regs.Set(Reg8::C, 0x13);
+    regs.Set(Reg8::D, 0x00);
+    regs.Set(Reg8::E, 0xd8);
+    regs.Set(Reg8::H, 0x01);
+    regs.Set(Reg8::L, 0x4d);
+    regs.sp = 0xfffe;
+    regs.pc = 0x0100;
 
     mmu_.Write8(std::to_underlying(IO::P1), 0xcf);
     mmu_.Write8(std::to_underlying(IO::SB), 0x00);
@@ -196,11 +197,11 @@ bool Emulator::IsPlaying() const {
 }
 
 const Registers& Emulator::GetRegisters() const {
-  return cpu_.regs;
+  return cpu_.GetRegisters();
 }
 
 const State& Emulator::GetState() const {
-  return cpu_.state;
+  return cpu_.GetState();
 }
 
 size_t Emulator::GetTotalCycles() const {
@@ -212,10 +213,11 @@ PPUMode Emulator::GetMode() const {
 }
 
 Instruction Emulator::GetCurrentInstruction() const {
-  auto byte = mmu_.Read8(cpu_.regs.pc);
+  const auto& regs = cpu_.GetRegisters();
+  auto byte = mmu_.Read8(regs.pc);
   auto instr = Decoder::Decode(byte);
   if (instr.opcode == Opcode::PREFIX) {
-    byte = mmu_.Read8(cpu_.regs.pc + 1);
+    byte = mmu_.Read8(regs.pc + 1);
     instr = Decoder::DecodePrefixed(byte);
   }
   return instr;

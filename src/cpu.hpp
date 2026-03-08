@@ -53,13 +53,18 @@ public:
   void Tick();
   uint64_t Ticks() const;
 
-public:
-  Mmu* mmu;
-  InterruptDevice* interrupts;
-  Registers regs;
-  State state;
+  Registers& GetRegisters();
+  const Registers& GetRegisters() const;
+  State& GetState();
+  const State& GetState() const;
 
-  std::vector<SyncedDevice*> synced_devices;
+private:
+  Mmu* mmu_ = nullptr;
+  InterruptDevice* interrupts_ = nullptr;
+  Registers regs_ {};
+  State state_ {};
+
+  std::vector<SyncedDevice*> synced_devices {};
   uint64_t tick_counter = 0;
 
 private:
