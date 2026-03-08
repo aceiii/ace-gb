@@ -34,10 +34,6 @@ struct EmulatorConfig {
 
 class Emulator {
 public:
-  explicit Emulator();
-  Emulator(const Emulator&) = delete;
-  ~Emulator() = default;
-
   void Init(EmulatorConfig emu_cfg);
   void Cleanup();
   void Update(float dt);
@@ -94,24 +90,24 @@ public:
   size_t GetClockSpeed() const;
 
 private:
-  EmulatorConfig config_;
-  Mmu mmu_;
-  Cpu cpu_;
-  Ppu ppu_;
-  BootRomDevice boot_;
-  CartDevice cart_;
-  WramDevice wram_;
-  HramDevice hram_;
-  Timer timer_;
-  InterruptDevice interrupts_;
-  Audio audio_;
-  NullDevice null_device_;
-  InputDevice input_device_;
-  SerialDevice serial_device_;
+  EmulatorConfig config_ {};
+  Mmu mmu_ {};
+  Cpu cpu_ {};
+  Ppu ppu_ {};
+  BootRomDevice boot_ {};
+  CartDevice cart_ {};
+  WramDevice wram_ {};
+  HramDevice hram_ {};
+  Timer timer_ {};
+  InterruptDevice interrupts_ {};
+  Audio audio_ {};
+  NullDevice null_device_ {};
+  InputDevice input_device_ {};
+  SerialDevice serial_device_ {};
 
-  std::array<u8, kBootRomSize> boot_rom_;
-  std::vector<u8> cart_bytes_;
-  std::set<u16> breakpoints_;
+  std::array<u8, kBootRomSize> boot_rom_ {};
+  std::vector<u8> cart_bytes_ {};
+  std::set<u16> breakpoints_ {};
 
   std::vector<float> sample_bufffer_ {};
 

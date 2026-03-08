@@ -114,13 +114,13 @@ struct VramMemory {
 };
 
 struct PpuConfig {
+  Mmu* mmu;
+  InterruptDevice* interrupts;
   std::array<Color, 4> palette;
 };
 
 class Ppu : public MmuDevice, public SyncedDevice {
 public:
-  explicit Ppu(Mmu& mmu, InterruptDevice& interrupts);
-
   void Init(PpuConfig config);
   void Cleanup();
   void Step();
@@ -153,19 +153,19 @@ private:
   void SwapLcdTargets();
   void StartDma();
 
-  Mmu& mmu_;
-  InterruptDevice& interrupts_;
-  Texture2D target_lcd_front_;
-  Image target_lcd_back_;
+  Mmu* mmu_ = nullptr;
+  InterruptDevice* interrupts_ = nullptr;
+  Texture2D target_lcd_front_ {};
+  Image target_lcd_back_ {};
 
-  RenderTexture2D target_tilemap1_;
-  RenderTexture2D target_tilemap2_;
-  RenderTexture2D target_sprites_;
-  RenderTexture2D target_tiles_;
+  RenderTexture2D target_tilemap1_ {};
+  RenderTexture2D target_tilemap2_ {};
+  RenderTexture2D target_sprites_ {};
+  RenderTexture2D target_tiles_ {};
 
-  VramMemory vram_;
-  OamMemory oam_;
-  PpuRegs regs_;
+  VramMemory vram_ {};
+  OamMemory oam_ {};
+  PpuRegs regs_ {};
 
   u16 cycle_counter_ = 0;
   u8 window_line_counter_ = 0;
@@ -173,5 +173,5 @@ private:
   bool log_doctor_ = false;
   size_t frame_count_ = 0;
 
-  std::array<Color, 4> palette_;
+  std::array<Color, 4> palette_ {};
 };

@@ -6,6 +6,7 @@
 
 class Mmu {
 public:
+  void Init();
   void ClearDevices();
   void AddDevice(MmuDevicePtr device);
 

@@ -1143,10 +1143,17 @@ void execute_stop(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   cpu.Write8(std::to_underlying(IO::DIV), 0);
 }
 
+void Cpu::Init(CpuConfig cfg) {
+  mmu = cfg.mmu;
+  interrupts = cfg.interrupts;
+}
+
 u8 Cpu::Execute() {
   ZoneScoped;
 
   tick_counter = 0;
+
+  auto& mmu = *(this->mmu);
 
   auto interrupt_cycles = ExecuteInterrupts();
   if (interrupt_cycles) {
@@ -1290,14 +1297,14 @@ u8 Cpu::ExecuteInterrupts() {
 
   for (int i = 0; i < std::to_underlying(Interrupt::Count); i++) {
     Interrupt interrupt { i };
-    if (interrupts.IsInterruptRequested(interrupt)) {
+    if (interrupts->IsInterruptRequested(interrupt)) {
       state.halt = false;
       if (!state.ime) {
         return 0;
       }
 
       state.ime = false;
-      interrupts.ClearInterrupt(interrupt);
+      interrupts->ClearInterrupt(interrupt);
 
       Tick();
       Tick();
@@ -1330,49 +1337,47 @@ void Cpu::Reset() {
   state.Reset();
 }
 
-Cpu::Cpu(Mmu& mmu_, InterruptDevice& interrupts_):mmu{mmu_}, interrupts{interrupts_} {}
-
 u8 Cpu::Read8(u16 addr) {
   ZoneScoped;
-  auto result = mmu.Read8(addr);
+  auto result = mmu->Read8(addr);
   Tick();
   return result;
 }
 
 void Cpu::Write8(u16 addr, u8 val) {
   ZoneScoped;
-  mmu.Write8(addr, val);
+  mmu->Write8(addr, val);
   Tick();
 }
 
 
 u16 Cpu::Read16(u16 addr) {
-  u8 lo = mmu.Read8(addr);
+  u8 lo = mmu->Read8(addr);
   Tick();
-  u8 hi = mmu.Read8(addr + 1);
+  u8 hi = mmu->Read8(addr + 1);
   Tick();
   return lo | (hi << 8);
 }
 
 void Cpu::Write16(u16 addr, u16 word) {
-  mmu.Write8(addr, word & 0xff);
+  mmu->Write8(addr, word & 0xff);
   Tick();
-  mmu.Write8(addr + 1, word >> 8);
+  mmu->Write8(addr + 1, word >> 8);
   Tick();
 }
 
 
 void Cpu::Push16(u16 word) {
-  mmu.Write8(--regs.sp, word >> 8);
+  mmu->Write8(--regs.sp, word >> 8);
   Tick();
-  mmu.Write8(--regs.sp, word & 0xff);
+  mmu->Write8(--regs.sp, word & 0xff);
   Tick();
 }
 
 u16 Cpu::Pop16() {
-  u8 lo = mmu.Read8(regs.sp++);
+  u8 lo = mmu->Read8(regs.sp++);
   Tick();
-  u8 hi = mmu.Read8(regs.sp++);
+  u8 hi = mmu->Read8(regs.sp++);
   Tick();
   return lo | (hi << 8);
 }

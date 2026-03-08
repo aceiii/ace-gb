@@ -20,7 +20,7 @@ public:
   bool IsEmpty() const;
 
 private:
-  size_t size_;
-  std::vector<std::string> filenames_;
+  size_t size_ = 0;
+  std::vector<std::string> filenames_ {};
 };
 

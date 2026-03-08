@@ -440,20 +440,6 @@ void Interface::Init(Args args) {
   }
 }
 
-Interface::~Interface() {
-  spdlog::info("Cleaning up interface");
-
-  emulator_.Cleanup();
-
-  rlImGuiShutdown();
-
-  UnloadShader(g_screen_shader);
-  UnloadRenderTexture(g_screen_target);
-  UnloadAudioStream(stream);
-  CloseAudioDevice();
-  CloseWindow();
-}
-
 void Interface::Run() {
   spdlog::info("Running...");
 
@@ -467,7 +453,7 @@ void Interface::Run() {
 
   StopAudioStream(stream);
 
-  Cleanup();
+  SaveSettings();
 
   spdlog::info("Shutting down...");
 }
@@ -1368,7 +1354,21 @@ void Interface::RenderStatusBar() {
 }
 
 void Interface::Cleanup() {
+  spdlog::info("Cleaning up interface");
 
+  emulator_.Cleanup();
+
+  rlImGuiShutdown();
+
+  UnloadShader(g_screen_shader);
+  UnloadRenderTexture(g_screen_target);
+  UnloadAudioStream(stream);
+  CloseAudioDevice();
+  CloseWindow();
+}
+
+void Interface::SaveSettings() {
+  spdlog::info("Saving settings to file: {}", args_.settings_filename);
 
   auto window_pos = GetWindowPosition();
   config_.settings.screen_x = static_cast<int>(window_pos.x);
@@ -1377,7 +1377,7 @@ void Interface::Cleanup() {
   config_.settings.boot_rom_path = emulator_.GetBootRomPath();
 
   if (auto res = config_.Save(args_.settings_filename); !res.has_value()) {
-    spdlog::warn("Failed to save settings to file '{}': {}", args_.settings_filename, res.error());
+    spdlog::warn("Failed to save settings to file: {}", res.error());
   }
 }
 

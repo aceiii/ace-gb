@@ -4,7 +4,9 @@
 #include "serial_device.hpp"
 #include "io.hpp"
 
-SerialDevice::SerialDevice(InterruptDevice& interrupts):interrupts_{interrupts} {
+
+void SerialDevice::Init(SerialDeviceConfig cfg) {
+  interrupts_ = cfg.interrupts;
   sb_ = 0xff;
   sc_.val = 0;
   sc_.unused = 0x1f;
@@ -94,7 +96,7 @@ void SerialDevice::Step() {
     }
 
     sc_.transfer_enable = 0;
-    interrupts_.RequestInterrupt(Interrupt::Serial);
+    interrupts_->RequestInterrupt(Interrupt::Serial);
   }
 }
 

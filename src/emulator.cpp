@@ -13,18 +13,18 @@
 #include "mmu.hpp"
 
 
-Emulator::Emulator()
-  : cpu_{mmu_, interrupts_}, ppu_{mmu_, interrupts_}, serial_device_{interrupts_},
-    timer_{interrupts_}, input_device_{interrupts_}
-{
-}
-
 void Emulator::Init(EmulatorConfig emu_cfg) {
   config_ = std::move(emu_cfg);
 
   sample_bufffer_.resize(config_.num_channels * config_.buffer_size);
 
+  timer_.Init({
+    .interrupts = &interrupts_,
+  });
+
   ppu_.Init({
+    .mmu = &mmu_,
+    .interrupts = &interrupts_,
     .palette = config_.palette,
   });
 
@@ -35,6 +35,7 @@ void Emulator::Init(EmulatorConfig emu_cfg) {
     .sample_rate = config_.sample_rate,
   });
 
+  mmu_.Init();
   mmu_.ClearDevices();
   mmu_.AddDevice(&boot_);
   mmu_.AddDevice(&cart_);
@@ -48,11 +49,22 @@ void Emulator::Init(EmulatorConfig emu_cfg) {
   mmu_.AddDevice(&interrupts_);
   mmu_.AddDevice(&null_device_);
 
+  cpu_.Init({
+    .mmu = &mmu_,
+    .interrupts = &interrupts_,
+  });
   cpu_.AddSyncedDevice(&timer_);
   cpu_.AddSyncedDevice(&ppu_);
   cpu_.AddSyncedDevice(&audio_);
   cpu_.AddSyncedDevice(&serial_device_);
 
+  input_device_.Init({
+    .interrupts = &interrupts_,
+  });
+
+  serial_device_.Init({
+    .interrupts = &interrupts_,
+  });
   serial_device_.OnLine([] (std::string_view str) {
     spdlog::info("Serial: {}", str);
   });

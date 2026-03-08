@@ -15,7 +15,9 @@ namespace {
   };
 }
 
-Timer::Timer(InterruptDevice& interrupts):interrupts_{interrupts} {}
+void Timer::Init(TimerConfig cfg) {
+  interrupts_ = cfg.interrupts;
+}
 
 bool Timer::IsValidFor(u16 addr) const {
   switch (addr) {
@@ -90,7 +92,7 @@ void Timer::Execute(u8 cycles) {
       regs_.tima += 1;
       if (regs_.tima == 0) {
         regs_.tima = regs_.tma;
-        interrupts_.RequestInterrupt(Interrupt::Timer);
+        interrupts_->RequestInterrupt(Interrupt::Timer);
       }
       overflows -= 1;
     }

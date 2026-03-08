@@ -1,10 +1,6 @@
 #include "applog.hpp"
 
 
-AppLog::AppLog() : auto_scroll_{true} {
-  Clear();
-}
-
 void AppLog::AddLog(std::string_view log) {
   int old_size = buffer_.size();
   buffer_.append(std::to_address(log.begin()), std::to_address(log.end()));

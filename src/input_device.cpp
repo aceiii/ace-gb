@@ -6,7 +6,9 @@
 #include "io.hpp"
 #include "input_device.hpp"
 
-InputDevice::InputDevice(InterruptDevice& interrupts): interrupts_{interrupts} {
+
+void InputDevice::Init(InputDeviceConfig cfg) {
+  interrupts_ = cfg.interrupts;
 }
 
 [[nodiscard]] bool InputDevice::IsValidFor(u16 addr) const {
@@ -77,7 +79,7 @@ void InputDevice::Update(JoypadButton button, bool pressed) {
   }
 
   if (flipped) {
-    interrupts_.RequestInterrupt(Interrupt::Joypad);
+    interrupts_->RequestInterrupt(Interrupt::Joypad);
   }
 }
 

@@ -19,9 +19,13 @@ struct TimerRegisters {
   };
 };
 
+struct TimerConfig {
+  InterruptDevice* interrupts;
+};
+
 class Timer : public MmuDevice, public SyncedDevice {
 public:
-  explicit Timer(InterruptDevice& interrupts);
+  void Init(TimerConfig cfg);
 
   [[nodiscard]] bool IsValidFor(u16 addr) const override;
   void Write8(u16 addr, u8 byte) override;
@@ -34,7 +38,7 @@ public:
   u16 div() const;
 
 private:
-  InterruptDevice& interrupts_;
-  u16 tima_counter_;
-  TimerRegisters regs_;
+  InterruptDevice* interrupts_ = nullptr;
+  TimerRegisters regs_ {};
+  u16 tima_counter_ = 0;
 };

@@ -3,6 +3,10 @@
 
 #include "mmu.hpp"
 
+void Mmu::Init() {
+  // Do nothing, just for consistency
+}
+
 void Mmu::ClearDevices() {
   devices_.clear();
 }

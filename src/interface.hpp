@@ -65,19 +65,17 @@ struct InterfaceSettings {
 
 class Interface {
 public:
-  Interface() = default;
-  Interface(const Interface&) = delete;
-  ~Interface();
-
   void Init(Args args);
   void Run();
+  void Cleanup();
+
   void LoadCartridge();
   void LoadCartridgeCallback(std::string_view);
   void LoadCartRom(std::string_view path);
   void UnloadCartridge();
 
 private:
-  void Cleanup();
+  void SaveSettings();
 
   void Play();
   void Stop();
@@ -105,13 +103,13 @@ private:
   void RenderStatusBar();
   void ResetView();
 
-  Args args_;
-  Emulator emulator_;
-  AssemblyViewer assembly_viewer_;
-  Config<InterfaceSettings> config_;
-  MemoryEditor mem_editor_;
-  AppLog app_log_;
-  ErrorMessages error_messages_;
+  Args args_ {};
+  Emulator emulator_ {};
+  AssemblyViewer assembly_viewer_ {};
+  Config<InterfaceSettings> config_ {};
+  MemoryEditor mem_editor_ {};
+  AppLog app_log_ {};
+  ErrorMessages error_messages_ {};
 
   bool should_close_ = false;
   bool show_settings_ = false;

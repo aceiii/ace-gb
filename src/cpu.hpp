@@ -30,13 +30,13 @@ struct State {
 };
 
 struct CpuConfig {
-  size_t clock_speed;
+  Mmu* mmu;
+  InterruptDevice* interrupts;
 };
 
 class Cpu {
 public:
-  Cpu() = delete;
-  explicit Cpu(Mmu& mmu, InterruptDevice& interrupts);
+  void Init(CpuConfig cfg);
 
   void Reset();
   u8 Execute();
@@ -55,8 +55,8 @@ public:
   uint64_t Ticks() const;
 
 public:
-  Mmu& mmu;
-  InterruptDevice& interrupts;
+  Mmu* mmu;
+  InterruptDevice* interrupts;
   Registers regs;
   State state;
 

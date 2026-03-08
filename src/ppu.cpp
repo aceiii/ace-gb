@@ -43,14 +43,13 @@ inline u16 addr_with_mode(u8 mode, u8 addr) {
   return mode ? addr_mode_8000(addr) : addr_mode_8800(addr);
 }
 
-Ppu::Ppu(Mmu& mmu, InterruptDevice& interrupts)
-:interrupts_{interrupts}, mmu_{mmu}
-{
+void Ppu::Init(PpuConfig cfg) {
+  mmu_ = cfg.mmu;
+  interrupts_ = cfg.interrupts;
+
   auto logger = spdlog::get("doctor_logger");
   log_doctor_ = logger != nullptr;
-}
 
-void Ppu::Init(PpuConfig cfg) {
   target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
   ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
 
@@ -105,7 +104,7 @@ inline void Ppu::Step() {
     regs_.ly = (regs_.ly + 1) % (kLCDHeight + 10);
     regs_.stat.coincidence_flag = regs_.ly == regs_.lyc;
     if (regs_.stat.coincidence_flag && regs_.stat.stat_interrupt_lyc) {
-      interrupts_.RequestInterrupt(Interrupt::Stat);
+      interrupts_->RequestInterrupt(Interrupt::Stat);
     }
 
     cycle_counter_ = 0;
@@ -115,9 +114,9 @@ inline void Ppu::Step() {
     if (mode != PPUMode::VBlank) {
       window_line_counter_ = 0;
       regs_.stat.ppu_mode = std::to_underlying(PPUMode::VBlank);
-      interrupts_.RequestInterrupt(Interrupt::VBlank);
+      interrupts_->RequestInterrupt(Interrupt::VBlank);
       if (regs_.stat.stat_interrupt_mode0) {
-        interrupts_.RequestInterrupt(Interrupt::Stat);
+        interrupts_->RequestInterrupt(Interrupt::Stat);
       }
       SwapLcdTargets();
     }
@@ -125,7 +124,7 @@ inline void Ppu::Step() {
     if (mode != PPUMode::OAM) {
       regs_.stat.ppu_mode = std::to_underlying(PPUMode::OAM);
       if (regs_.stat.stat_interrupt_mode2) {
-        interrupts_.RequestInterrupt(Interrupt::Stat);
+        interrupts_->RequestInterrupt(Interrupt::Stat);
       }
     }
   } else if (cycle_counter_ <= (kDotsPerOAM + kDotsPerDraw)) {
@@ -136,7 +135,7 @@ inline void Ppu::Step() {
     if (mode != PPUMode::HBlank) {
       regs_.stat.ppu_mode = std::to_underlying(PPUMode::HBlank);
       if (regs_.stat.stat_interrupt_mode0) {
-        interrupts_.RequestInterrupt(Interrupt::Stat);
+        interrupts_->RequestInterrupt(Interrupt::Stat);
       }
       DrawLcdRow();
     }
@@ -530,7 +529,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   } else if (addr == std::to_underlying(IO::LYC)) {
     regs_.stat.coincidence_flag = regs_.lyc == regs_.ly;
     if (regs_.stat.coincidence_flag && regs_.stat.stat_interrupt_lyc) {
-      interrupts_.RequestInterrupt(Interrupt::Stat);
+      interrupts_->RequestInterrupt(Interrupt::Stat);
     }
   } else if (addr == std::to_underlying(IO::DMA)) {
     StartDma();
@@ -613,7 +612,7 @@ void Ppu::StartDma() {
   }
 
   for (auto i = 0; i < oam_.bytes.size(); i += 1) {
-    oam_.bytes[i] = mmu_.Read8(source + i);
+    oam_.bytes[i] = mmu_->Read8(source + i);
   }
 }
 

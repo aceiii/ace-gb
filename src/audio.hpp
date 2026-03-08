@@ -58,7 +58,7 @@ private:
   std::tuple<float, float> Sample() const;
 
 private:
-  AudioConfig config_;
+  AudioConfig config_ {};
 
   u8 frame_sequencer_ {};
   u16 frame_sequencer_counter_ {};

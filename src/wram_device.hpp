@@ -13,5 +13,5 @@ public:
   void Reset() override;
 
 public:
-  std::array<u8, 8192> wram;
+  std::array<u8, 8192> wram {};
 };

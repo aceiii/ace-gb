@@ -19,5 +19,6 @@ auto main(int argc, char* argv[]) -> int {
   app::Interface interface;
   interface.Init(args.value());
   interface.Run();
+  interface.Cleanup();
   return 0;
 }
