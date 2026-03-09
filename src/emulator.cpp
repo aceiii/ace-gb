@@ -423,19 +423,15 @@ void Emulator::OnAudioCallback(std::span<float> buffer) {
 }
 
 std::expected<void, std::string> Emulator::SetBootRomPath(BootRomType type, std::string_view path) {
-  BootRomData boot_rom {};
-  boot_rom.data.reserve(kMinBootRomSize);
-  boot_rom.path = path;
-
-  auto result = file::LoadBin(boot_rom.path);
+  auto result = file::LoadBin(path);
   if (!result) {
     return std::unexpected{result.error()};
   }
 
-  const auto& bytes = result.value();
-  std::copy_n(bytes.begin(), std::min(bytes.size(), boot_rom.data.size()), boot_rom.data.begin());
-
-  boot_roms_[type] = std::move(boot_rom);
+  boot_roms_[type] = BootRomData{
+    .data = result.value(),
+    .path = std::string(path),
+  };
 
   return {};
 }

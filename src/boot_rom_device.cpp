@@ -32,7 +32,7 @@ void BootRomDevice::Reset() {
 }
 
 void BootRomDevice::LoadBytes(std::span<const u8> bytes) {
-  rom_ = std::vector(bytes.begin(), bytes.end());
+  rom_.assign(bytes.begin(), bytes.end());
 }
 
 void BootRomDevice::SetDisable(u8 byte) {
