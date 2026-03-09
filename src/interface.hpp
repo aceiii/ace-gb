@@ -34,7 +34,8 @@ struct InterfaceSettings {
   // Emulator
   bool auto_start;
   bool skip_boot_rom;
-  std::string boot_rom_path;
+  std::string dmg_boot_rom_path;
+  std::string cgb_boot_rom_path;
 
   // Hardware
   bool show_lcd;

@@ -45,6 +45,7 @@ enum class IO {
   OBP1 = 0xff49,
   WY = 0xff4a,
   WX = 0xff4b,
+  KEY0 = 0xff4c,
   KEY1 = 0xff4d,
   VBK = 0xff4f,
   BOOT = 0xff50,

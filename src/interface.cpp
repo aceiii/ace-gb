@@ -46,14 +46,16 @@ namespace {
 constexpr int kDefaultWindowWidth = 800;
 constexpr int kDefaultWindowHeight = 600;
 constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
-constexpr char const* kDefaultBootRomPath = "boot.bin";
+constexpr char const* kDmgDefaultBootRomPath = "roms/dmg_boot.bin";
+constexpr char const* kCgbDefaultBootRomPath = "roms/cgb_boot.bin";
 
 constexpr int kAudioSampleRate = 44100;
 constexpr int kAudioSampleSize = 32;
 constexpr int kAudioNumChannels = 2;
 constexpr int kSamplesPerUpdate = 512;
 
-constexpr char const* kErrorKeyBootRom = "BootRomError";
+constexpr char const* kErrorKeyDmgBootRom = "DmgBootRomError";
+constexpr char const* kErrorKeyCgbBootRom = "CgbBootRomError";
 constexpr char const* kErrorKeyCartRom = "CartRomError";
 constexpr char const* kErrorKeyShader = "ShaderError";
 
@@ -168,7 +170,8 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
       toml::table{
         { "auto_start", settings.auto_start },
         { "skip_boot_rom", settings.skip_boot_rom },
-        { "boot_rom_path", settings.boot_rom_path },
+        { "dmg_boot_rom_path", settings.dmg_boot_rom_path },
+        { "cgb_boot_rom_path", settings.cgb_boot_rom_path },
         { "show_debugger", settings.show_debugger },
       },
     },
@@ -238,7 +241,8 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
 
   settings.auto_start = table["emulator"]["auto_start"].value_or(true);
   settings.skip_boot_rom = table["emulator"]["skip_boot_rom"].value_or(true);
-  settings.boot_rom_path = table["emulator"]["boot_rom_path"].value_or(std::string{kDefaultBootRomPath});
+  settings.dmg_boot_rom_path = table["emulator"]["dmg_boot_rom_path"].value_or(std::string{kDmgDefaultBootRomPath});
+  settings.cgb_boot_rom_path = table["emulator"]["cgb_boot_rom_path"].value_or(std::string{kCgbDefaultBootRomPath});
   settings.show_debugger = table["emulator"]["show_debugger"].value_or(true);
 
   settings.show_lcd = table["hardware"]["show_lcd"].value_or(true);
@@ -411,11 +415,18 @@ void Interface::Init(Args args) {
 
   emulator_.Init(emu_cfg);
 
-  if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
+  if (auto result = emulator_.SetBootRomPath(BootRomType::kDmgBootRom, config_.settings.dmg_boot_rom_path); !result) {
     spdlog::error("Failed to set boot rom path: {}", result.error());
-    error_messages_.AddError(kErrorKeyBootRom, std::format("Failed to load boot rom: {}", result.error()));
+    error_messages_.AddError(kErrorKeyDmgBootRom, std::format("Failed to load DMG boot rom: {}", result.error()));
   } else {
-    error_messages_.ClearError(kErrorKeyBootRom);
+    error_messages_.ClearError(kErrorKeyDmgBootRom);
+  }
+
+  if (auto result = emulator_.SetBootRomPath(BootRomType::kCgbBootRom, config_.settings.cgb_boot_rom_path); !result) {
+    spdlog::error("Failed to set boot rom path: {}", result.error());
+    error_messages_.AddError(kErrorKeyCgbBootRom, std::format("Failed to load CGB boot rom: {}", result.error()));
+  } else {
+    error_messages_.ClearError(kErrorKeyCgbBootRom);
   }
 
   while (!IsWindowReady()) {
@@ -1146,6 +1157,19 @@ void Interface::RenderMainMenu() {
     if (ImGui::MenuItem("Skip Boot ROM", nullptr, &config_.settings.skip_boot_rom)) {
       emulator_.SetSkipBootRom(config_.settings.skip_boot_rom);
     }
+    if (ImGui::BeginMenu("Emulation Mode")) {
+      const auto mode = emulator_.GetEmulationMode();
+      if (ImGui::MenuItem("Auto", nullptr, mode == EmulationMode::kAutoMode)) {
+        emulator_.SetEmulationMode(EmulationMode::kAutoMode);
+      }
+      if (ImGui::MenuItem("GameBoy", nullptr, mode == EmulationMode::kDmgMode)) {
+        emulator_.SetEmulationMode(EmulationMode::kDmgMode);
+      }
+      if (ImGui::MenuItem("GameBoy Color", nullptr, mode == EmulationMode::kCgbMode)) {
+        emulator_.SetEmulationMode(EmulationMode::kCgbMode);
+      }
+      ImGui::EndMenu();
+    }
     ImGui::Separator();
     if (ImGui::MenuItem("Play", nullptr, nullptr, is_cart_loaded && !is_playing)) {
       Play();
@@ -1272,23 +1296,36 @@ void Interface::RenderSettingsPopup() {
   }
 
   if (ImGui::BeginPopupModal("Settings", nullptr, ImGuiWindowFlags_Modal | ImGuiWindowFlags_AlwaysAutoResize)) {
-    static std::string boot_rom_path = config_.settings.boot_rom_path;
-    ImGui::InputText("Boot ROM Path", &boot_rom_path);
+    static std::string dmg_boot_rom_path = config_.settings.dmg_boot_rom_path;
+    static std::string cgb_boot_rom_path = config_.settings.cgb_boot_rom_path;
+
+    ImGui::InputText("DMG Boot ROM Path", &dmg_boot_rom_path);
+    ImGui::InputText("CGB Boot ROM Path", &cgb_boot_rom_path);
 
     if (ImGui::Button("OK", ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
-      spdlog::debug("Set boot rom path: {}", boot_rom_path);
-      config_.settings.boot_rom_path = boot_rom_path;
-      if (auto result = emulator_.SetBootRomPath(config_.settings.boot_rom_path); !result) {
-        error_messages_.AddError(kErrorKeyBootRom, std::format("Failed to load boot rom: {}", result.error()));
+
+      spdlog::debug("Set DMG boot rom path: {}", dmg_boot_rom_path);
+      config_.settings.dmg_boot_rom_path = dmg_boot_rom_path;
+      if (auto result = emulator_.SetBootRomPath(BootRomType::kDmgBootRom, config_.settings.dmg_boot_rom_path); !result) {
+        error_messages_.AddError(kErrorKeyDmgBootRom, std::format("Failed to load DMG boot rom: {}", result.error()));
       } else {
-        error_messages_.ClearError(kErrorKeyBootRom);
+        error_messages_.ClearError(kErrorKeyDmgBootRom);
+      }
+
+      spdlog::debug("Set CGB boot rom path: {}", cgb_boot_rom_path);
+      config_.settings.cgb_boot_rom_path = cgb_boot_rom_path;
+      if (auto result = emulator_.SetBootRomPath(BootRomType::kCgbBootRom, config_.settings.cgb_boot_rom_path); !result) {
+        error_messages_.AddError(kErrorKeyCgbBootRom, std::format("Failed to load CGB boot rom: {}", result.error()));
+      } else {
+        error_messages_.ClearError(kErrorKeyCgbBootRom);
       }
     }
     ImGui::SameLine();
     if (ImGui::Button("Cancel", ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
-      boot_rom_path = config_.settings.boot_rom_path;
+      dmg_boot_rom_path = config_.settings.dmg_boot_rom_path;
+      cgb_boot_rom_path = config_.settings.cgb_boot_rom_path;
     }
 
     ImGui::EndPopup();
@@ -1375,7 +1412,8 @@ void Interface::SaveSettings() {
   config_.settings.screen_x = static_cast<int>(window_pos.x);
   config_.settings.screen_y = static_cast<int>(window_pos.y);
   config_.settings.master_volume = GetMasterVolume() * 100.0f;
-  config_.settings.boot_rom_path = emulator_.GetBootRomPath();
+  config_.settings.dmg_boot_rom_path = emulator_.GetBootRomPath(BootRomType::kDmgBootRom);
+  config_.settings.cgb_boot_rom_path = emulator_.GetBootRomPath(BootRomType::kCgbBootRom);
 
   if (auto res = config_.Save(args_.settings_filename); !res.has_value()) {
     spdlog::warn("Failed to save settings to file: {}", res.error());

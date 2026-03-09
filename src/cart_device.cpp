@@ -50,6 +50,7 @@ void CartDevice::LoadCartBytes(const std::vector<u8>& bytes) {
   size_t rom_size_kb = 32 * (1 << *(rom_base + 0x0148));
   size_t rom_banks = rom_size_kb / 16;
   RamType ram_type { *(rom_base + 0x0149) };
+  CgbFlag cgb_flag { *(rom_base + 0x143) };
 
   size_t ram_banks;
   size_t ram_size;
@@ -86,12 +87,14 @@ void CartDevice::LoadCartBytes(const std::vector<u8>& bytes) {
   info_.ram_type = ram_type;
   info_.ram_num_banks = ram_banks;
   info_.ram_size_bytes = ram_size;
+  info_.cgb_flag = cgb_flag;
 
   spdlog::info("Loaded cartridge");
   spdlog::info("Title: {}", title);
   spdlog::info("Cart type: {}", magic_enum::enum_name(cart_type));
   spdlog::info("ROM size: {}KiB, No. Banks: {}", rom_size_kb, rom_banks);
   spdlog::info("RAM: {}", magic_enum::enum_name(ram_type));
+  spdlog::info("CGB Flag: {}", magic_enum::enum_underlying(cgb_flag));
 
   bool has_ram = false;
   bool has_battery = false;

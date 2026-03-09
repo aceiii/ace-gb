@@ -45,6 +45,11 @@ enum class RamType : u8 {
   BANKS_8 = 0X05,
 };
 
+enum class CgbFlag : u8 {
+  kCgbCompatMode = 0x80,
+  kCgbOnlyMode = 0xC0,
+};
+
 struct CartInfo {
   std::string title;
   CartType type;
@@ -53,6 +58,7 @@ struct CartInfo {
   size_t rom_num_banks;
   size_t ram_size_bytes;
   size_t ram_num_banks;
+  CgbFlag cgb_flag;
 
   void Reset() {
     title = "";

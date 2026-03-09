@@ -8,10 +8,137 @@
 #include <rlImGui.h>
 #include <tracy/Tracy.hpp>
 
+#include "types.hpp"
 #include "emulator.hpp"
 #include "file.hpp"
 #include "mmu.hpp"
 
+
+static void SetDmgBootRegisters(Mmu& mmu, Registers& regs) {
+    regs.Set(Reg8::A, 0x01);
+    regs.Set(Reg8::F, 0xb0);
+    regs.Set(Reg8::B, 0x00);
+    regs.Set(Reg8::C, 0x13);
+    regs.Set(Reg8::D, 0x00);
+    regs.Set(Reg8::E, 0xd8);
+    regs.Set(Reg8::H, 0x01);
+    regs.Set(Reg8::L, 0x4d);
+    regs.sp = 0xfffe;
+    regs.pc = 0x0100;
+
+    mmu.Write8(std::to_underlying(IO::P1), 0xcf);
+    mmu.Write8(std::to_underlying(IO::SB), 0x00);
+    mmu.Write8(std::to_underlying(IO::SC), 0x7e);
+    mmu.Write8(std::to_underlying(IO::DIV), 0xab);
+    mmu.Write8(std::to_underlying(IO::TIMA), 0x00);
+    mmu.Write8(std::to_underlying(IO::TMA), 0x00);
+    mmu.Write8(std::to_underlying(IO::TAC), 0xf8);
+    mmu.Write8(std::to_underlying(IO::IF), 0xE1);
+    mmu.Write8(std::to_underlying(IO::NR10), 0x80);
+    mmu.Write8(std::to_underlying(IO::NR11), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR12), 0xf3);
+    mmu.Write8(std::to_underlying(IO::NR13), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR14), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR21), 0x3f);
+    mmu.Write8(std::to_underlying(IO::NR22), 0x00);
+    mmu.Write8(std::to_underlying(IO::NR23), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR24), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR30), 0x7f);
+    mmu.Write8(std::to_underlying(IO::NR31), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR32), 0x9f);
+    mmu.Write8(std::to_underlying(IO::NR33), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR34), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR41), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR42), 0x00);
+    mmu.Write8(std::to_underlying(IO::NR43), 0x00);
+    mmu.Write8(std::to_underlying(IO::NR44), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR50), 0x77);
+    mmu.Write8(std::to_underlying(IO::NR51), 0xf3);
+    mmu.Write8(std::to_underlying(IO::NR52), 0xf0);
+    mmu.Write8(std::to_underlying(IO::LCDC), 0x91);
+    mmu.Write8(std::to_underlying(IO::STAT), 0x85);
+    mmu.Write8(std::to_underlying(IO::SCX), 0x00);
+    mmu.Write8(std::to_underlying(IO::SCY), 0x00);
+    mmu.Write8(std::to_underlying(IO::LY), 0x91);
+    mmu.Write8(std::to_underlying(IO::LYC), 0x00);
+    mmu.Write8(std::to_underlying(IO::DMA), 0xff);
+    mmu.Write8(std::to_underlying(IO::BGP), 0xfc);
+    mmu.Write8(std::to_underlying(IO::OBP0), 0x00);
+    mmu.Write8(std::to_underlying(IO::OBP1), 0x00);
+    mmu.Write8(std::to_underlying(IO::WY), 0x00);
+    mmu.Write8(std::to_underlying(IO::WX), 0x00);
+    mmu.Write8(std::to_underlying(IO::IE), 0x00);
+}
+
+static void SetCgbBootRegisters(Mmu& mmu, Registers& regs) {
+    regs.Set(Reg8::A, 0x11);
+    regs.Set(Reg8::F, 0x80);
+    regs.Set(Reg8::B, 0x00);
+    regs.Set(Reg8::C, 0x00);
+    regs.Set(Reg8::D, 0xff);
+    regs.Set(Reg8::E, 0x56);
+    regs.Set(Reg8::H, 0x00);
+    regs.Set(Reg8::L, 0x0d);
+    regs.sp = 0xfffe;
+    regs.pc = 0x0100;
+
+    mmu.Write8(std::to_underlying(IO::P1), 0xc7);
+    mmu.Write8(std::to_underlying(IO::SB), 0x00);
+    mmu.Write8(std::to_underlying(IO::SC), 0x7f);
+    mmu.Write8(std::to_underlying(IO::DIV), 0xab);
+    mmu.Write8(std::to_underlying(IO::TIMA), 0x00);
+    mmu.Write8(std::to_underlying(IO::TMA), 0x00);
+    mmu.Write8(std::to_underlying(IO::TAC), 0xf8);
+    mmu.Write8(std::to_underlying(IO::IF), 0xE1);
+    mmu.Write8(std::to_underlying(IO::NR10), 0x80);
+    mmu.Write8(std::to_underlying(IO::NR11), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR12), 0xf3);
+    mmu.Write8(std::to_underlying(IO::NR13), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR14), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR21), 0x3f);
+    mmu.Write8(std::to_underlying(IO::NR22), 0x00);
+    mmu.Write8(std::to_underlying(IO::NR23), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR24), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR30), 0x7f);
+    mmu.Write8(std::to_underlying(IO::NR31), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR32), 0x9f);
+    mmu.Write8(std::to_underlying(IO::NR33), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR34), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR41), 0xff);
+    mmu.Write8(std::to_underlying(IO::NR42), 0x00);
+    mmu.Write8(std::to_underlying(IO::NR43), 0x00);
+    mmu.Write8(std::to_underlying(IO::NR44), 0xbf);
+    mmu.Write8(std::to_underlying(IO::NR50), 0x77);
+    mmu.Write8(std::to_underlying(IO::NR51), 0xf3);
+    mmu.Write8(std::to_underlying(IO::NR52), 0xf1);
+    mmu.Write8(std::to_underlying(IO::LCDC), 0x91);
+    mmu.Write8(std::to_underlying(IO::STAT), 0x85);
+    mmu.Write8(std::to_underlying(IO::SCY), 0x00);
+    mmu.Write8(std::to_underlying(IO::SCX), 0x00);
+    mmu.Write8(std::to_underlying(IO::LY), 0x91);
+    mmu.Write8(std::to_underlying(IO::LYC), 0x00);
+    mmu.Write8(std::to_underlying(IO::DMA), 0x00);
+    mmu.Write8(std::to_underlying(IO::BGP), 0xfc);
+    mmu.Write8(std::to_underlying(IO::OBP0), 0xff);
+    mmu.Write8(std::to_underlying(IO::OBP1), 0xff);
+    mmu.Write8(std::to_underlying(IO::WY), 0x00);
+    mmu.Write8(std::to_underlying(IO::WX), 0x00);
+    mmu.Write8(std::to_underlying(IO::KEY0), 0x00);
+    mmu.Write8(std::to_underlying(IO::KEY1), 0x7e);
+    mmu.Write8(std::to_underlying(IO::VBK), 0xfe);
+    mmu.Write8(std::to_underlying(IO::HDMA1), 0xff);
+    mmu.Write8(std::to_underlying(IO::HDMA2), 0xff);
+    mmu.Write8(std::to_underlying(IO::HDMA3), 0xff);
+    mmu.Write8(std::to_underlying(IO::HDMA4), 0xff);
+    mmu.Write8(std::to_underlying(IO::HDMA5), 0xff);
+    mmu.Write8(std::to_underlying(IO::RP), 0x3e);
+    mmu.Write8(std::to_underlying(IO::BCPS), 0x00);
+    mmu.Write8(std::to_underlying(IO::BCPD), 0x00);
+    mmu.Write8(std::to_underlying(IO::OCPS), 0x00);
+    mmu.Write8(std::to_underlying(IO::OCPD), 0x00);
+    mmu.Write8(std::to_underlying(IO::SVBK), 0xf8);
+    mmu.Write8(std::to_underlying(IO::IE), 0x00);
+}
 
 void Emulator::Init(EmulatorConfig emu_cfg) {
   config_ = std::move(emu_cfg);
@@ -116,62 +243,41 @@ void Emulator::Reset() {
   num_cycles_ = 0;
   running_ = false;
 
+  internal_mode_ = EmulationMode::kDmgMode;
+
   cpu_.Reset();
   mmu_.ResetDevices();
-  boot_.LoadBytes(boot_rom_);
   cart_.LoadCartBytes(cart_bytes_);
 
+  auto& cart_info = cart_.GetCartridgeInfo();
+  if (mode_ == EmulationMode::kAutoMode) {
+    switch (cart_info.cgb_flag) {
+      case CgbFlag::kCgbCompatMode:
+      case CgbFlag::kCgbOnlyMode:
+        internal_mode_ = EmulationMode::kCgbMode;
+        break;
+      default:
+        internal_mode_ = EmulationMode::kDmgMode;
+        break;
+    }
+  } else {
+    internal_mode_ = mode_;
+  }
+
+  auto boot_rom_type = BootRomType::kDmgBootRom;
+  if (internal_mode_ == EmulationMode::kCgbMode) {
+    boot_rom_type = BootRomType::kCgbBootRom;
+  }
+
+  const auto& boot_rom = boot_roms_.at(boot_rom_type);
+  boot_.LoadBytes(boot_rom.data);
+
   if (skip_bootrom_) {
-    auto& regs = cpu_.GetRegisters();
-    regs.Set(Reg8::A, 0x01);
-    regs.Set(Reg8::F, 0xb0);
-    regs.Set(Reg8::B, 0x00);
-    regs.Set(Reg8::C, 0x13);
-    regs.Set(Reg8::D, 0x00);
-    regs.Set(Reg8::E, 0xd8);
-    regs.Set(Reg8::H, 0x01);
-    regs.Set(Reg8::L, 0x4d);
-    regs.sp = 0xfffe;
-    regs.pc = 0x0100;
-
-    mmu_.Write8(std::to_underlying(IO::P1), 0xcf);
-    mmu_.Write8(std::to_underlying(IO::SB), 0x00);
-    mmu_.Write8(std::to_underlying(IO::SC), 0x7e);
-    mmu_.Write8(std::to_underlying(IO::DIV), 0xab);
-    mmu_.Write8(std::to_underlying(IO::TIMA), 0x00);
-    mmu_.Write8(std::to_underlying(IO::TMA), 0x00);
-    mmu_.Write8(std::to_underlying(IO::TAC), 0xf8);
-    mmu_.Write8(std::to_underlying(IO::IF), 0xE1);
-    mmu_.Write8(std::to_underlying(IO::NR10), 0x80);
-    mmu_.Write8(std::to_underlying(IO::NR11), 0xbf);
-    mmu_.Write8(std::to_underlying(IO::NR12), 0xf3);
-    mmu_.Write8(std::to_underlying(IO::NR13), 0xff);
-    mmu_.Write8(std::to_underlying(IO::NR14), 0xbf);
-    mmu_.Write8(std::to_underlying(IO::NR21), 0x3f);
-    mmu_.Write8(std::to_underlying(IO::NR22), 0x00);
-    mmu_.Write8(std::to_underlying(IO::NR23), 0xff);
-    mmu_.Write8(std::to_underlying(IO::NR24), 0xbf);
-    mmu_.Write8(std::to_underlying(IO::NR30), 0x7f);
-    mmu_.Write8(std::to_underlying(IO::NR31), 0xff);
-    mmu_.Write8(std::to_underlying(IO::NR32), 0x9f);
-    mmu_.Write8(std::to_underlying(IO::NR33), 0xff);
-    mmu_.Write8(std::to_underlying(IO::NR34), 0xbf);
-    mmu_.Write8(std::to_underlying(IO::NR41), 0xff);
-    mmu_.Write8(std::to_underlying(IO::NR42), 0x00);
-    mmu_.Write8(std::to_underlying(IO::NR43), 0x00);
-    mmu_.Write8(std::to_underlying(IO::NR44), 0xbf);
-    mmu_.Write8(std::to_underlying(IO::NR50), 0x77);
-    mmu_.Write8(std::to_underlying(IO::NR51), 0xf3);
-    mmu_.Write8(std::to_underlying(IO::NR52), 0xf0);
-    mmu_.Write8(std::to_underlying(IO::LCDC), 0x91);
-    mmu_.Write8(std::to_underlying(IO::STAT), 0x85);
-    mmu_.Write8(std::to_underlying(IO::LYC), 0x00);
-    mmu_.Write8(std::to_underlying(IO::DMA), 0xff);
-    mmu_.Write8(std::to_underlying(IO::BGP), 0xfc);
-    mmu_.Write8(std::to_underlying(IO::WX), 0x00);
-    mmu_.Write8(std::to_underlying(IO::WY), 0x00);
-    mmu_.Write8(std::to_underlying(IO::IE), 0x00);
-
+    if (internal_mode_ == EmulationMode::kCgbMode) {
+      SetCgbBootRegisters(mmu_, cpu_.GetRegisters());
+    } else {
+      SetDmgBootRegisters(mmu_, cpu_.GetRegisters());
+    }
     boot_.SetDisable(0xff);
   }
 }
@@ -307,23 +413,30 @@ void Emulator::OnAudioCallback(std::span<float> buffer) {
   }
 }
 
-std::expected<void, std::string> Emulator::SetBootRomPath(std::string_view path) {
-  boot_rom_.fill(0);
-  boot_rom_path_ = path;
+std::expected<void, std::string> Emulator::SetBootRomPath(BootRomType type, std::string_view path) {
+  BootRomData boot_rom {};
+  boot_rom.data.fill(0);
+  boot_rom.path = path;
 
-  auto result = file::LoadBin(boot_rom_path_);
+  auto result = file::LoadBin(boot_rom.path);
   if (!result) {
     return std::unexpected{result.error()};
   }
 
   const auto& bytes = result.value();
-  std::copy_n(bytes.begin(), std::min(bytes.size(), boot_rom_.size()), boot_rom_.begin());
+  std::copy_n(bytes.begin(), std::min(bytes.size(), boot_rom.data.size()), boot_rom.data.begin());
+
+  boot_roms_[type] = std::move(boot_rom);
 
   return {};
 }
 
-std::string Emulator::GetBootRomPath() const {
-  return boot_rom_path_;
+std::string Emulator::GetBootRomPath(BootRomType type) const {
+  auto it = boot_roms_.find(type);
+  if (it == boot_roms_.end()) {
+    return {};
+  }
+  return it->second.path;
 }
 
 size_t Emulator::GetPrevCycles() const {
@@ -348,4 +461,12 @@ void Emulator::SetClockSpeed(size_t clock_speed) {
 
 size_t Emulator::GetClockSpeed() const {
   return config_.clock_speed;
+}
+
+void Emulator::SetEmulationMode(EmulationMode mode) {
+  mode_ = mode;
+}
+
+EmulationMode Emulator::GetEmulationMode() const {
+  return mode_;
 }

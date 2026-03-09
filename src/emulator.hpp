@@ -6,6 +6,7 @@
 #include <set>
 #include <span>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "types.hpp"
@@ -22,6 +23,24 @@
 #include "input_device.hpp"
 #include "serial_device.hpp"
 
+
+using BootRomBuffer = std::array<u8, kBootRomSize>;
+
+enum class BootRomType {
+  kDmgBootRom,
+  kCgbBootRom,
+};
+
+struct BootRomData {
+  std::string path;
+  BootRomBuffer data {};
+};
+
+enum class EmulationMode {
+  kAutoMode,
+  kDmgMode,
+  kCgbMode,
+};
 
 struct EmulatorConfig {
   std::array<Color, 4> palette;
@@ -76,8 +95,8 @@ public:
   std::vector<float>& GetAudioSamples();
   void OnAudioCallback(std::span<float> buffer);
 
-  std::expected<void, std::string> SetBootRomPath(std::string_view path);
-  std::string GetBootRomPath() const;
+  std::expected<void, std::string> SetBootRomPath(BootRomType type, std::string_view path);
+  std::string GetBootRomPath(BootRomType type) const;
 
   size_t GetPrevCycles() const;
 
@@ -88,6 +107,9 @@ public:
 
   void SetClockSpeed(size_t clock_speed);
   size_t GetClockSpeed() const;
+
+  void SetEmulationMode(EmulationMode mode);
+  EmulationMode GetEmulationMode() const;
 
 private:
   EmulatorConfig config_ {};
@@ -104,8 +126,11 @@ private:
   NullDevice null_device_ {};
   InputDevice input_device_ {};
   SerialDevice serial_device_ {};
+  EmulationMode mode_ = EmulationMode::kAutoMode;
+  EmulationMode internal_mode_ = EmulationMode::kDmgMode;
 
-  std::array<u8, kBootRomSize> boot_rom_ {};
+  std::unordered_map<BootRomType, BootRomData, std::hash<BootRomType>> boot_roms_ {};
+
   std::vector<u8> cart_bytes_ {};
   std::set<u16> breakpoints_ {};
 
@@ -114,7 +139,7 @@ private:
   size_t prev_cycles_ = 0;
   size_t num_cycles_ = 0;
 
-  std::string boot_rom_path_;
   bool skip_bootrom_ = true;
   bool running_ = false;
+
 };
