@@ -8,7 +8,8 @@
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
 
-constexpr int kNumTiles = 384;
+constexpr size_t kNumTiles = 384;
+constexpr size_t kVramNumBanks = 2;
 
 enum class PPUMode : u8 {
   HBlank = 0,
@@ -113,6 +114,16 @@ struct VramMemory {
   }
 };
 
+struct VramBankReg {
+  union {
+    u8 val;
+    struct {
+      u8 bank: 1;
+      u8 : 7;
+    };
+  };
+};
+
 struct PpuConfig {
   Mmu* mmu;
   InterruptDevice* interrupts;
@@ -153,6 +164,10 @@ private:
   void SwapLcdTargets();
   void StartDma();
 
+  VramMemory& Bank();
+  const VramMemory& Bank() const;
+
+private:
   Mmu* mmu_ = nullptr;
   InterruptDevice* interrupts_ = nullptr;
   Texture2D target_lcd_front_ {};
@@ -163,9 +178,10 @@ private:
   RenderTexture2D target_sprites_ {};
   RenderTexture2D target_tiles_ {};
 
-  VramMemory vram_ {};
+  std::array<VramMemory, kVramNumBanks> banks_ {};
   OamMemory oam_ {};
   PpuRegs regs_ {};
+  VramBankReg vbk_ {};
 
   u16 cycle_counter_ = 0;
   u8 window_line_counter_ = 0;

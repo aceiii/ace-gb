@@ -5,26 +5,25 @@
 #include "io.hpp"
 #include "ppu.hpp"
 
+
 namespace {
+  constexpr u16 kLCDWidth = 160;
+  constexpr u16 kLCDHeight = 144;
 
-constexpr u16 kLCDWidth = 160;
-constexpr u16 kLCDHeight = 144;
+  constexpr u16 kVRAMAddrStart = 0x8000;
+  constexpr u16 kVRAMAddrEnd = 0x9FFF;
+  constexpr u16 kVRAMRelStart = 0x9000;
 
-constexpr u16 kVRAMAddrStart = 0x8000;
-constexpr u16 kVRAMAddrEnd = 0x9FFF;
-constexpr u16 kVRAMRelStart = 0x9000;
+  constexpr u16 kOAMAddrStart = 0xFE00;
+  constexpr u16 kOAMAddrEnd = 0xFE9F;
 
-constexpr u16 kOAMAddrStart = 0xFE00;
-constexpr u16 kOAMAddrEnd = 0xFE9F;
+  constexpr u16 kExtRamBusStart = 0xA000;
+  constexpr u16 kExtRamBusEnd = 0xDFFF;
+  constexpr u16 kExtRamBusMask = kExtRamBusEnd - kExtRamBusStart;
 
-constexpr u16 kExtRamBusStart = 0xA000;
-constexpr u16 kExtRamBusEnd = 0xDFFF;
-constexpr u16 kExtRamBusMask = kExtRamBusEnd - kExtRamBusStart;
-
-constexpr size_t kDotsPerOAM = 80;
-constexpr size_t kDotsPerDraw = 172;
-constexpr size_t kDotsPerRow = 456;
-
+  constexpr size_t kDotsPerOAM = 80;
+  constexpr size_t kDotsPerDraw = 172;
+  constexpr size_t kDotsPerRow = 456;
 }
 
 inline u8 get_palette_index(u8 id, u8 palette) {
@@ -153,6 +152,7 @@ void Ppu::DrawLcdRow() {
   bg_win_pixels.fill(0);
 
   if (regs_.lcdc.bg_window_enable) {
+    const auto& vram = Bank();
     const bool enable_window_flag = regs_.lcdc.window_enable &&
       regs_.wx >= 0 && regs_.wx <= 166 && regs_.wy >= 0 && regs_.wy <= 143;
     const u8 y = regs_.ly;
@@ -170,7 +170,7 @@ void Ppu::DrawLcdRow() {
         row = py % 8;
       }
 
-      auto& tilemap = vram_.tile_map[enable_window ? regs_.lcdc.window_tilemap_area : regs_.lcdc.bg_tilemap_area];
+      auto& tilemap = vram.tile_map[enable_window ? regs_.lcdc.window_tilemap_area : regs_.lcdc.bg_tilemap_area];
 
       u8 px = enable_window ? x - (regs_.wx - 7) : regs_.scx + x;
       u8 tx = (px >> 3) & 31;
@@ -179,7 +179,7 @@ void Ppu::DrawLcdRow() {
       auto map_idx = (ty * 32) + tx;
       auto tile_id = tilemap[map_idx];
       auto tile_idx = (addr_with_mode(regs_.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
-      auto tile = vram_.tile_data[tile_idx];
+      auto tile = vram.tile_data[tile_idx];
 
       u16 hi = (tile[row] >> 8) >> (7 - sub_x);
       u8 lo = tile[row] >> (7 - sub_x);
@@ -201,6 +201,8 @@ void Ppu::DrawLcdRow() {
   }
 
   if (regs_.lcdc.sprite_enable) {
+    const auto& vram = Bank();
+
     static std::vector<Sprite*> valid_sprites;
     valid_sprites.clear();
     valid_sprites.reserve(10);
@@ -234,7 +236,7 @@ void Ppu::DrawLcdRow() {
         }
       }
       auto tile_idx = (addr_with_mode(1, tile_id) - kVRAMAddrStart) / 16;
-      auto tile = vram_.tile_data[tile_idx];
+      auto tile = vram.tile_data[tile_idx];
       auto palette = sprite->attrs.dmg_palette ? regs_.obp1: regs_.obp0;
       auto left = sprite->x - 8;
 
@@ -296,9 +298,12 @@ void Ppu::UpdateRenderTargets() {
   {
     ZoneScopedN("BeginTextureMode:target_tiles");
 
+    const auto& vram = Bank();
+
     int x = 0;
     int y = 0;
-    for (auto& tile : vram_.tile_data) {
+
+    for (auto& tile : vram.tile_data) {
       for (int row = 0; row < tile.size(); row += 1) {
         u16 hi = (tile[row] >> 8) << 1;
         u8 lo = tile[row];
@@ -325,8 +330,9 @@ void Ppu::UpdateRenderTargets() {
   {
     ZoneScopedN("BeginTextureMode:target_tilemap1");
 
+    const auto& vram = Bank();
     auto tiledata_area = regs_.lcdc.tiledata_area;
-    auto& tilemap = vram_.tile_map[0];
+    auto& tilemap = vram.tile_map[0];
 
     int x = 0;
     int y = 0;
@@ -385,8 +391,9 @@ void Ppu::UpdateRenderTargets() {
   {
     ZoneScopedN("BeginTextureMode:target_tilemap2");
 
+    const auto& vram = Bank();
     auto tiledata_area = regs_.lcdc.tiledata_area;
-    auto& tilemap = vram_.tile_map[1];
+    auto& tilemap = vram.tile_map[1];
 
     int x = 0;
     int y = 0;
@@ -483,6 +490,10 @@ void Ppu::UpdateRenderTargets() {
 }
 
 bool Ppu::IsValidFor(u16 addr) const {
+  if (addr == std::to_underlying(IO::VBK)) {
+    return true;
+  }
+
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
     return true;
   }
@@ -499,8 +510,13 @@ bool Ppu::IsValidFor(u16 addr) const {
 }
 
 void Ppu::Write8(u16 addr, u8 byte) {
+  if (addr == std::to_underlying(IO::VBK)) {
+    vbk_.val = byte;
+    return;
+  }
+
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
-    vram_.bytes[addr - kVRAMAddrStart] = byte;
+    Bank().bytes[addr - kVRAMAddrStart] = byte;
     return;
   }
 
@@ -537,8 +553,12 @@ void Ppu::Write8(u16 addr, u8 byte) {
 }
 
 u8 Ppu::Read8(u16 addr) const {
+  if (addr == std::to_underlying(IO::VBK)) {
+    return vbk_.val;
+  }
+
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
-    return vram_.bytes[addr - kVRAMAddrStart];
+    return Bank().bytes[addr - kVRAMAddrStart];
   }
 
   if (addr >= kOAMAddrStart && addr <= kOAMAddrEnd) {
@@ -557,7 +577,9 @@ u8 Ppu::Read8(u16 addr) const {
 }
 
 void Ppu::Reset() {
-  vram_.reset();
+  for (auto& bank : banks_) {
+    bank.reset();
+  }
   oam_.reset();
   regs_.reset();
   cycle_counter_ = 0;
@@ -602,7 +624,7 @@ void Ppu::StartDma() {
   if (source >= kVRAMAddrStart && source <= kVRAMAddrEnd) {
     auto base = source - kVRAMAddrStart;
     for (auto i = 0; i < oam_.bytes.size(); i += 1) {
-      oam_.bytes[i] = vram_.bytes[base + i];
+      oam_.bytes[i] = Bank().bytes[base + i];
     }
     return;
   }
@@ -626,4 +648,12 @@ size_t Ppu::GetFrameCount() const {
 
 void Ppu::UpdatePalette(std::array<Color, 4> palette) {
   palette_ = std::move(palette);
+}
+
+VramMemory& Ppu::Bank() {
+  return banks_.at(vbk_.bank);
+}
+
+const VramMemory& Ppu::Bank() const {
+  return banks_.at(vbk_.bank);
 }
