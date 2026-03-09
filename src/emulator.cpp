@@ -14,6 +14,10 @@
 #include "mmu.hpp"
 
 
+namespace {
+  constexpr int kMinBootRomSize = 256;
+};
+
 static void SetDmgBootRegisters(Mmu& mmu, Registers& regs) {
     regs.Set(Reg8::A, 0x01);
     regs.Set(Reg8::F, 0xb0);
@@ -264,12 +268,17 @@ void Emulator::Reset() {
     internal_mode_ = mode_;
   }
 
+  spdlog::info("Internal emulation mode: {}", magic_enum::enum_name(internal_mode_));
+
   auto boot_rom_type = BootRomType::kDmgBootRom;
   if (internal_mode_ == EmulationMode::kCgbMode) {
     boot_rom_type = BootRomType::kCgbBootRom;
   }
 
   const auto& boot_rom = boot_roms_.at(boot_rom_type);
+
+  spdlog::debug("Using boot rom type:{} at '{}'", magic_enum::enum_name(boot_rom_type), boot_rom.path);
+
   boot_.LoadBytes(boot_rom.data);
 
   if (skip_bootrom_) {
@@ -415,7 +424,7 @@ void Emulator::OnAudioCallback(std::span<float> buffer) {
 
 std::expected<void, std::string> Emulator::SetBootRomPath(BootRomType type, std::string_view path) {
   BootRomData boot_rom {};
-  boot_rom.data.fill(0);
+  boot_rom.data.reserve(kMinBootRomSize);
   boot_rom.path = path;
 
   auto result = file::LoadBin(boot_rom.path);

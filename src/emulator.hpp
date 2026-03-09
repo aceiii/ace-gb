@@ -24,7 +24,7 @@
 #include "serial_device.hpp"
 
 
-using BootRomBuffer = std::array<u8, kBootRomSize>;
+using BootRomBuffer = std::vector<u8>;
 
 enum class BootRomType {
   kDmgBootRom,

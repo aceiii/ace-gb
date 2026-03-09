@@ -3,6 +3,10 @@
 #include "boot_rom_device.hpp"
 #include "io.hpp"
 
+namespace {
+  constexpr int kMinBootRomSize = 256;
+};
+
 bool BootRomDevice::IsValidFor(u16 addr) const {
   return addr == std::to_underlying(IO::BOOT) || (!disable_ && addr < rom_.size());
 }
@@ -24,11 +28,11 @@ void BootRomDevice::Write8(u16 addr, u8 byte) {
 
 void BootRomDevice::Reset() {
   disable_ = 0;
-  rom_.fill(0);
+  rom_.clear();
 }
 
-void BootRomDevice::LoadBytes(const RomBuffer& bytes) {
-  rom_ = bytes;
+void BootRomDevice::LoadBytes(std::span<const u8> bytes) {
+  rom_ = std::vector(bytes.begin(), bytes.end());
 }
 
 void BootRomDevice::SetDisable(u8 byte) {

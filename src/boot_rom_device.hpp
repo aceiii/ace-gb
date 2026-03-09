@@ -1,18 +1,15 @@
 #pragma once
 
-#include <array>
+#include <span>
 #include <vector>
 
 #include "types.hpp"
 #include "mmu.hpp"
 
-constexpr size_t kBootRomSize = 256;
-
-using RomBuffer = std::array<u8, kBootRomSize>;
 
 class BootRomDevice : public MmuDevice {
 public:
-  void LoadBytes(const RomBuffer& bytes);
+  void LoadBytes(std::span<const u8> bytes);
 
   [[nodiscard]] bool IsValidFor(u16 addr) const override;
   void Write8(u16 addr, u8 byte) override;
@@ -22,6 +19,6 @@ public:
   void SetDisable(u8 byte);
 
 private:
-  RomBuffer rom_ {};
+  std::vector<u8> rom_ {};
   u8 disable_ = 0;
 };
