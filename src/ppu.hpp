@@ -7,6 +7,8 @@
 #include "mmu.hpp"
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
+#include "cpu_state.hpp"
+
 
 constexpr size_t kNumTiles = 384;
 constexpr size_t kVramNumBanks = 2;
@@ -124,7 +126,7 @@ struct VramBankReg {
   };
 };
 
-struct HdmaRegs {
+struct DmaRegs {
   union {
     struct {
       u8 low;
@@ -141,11 +143,26 @@ struct HdmaRegs {
     u16 val;
   } destination;
 
-  u8 dma;
+  union {
+    u8 val;
+    struct {
+      u8 length : 7;
+      u8 mode_active : 1;
+    };
+  } dma;
+};
+
+struct DmaState {
+  u16 length;
+  u16 destination;
+  u16 source;
+  bool hdma;
+  bool active;
 };
 
 struct PpuConfig {
   Mmu* mmu;
+  CpuState* state;
   InterruptDevice* interrupts;
   std::array<Color, 4> palette;
 };
@@ -154,7 +171,7 @@ class Ppu : public MmuDevice, public SyncedDevice {
 public:
   void Init(PpuConfig config);
   void Cleanup();
-  void Step();
+  void Step(int n = 0);
 
   void OnTick() override;
 
@@ -191,6 +208,7 @@ private:
 
 private:
   Mmu* mmu_ = nullptr;
+  CpuState* state_ = nullptr;
   InterruptDevice* interrupts_ = nullptr;
   Texture2D target_lcd_front_ {};
   Image target_lcd_back_ {};
@@ -204,7 +222,8 @@ private:
   OamMemory oam_ {};
   PpuRegs regs_ {};
   VramBankReg vbk_ {};
-  HdmaRegs hdma_regs_ {};
+  DmaRegs dma_regs_ {};
+  DmaState dma_state_ {};
 
   u16 cycle_counter_ = 0;
   u8 window_line_counter_ = 0;

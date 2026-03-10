@@ -153,12 +153,6 @@ void Emulator::Init(EmulatorConfig emu_cfg) {
     .interrupts = &interrupts_,
   });
 
-  ppu_.Init({
-    .mmu = &mmu_,
-    .interrupts = &interrupts_,
-    .palette = config_.palette,
-  });
-
   audio_.Init({
     .clock_speed = config_.clock_speed,
     .buffer_size = config_.buffer_size,
@@ -188,6 +182,13 @@ void Emulator::Init(EmulatorConfig emu_cfg) {
   cpu_.AddSyncedDevice(&ppu_);
   cpu_.AddSyncedDevice(&audio_);
   cpu_.AddSyncedDevice(&serial_device_);
+
+  ppu_.Init({
+    .mmu = &mmu_,
+    .state = &cpu_.GetState(),
+    .interrupts = &interrupts_,
+    .palette = config_.palette,
+  });
 
   input_device_.Init({
     .interrupts = &interrupts_,

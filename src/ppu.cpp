@@ -44,6 +44,7 @@ inline u16 AddrWithMode(u8 mode, u8 addr) {
 
 void Ppu::Init(PpuConfig cfg) {
   mmu_ = cfg.mmu;
+  state_ = cfg.state;
   interrupts_ = cfg.interrupts;
 
   auto logger = spdlog::get("doctor_logger");
@@ -85,14 +86,20 @@ void Ppu::Cleanup() {
 
 void Ppu::OnTick() {
   ZoneScoped;
-  Step();
-  Step();
-  Step();
-  Step();
+  Step(0);
+  Step(1);
+  Step(2);
+  Step(3);
 }
 
-inline void Ppu::Step() {
+inline void Ppu::Step(int n) {
   ZoneScoped;
+
+  if (n % 2 == 0 && dma_state_.length) {
+    mmu_->Write8(dma_state_.destination++, mmu_->Read8(dma_state_.source++));
+    dma_state_.length--;
+  }
+
   if (!regs_.lcdc.lcd_enable) {
     return;
   }
@@ -539,28 +546,28 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::HDMA1)) {
-    hdma_regs_.source.high = byte;
+    dma_regs_.source.high = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::HDMA2)) {
-    hdma_regs_.source.low = byte;
+    dma_regs_.source.low = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::HDMA3)) {
-    hdma_regs_.destination.high = byte;
+    dma_regs_.destination.high = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::HDMA4)) {
-    hdma_regs_.destination.low = byte;
+    dma_regs_.destination.low = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::HDMA5)) {
     const auto dma_type = (byte >> 7) & 0b1;
-    const auto dma_len = byte & 0x7f;
+    dma_regs_.dma.mode_active = byte;
     if (dma_type) {
       StartHBlankDma();
     } else {
@@ -609,23 +616,26 @@ u8 Ppu::Read8(u16 addr) const {
   }
 
   if (addr == std::to_underlying(IO::HDMA1)) {
-    return hdma_regs_.source.high;
+    return dma_regs_.source.high;
   }
 
   if (addr == std::to_underlying(IO::HDMA2)) {
-    return hdma_regs_.source.low;
+    return dma_regs_.source.low;
   }
 
   if (addr == std::to_underlying(IO::HDMA3)) {
-    return hdma_regs_.destination.high;
+    return dma_regs_.destination.high;
   }
 
   if (addr == std::to_underlying(IO::HDMA4)) {
-    return hdma_regs_.destination.low;
+    return dma_regs_.destination.low;
   }
 
   if (addr == std::to_underlying(IO::HDMA5)) {
-    return hdma_regs_.dma;
+    if (dma_state_.active) {
+      return ((dma_state_.length / 0x10) - 1) & 0x7f;
+    }
+    return 0xff;
   }
 
   return regs_.bytes[addr - std::to_underlying(IO::LCDC)];
@@ -714,6 +724,13 @@ const VramMemory& Ppu::Bank() const {
 }
 
 void Ppu::StartGPDma() {
+  state_->halt = true;
+  dma_state_ = {
+    .active = true,
+    .hdma = false,
+    .source = static_cast<u16>(dma_regs_.source.val & 0xfff0),
+    .destination = static_cast<u16>(dma_regs_.destination.val & 0x0ff0),
+  };
 }
 
 void Ppu::StartHBlankDma() {
