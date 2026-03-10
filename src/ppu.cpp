@@ -95,9 +95,13 @@ void Ppu::OnTick() {
 inline void Ppu::Step(int n) {
   ZoneScoped;
 
-  if (n % 2 == 0 && dma_state_.length) {
+  if (n % 2 == 0 && state_->halt && dma_state_.active && !dma_state_.hdma) {
     mmu_->Write8(dma_state_.destination++, mmu_->Read8(dma_state_.source++));
     dma_state_.length--;
+    if (!dma_state_.length) {
+      state_->halt = false;
+      dma_state_.active = false;
+    }
   }
 
   if (!regs_.lcdc.lcd_enable) {
@@ -105,6 +109,16 @@ inline void Ppu::Step(int n) {
   }
 
   auto mode = this->GetMode();
+
+  static u8 hblank_dma_counter = 0;
+  if (n % 2 == 0 && mode == PPUMode::HBlank && !state_->halt && hblank_dma_counter) {
+    mmu_->Write8(dma_state_.destination++, mmu_->Read8(dma_state_.source++));
+    hblank_dma_counter--;
+    dma_state_.length--;
+    if (!dma_state_.length) {
+      dma_state_.active = false;
+    }
+  }
 
   if (++cycle_counter_ >= kDotsPerRow) {
     regs_.ly = (regs_.ly + 1) % (kLCDHeight + 10);
@@ -142,6 +156,9 @@ inline void Ppu::Step(int n) {
       regs_.stat.ppu_mode = std::to_underlying(PPUMode::HBlank);
       if (regs_.stat.stat_interrupt_mode0) {
         interrupts_->RequestInterrupt(Interrupt::Stat);
+      }
+      if (dma_state_.active && dma_state_.hdma && dma_state_.length) {
+        hblank_dma_counter = static_cast<u8>(std::clamp<u16>(dma_state_.length, 0, 0x10));
       }
       DrawLcdRow();
     }
@@ -728,10 +745,20 @@ void Ppu::StartGPDma() {
   dma_state_ = {
     .active = true,
     .hdma = false,
+    .length = static_cast<u16>((dma_regs_.dma.length + 1) * 0x10),
     .source = static_cast<u16>(dma_regs_.source.val & 0xfff0),
-    .destination = static_cast<u16>(dma_regs_.destination.val & 0x0ff0),
+    .destination = static_cast<u16>(0x8000 + (dma_regs_.destination.val & 0x1ff0)),
   };
+  spdlog::debug("GP DMA triggered: src={:04x}, dst={:04x}, len={:02x}", dma_state_.source, dma_state_.destination, dma_state_.length);
 }
 
 void Ppu::StartHBlankDma() {
+  dma_state_ = {
+    .active = true,
+    .hdma = true,
+    .length = static_cast<u16>((dma_regs_.dma.length + 1) * 0x10),
+    .source = static_cast<u16>(dma_regs_.source.val & 0xfff0),
+    .destination = static_cast<u16>(0x8000 + (dma_regs_.destination.val & 0x1ff0)),
+  };
+  spdlog::debug("HBlank DMA triggered: src={:04x}, dst={:04x}, len={:02x}", dma_state_.source, dma_state_.destination, dma_state_.length);
 }
