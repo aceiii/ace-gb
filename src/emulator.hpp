@@ -26,11 +26,6 @@
 
 using BootRomBuffer = std::vector<u8>;
 
-enum class BootRomType {
-  kDmgBootRom,
-  kCgbBootRom,
-};
-
 struct BootRomData {
   std::string path;
   BootRomBuffer data {};
@@ -39,6 +34,11 @@ struct BootRomData {
 enum class EmulationMode {
   kAutoMode,
   kDmgMode,
+  kCgbMode,
+};
+
+enum class HardwareMode {
+  kDmgMode = std::to_underlying(EmulationMode::kDmgMode),
   kCgbMode,
 };
 
@@ -95,8 +95,8 @@ public:
   std::vector<float>& GetAudioSamples();
   void OnAudioCallback(std::span<float> buffer);
 
-  std::expected<void, std::string> SetBootRomPath(BootRomType type, std::string_view path);
-  std::string GetBootRomPath(BootRomType type) const;
+  std::expected<void, std::string> SetBootRomPath(HardwareMode mode, std::string_view path);
+  std::string GetBootRomPath(HardwareMode mode) const;
 
   size_t GetPrevCycles() const;
 
@@ -127,9 +127,9 @@ private:
   InputDevice input_device_ {};
   SerialDevice serial_device_ {};
   EmulationMode mode_ = EmulationMode::kAutoMode;
-  EmulationMode internal_mode_ = EmulationMode::kDmgMode;
+  HardwareMode hardware_mode_ = HardwareMode::kDmgMode;
 
-  std::unordered_map<BootRomType, BootRomData, std::hash<BootRomType>> boot_roms_ {};
+  std::unordered_map<HardwareMode, BootRomData, std::hash<HardwareMode>> boot_roms_ {};
 
   std::vector<u8> cart_bytes_ {};
   std::set<u16> breakpoints_ {};

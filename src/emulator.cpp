@@ -247,7 +247,7 @@ void Emulator::Reset() {
   num_cycles_ = 0;
   running_ = false;
 
-  internal_mode_ = EmulationMode::kDmgMode;
+  hardware_mode_ = HardwareMode::kDmgMode;
 
   cpu_.Reset();
   mmu_.ResetDevices();
@@ -258,31 +258,27 @@ void Emulator::Reset() {
     switch (cart_info.cgb_flag) {
       case CgbFlag::kCgbCompatMode:
       case CgbFlag::kCgbOnlyMode:
-        internal_mode_ = EmulationMode::kCgbMode;
+        hardware_mode_ = HardwareMode::kCgbMode;
         break;
       default:
-        internal_mode_ = EmulationMode::kDmgMode;
+        hardware_mode_ = HardwareMode::kDmgMode;
         break;
     }
   } else {
-    internal_mode_ = mode_;
+    const auto val = magic_enum::enum_integer(mode_);
+    hardware_mode_ = magic_enum::enum_cast<HardwareMode>(val).value_or(HardwareMode::kDmgMode);
   }
 
-  spdlog::info("Internal emulation mode: {}", magic_enum::enum_name(internal_mode_));
+  spdlog::info("Internal emulation mode: {}", magic_enum::enum_name(hardware_mode_));
 
-  auto boot_rom_type = BootRomType::kDmgBootRom;
-  if (internal_mode_ == EmulationMode::kCgbMode) {
-    boot_rom_type = BootRomType::kCgbBootRom;
-  }
+  const auto& boot_rom = boot_roms_.at(hardware_mode_);
 
-  const auto& boot_rom = boot_roms_.at(boot_rom_type);
-
-  spdlog::debug("Using boot rom type:{} at '{}'", magic_enum::enum_name(boot_rom_type), boot_rom.path);
+  spdlog::debug("Using boot rom type:{} at '{}'", magic_enum::enum_name(hardware_mode_), boot_rom.path);
 
   boot_.LoadBytes(boot_rom.data);
 
   if (skip_bootrom_) {
-    if (internal_mode_ == EmulationMode::kCgbMode) {
+    if (hardware_mode_ == HardwareMode::kCgbMode) {
       SetCgbBootRegisters(mmu_, cpu_.GetRegisters());
     } else {
       SetDmgBootRegisters(mmu_, cpu_.GetRegisters());
@@ -422,13 +418,13 @@ void Emulator::OnAudioCallback(std::span<float> buffer) {
   }
 }
 
-std::expected<void, std::string> Emulator::SetBootRomPath(BootRomType type, std::string_view path) {
+std::expected<void, std::string> Emulator::SetBootRomPath(HardwareMode mode, std::string_view path) {
   auto result = file::LoadBin(path);
   if (!result) {
     return std::unexpected{result.error()};
   }
 
-  boot_roms_[type] = BootRomData{
+  boot_roms_[mode] = BootRomData{
     .data = result.value(),
     .path = std::string(path),
   };
@@ -436,8 +432,8 @@ std::expected<void, std::string> Emulator::SetBootRomPath(BootRomType type, std:
   return {};
 }
 
-std::string Emulator::GetBootRomPath(BootRomType type) const {
-  auto it = boot_roms_.find(type);
+std::string Emulator::GetBootRomPath(HardwareMode mode) const {
+  auto it = boot_roms_.find(mode);
   if (it == boot_roms_.end()) {
     return {};
   }

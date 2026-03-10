@@ -415,14 +415,14 @@ void Interface::Init(Args args) {
 
   emulator_.Init(emu_cfg);
 
-  if (auto result = emulator_.SetBootRomPath(BootRomType::kDmgBootRom, config_.settings.dmg_boot_rom_path); !result) {
+  if (auto result = emulator_.SetBootRomPath(HardwareMode::kDmgMode, config_.settings.dmg_boot_rom_path); !result) {
     spdlog::error("Failed to set boot rom path: {}", result.error());
     error_messages_.AddError(kErrorKeyDmgBootRom, std::format("Failed to load DMG boot rom: {}", result.error()));
   } else {
     error_messages_.ClearError(kErrorKeyDmgBootRom);
   }
 
-  if (auto result = emulator_.SetBootRomPath(BootRomType::kCgbBootRom, config_.settings.cgb_boot_rom_path); !result) {
+  if (auto result = emulator_.SetBootRomPath(HardwareMode::kCgbMode, config_.settings.cgb_boot_rom_path); !result) {
     spdlog::error("Failed to set boot rom path: {}", result.error());
     error_messages_.AddError(kErrorKeyCgbBootRom, std::format("Failed to load CGB boot rom: {}", result.error()));
   } else {
@@ -1307,7 +1307,7 @@ void Interface::RenderSettingsPopup() {
 
       spdlog::debug("Set DMG boot rom path: {}", dmg_boot_rom_path);
       config_.settings.dmg_boot_rom_path = dmg_boot_rom_path;
-      if (auto result = emulator_.SetBootRomPath(BootRomType::kDmgBootRom, config_.settings.dmg_boot_rom_path); !result) {
+      if (auto result = emulator_.SetBootRomPath(HardwareMode::kDmgMode, config_.settings.dmg_boot_rom_path); !result) {
         error_messages_.AddError(kErrorKeyDmgBootRom, std::format("Failed to load DMG boot rom: {}", result.error()));
       } else {
         error_messages_.ClearError(kErrorKeyDmgBootRom);
@@ -1315,7 +1315,7 @@ void Interface::RenderSettingsPopup() {
 
       spdlog::debug("Set CGB boot rom path: {}", cgb_boot_rom_path);
       config_.settings.cgb_boot_rom_path = cgb_boot_rom_path;
-      if (auto result = emulator_.SetBootRomPath(BootRomType::kCgbBootRom, config_.settings.cgb_boot_rom_path); !result) {
+      if (auto result = emulator_.SetBootRomPath(HardwareMode::kCgbMode, config_.settings.cgb_boot_rom_path); !result) {
         error_messages_.AddError(kErrorKeyCgbBootRom, std::format("Failed to load CGB boot rom: {}", result.error()));
       } else {
         error_messages_.ClearError(kErrorKeyCgbBootRom);
@@ -1412,8 +1412,8 @@ void Interface::SaveSettings() {
   config_.settings.screen_x = static_cast<int>(window_pos.x);
   config_.settings.screen_y = static_cast<int>(window_pos.y);
   config_.settings.master_volume = GetMasterVolume() * 100.0f;
-  config_.settings.dmg_boot_rom_path = emulator_.GetBootRomPath(BootRomType::kDmgBootRom);
-  config_.settings.cgb_boot_rom_path = emulator_.GetBootRomPath(BootRomType::kCgbBootRom);
+  config_.settings.dmg_boot_rom_path = emulator_.GetBootRomPath(HardwareMode::kDmgMode);
+  config_.settings.cgb_boot_rom_path = emulator_.GetBootRomPath(HardwareMode::kCgbMode);
 
   if (auto res = config_.Save(args_.settings_filename); !res.has_value()) {
     spdlog::warn("Failed to save settings to file: {}", res.error());
