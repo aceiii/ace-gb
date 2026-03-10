@@ -26,20 +26,20 @@ namespace {
   constexpr size_t kDotsPerRow = 456;
 }
 
-inline u8 get_palette_index(u8 id, u8 palette) {
+inline u8 GetPaletteIndex(u8 id, u8 palette) {
   return (palette >> (2 * id)) & 0b11;
 }
 
-inline u16 addr_mode_8000(u8 addr) {
+inline u16 AddrMode8000(u8 addr) {
   return kVRAMAddrStart + addr * 16;
 }
 
-inline u16 addr_mode_8800(u8 addr) {
+inline u16 AddrMode8800(u8 addr) {
   return kVRAMRelStart + (static_cast<i8>(addr) * 16);
 }
 
-inline u16 addr_with_mode(u8 mode, u8 addr) {
-  return mode ? addr_mode_8000(addr) : addr_mode_8800(addr);
+inline u16 AddrWithMode(u8 mode, u8 addr) {
+  return mode ? AddrMode8000(addr) : AddrMode8800(addr);
 }
 
 void Ppu::Init(PpuConfig cfg) {
@@ -178,14 +178,14 @@ void Ppu::DrawLcdRow() {
 
       auto map_idx = (ty * 32) + tx;
       auto tile_id = tilemap[map_idx];
-      auto tile_idx = (addr_with_mode(regs_.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+      auto tile_idx = (AddrWithMode(regs_.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
       auto tile = vram.tile_data[tile_idx];
 
       u16 hi = (tile[row] >> 8) >> (7 - sub_x);
       u8 lo = tile[row] >> (7 - sub_x);
       u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
-      auto cid = get_palette_index(bits, regs_.bgp);
+      auto cid = GetPaletteIndex(bits, regs_.bgp);
       auto color = palette_[cid];
       ImageDrawPixel(&target_lcd_back_, x, y, color);
       bg_win_pixels[x] = bits; // NOTE: might be cid...
@@ -195,7 +195,7 @@ void Ppu::DrawLcdRow() {
       window_line_counter_++;
     }
   } else {
-    auto cid = get_palette_index(0, regs_.bgp);
+    auto cid = GetPaletteIndex(0, regs_.bgp);
     auto color = palette_[cid];
     ImageDrawLine(&target_lcd_back_, 0, regs_.ly, kLCDWidth -1, regs_.ly,  color);
   }
@@ -235,7 +235,7 @@ void Ppu::DrawLcdRow() {
           tile_id |= 0x01;
         }
       }
-      auto tile_idx = (addr_with_mode(1, tile_id) - kVRAMAddrStart) / 16;
+      auto tile_idx = (AddrWithMode(1, tile_id) - kVRAMAddrStart) / 16;
       auto tile = vram.tile_data[tile_idx];
       auto palette = sprite->attrs.dmg_palette ? regs_.obp1: regs_.obp0;
       auto left = sprite->x - 8;
@@ -259,7 +259,7 @@ void Ppu::DrawLcdRow() {
         u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
         if (bits) {
-        auto cid = get_palette_index(bits, palette);
+        auto cid = GetPaletteIndex(bits, palette);
           ImageDrawPixel(&target_lcd_back_, x, y, palette_[cid]);
           sprite_prio[x] = sprite->x;
         }
@@ -337,7 +337,7 @@ void Ppu::UpdateRenderTargets() {
     int x = 0;
     int y = 0;
     for (auto tile_id : tilemap) {
-      auto tile_idx = (addr_with_mode(tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+      auto tile_idx = (AddrWithMode(tiledata_area, tile_id) - kVRAMAddrStart) / 16;
       auto dst_y = tile_idx / 16;
       auto dst_x = tile_idx % 16;
 
@@ -398,7 +398,7 @@ void Ppu::UpdateRenderTargets() {
     int x = 0;
     int y = 0;
     for (auto tile_id : tilemap) {
-      auto tile_idx = (addr_with_mode(tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+      auto tile_idx = (AddrWithMode(tiledata_area, tile_id) - kVRAMAddrStart) / 16;
       auto dst_y = tile_idx / 16;
       auto dst_x = tile_idx % 16;
 
@@ -460,7 +460,7 @@ void Ppu::UpdateRenderTargets() {
 
     for (auto& sprite : oam_.sprites) {
       for (auto ti = 0; ti < sprite_tile_height; ti += 1) {
-        auto tile_idx = ((addr_with_mode(1, sprite.tile) - kVRAMAddrStart) / 16) + ti;
+        auto tile_idx = ((AddrWithMode(1, sprite.tile) - kVRAMAddrStart) / 16) + ti;
         auto dst_y = tile_idx / 16;
         auto dst_x = tile_idx % 16;
 
@@ -506,6 +506,10 @@ bool Ppu::IsValidFor(u16 addr) const {
     return true;
   }
 
+  if (addr >= std::to_underlying(IO::HDMA1) && addr <= std::to_underlying(IO::HDMA5)) {
+    return true;
+  }
+
   return false;
 }
 
@@ -531,6 +535,37 @@ void Ppu::Write8(u16 addr, u8 byte) {
 
   if (addr == std::to_underlying(IO::STAT)) {
     regs_.stat.val = (regs_.stat.val & 0b11) | (byte & ~0b11);
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA1)) {
+    hdma_regs_.source.high = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA2)) {
+    hdma_regs_.source.low = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA3)) {
+    hdma_regs_.destination.high = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA4)) {
+    hdma_regs_.destination.low = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA5)) {
+    const auto dma_type = (byte >> 7) & 0b1;
+    const auto dma_len = byte & 0x7f;
+    if (dma_type) {
+      StartHBlankDma();
+    } else {
+      StartGPDma();
+    }
     return;
   }
 
@@ -571,6 +606,26 @@ u8 Ppu::Read8(u16 addr) const {
 
   if (log_doctor_ && addr == std::to_underlying(IO::LY)) {
     return 0x90;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA1)) {
+    return hdma_regs_.source.high;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA2)) {
+    return hdma_regs_.source.low;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA3)) {
+    return hdma_regs_.destination.high;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA4)) {
+    return hdma_regs_.destination.low;
+  }
+
+  if (addr == std::to_underlying(IO::HDMA5)) {
+    return hdma_regs_.dma;
   }
 
   return regs_.bytes[addr - std::to_underlying(IO::LCDC)];
@@ -656,4 +711,10 @@ VramMemory& Ppu::Bank() {
 
 const VramMemory& Ppu::Bank() const {
   return banks_.at(vbk_.bank);
+}
+
+void Ppu::StartGPDma() {
+}
+
+void Ppu::StartHBlankDma() {
 }

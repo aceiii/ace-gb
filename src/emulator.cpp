@@ -311,7 +311,7 @@ const Registers& Emulator::GetRegisters() const {
   return cpu_.GetRegisters();
 }
 
-const State& Emulator::GetState() const {
+const CpuState& Emulator::GetState() const {
   return cpu_.GetState();
 }
 

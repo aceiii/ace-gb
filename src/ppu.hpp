@@ -124,6 +124,26 @@ struct VramBankReg {
   };
 };
 
+struct HdmaRegs {
+  union {
+    struct {
+      u8 low;
+      u8 high;
+    };
+    u16 val;
+  } source;
+
+  union {
+    struct {
+      u8 low;
+      u8 high;
+    };
+    u16 val;
+  } destination;
+
+  u8 dma;
+};
+
 struct PpuConfig {
   Mmu* mmu;
   InterruptDevice* interrupts;
@@ -163,6 +183,8 @@ private:
   void DrawLcdRow();
   void SwapLcdTargets();
   void StartDma();
+  void StartGPDma();
+  void StartHBlankDma();
 
   VramMemory& Bank();
   const VramMemory& Bank() const;
@@ -182,6 +204,7 @@ private:
   OamMemory oam_ {};
   PpuRegs regs_ {};
   VramBankReg vbk_ {};
+  HdmaRegs hdma_regs_ {};
 
   u16 cycle_counter_ = 0;
   u8 window_line_counter_ = 0;

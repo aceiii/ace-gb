@@ -1405,10 +1405,10 @@ const Registers& Cpu::GetRegisters() const {
   return regs_;
 }
 
-State& Cpu::GetState() {
+CpuState& Cpu::GetState() {
   return state_;
 }
 
-const State& Cpu::GetState() const {
+const CpuState& Cpu::GetState() const {
   return state_;
 }

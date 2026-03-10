@@ -12,21 +12,7 @@
 #include "interrupt.hpp"
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
-
-
-struct State {
-  bool ime = false;
-  bool halt = false;
-  bool stop = false;
-  bool hard_lock = false;
-
-  inline void Reset() {
-    ime = false;
-    halt = false;
-    stop = false;
-    hard_lock = false;
-  }
-};
+#include "cpu_state.hpp"
 
 struct CpuConfig {
   Mmu* mmu;
@@ -55,14 +41,14 @@ public:
 
   Registers& GetRegisters();
   const Registers& GetRegisters() const;
-  State& GetState();
-  const State& GetState() const;
+  CpuState& GetState();
+  const CpuState& GetState() const;
 
 private:
   Mmu* mmu_ = nullptr;
   InterruptDevice* interrupts_ = nullptr;
   Registers regs_ {};
-  State state_ {};
+  CpuState state_ {};
 
   std::vector<SyncedDevice*> synced_devices {};
   uint64_t tick_counter = 0;

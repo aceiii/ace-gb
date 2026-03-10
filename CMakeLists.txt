@@ -92,6 +92,7 @@ set(SOURCE_FILES
         src/wram_device.cpp
         src/wram_device.hpp
         src/types.hpp
+        src/cpu_state.hpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
