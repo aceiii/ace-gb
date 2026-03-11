@@ -22,6 +22,8 @@
 #include "null_device.hpp"
 #include "input_device.hpp"
 #include "serial_device.hpp"
+#include "emulation_mode.hpp"
+#include "hardware_mode.hpp"
 
 
 using BootRomBuffer = std::vector<u8>;
@@ -29,17 +31,6 @@ using BootRomBuffer = std::vector<u8>;
 struct BootRomData {
   std::string path;
   BootRomBuffer data {};
-};
-
-enum class EmulationMode {
-  kAutoMode,
-  kDmgMode,
-  kCgbMode,
-};
-
-enum class HardwareMode {
-  kDmgMode = std::to_underlying(EmulationMode::kDmgMode),
-  kCgbMode,
 };
 
 struct EmulatorConfig {
@@ -141,5 +132,4 @@ private:
 
   bool skip_bootrom_ = true;
   bool running_ = false;
-
 };

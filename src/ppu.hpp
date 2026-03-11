@@ -8,10 +8,14 @@
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
 #include "cpu_state.hpp"
+#include "hardware_mode.hpp"
 
 
 constexpr size_t kNumTiles = 384;
 constexpr size_t kVramNumBanks = 2;
+constexpr size_t kCgbNumPalettes = 8;
+
+using Palette = std::array<Color, 4>;
 
 enum class PPUMode : u8 {
   HBlank = 0,
@@ -74,6 +78,43 @@ struct PpuRegs {
   }
 };
 
+union CgbColor {
+  u16 value;
+  struct {
+    u8 lo : 8;
+    u8 hi : 8;
+  };
+  struct {
+    u8 red : 5;
+    u8 green : 5;
+    u8 blue : 5;
+    u8 : 1;
+  };
+};
+
+struct CgbPpuRegs {
+  union {
+    u8 val;
+    struct {
+      u8 address : 6;
+      u8 : 1;
+      u8 auto_increment : 1;
+    };
+  } bcps;
+
+union {
+    u8 val;
+    struct {
+      u8 address : 6;
+      u8 : 1;
+      u8 auto_increment : 1;
+    };
+  } ocps;
+
+  std::array<CgbColor, 32> bcpd;
+  std::array<CgbColor, 32> ocpd;
+};
+
 struct Sprite {
   u8 y;
   u8 x;
@@ -102,12 +143,24 @@ struct OamMemory {
   }
 };
 
+union VramTileAttrib {
+  u8 tile_id;
+  struct {
+    u8 palette : 3;
+    u8 bank : 1;
+    u8 : 1;
+    u8 x_flip : 1;
+    u8 y_flip : 1;
+    u8 priority : 1;
+  };
+};
+
 struct VramMemory {
   union {
     std::array<u8, 8192> bytes;
     struct {
       std::array<std::array<u16, 8>, kNumTiles> tile_data;
-      std::array<std::array<u8, 1024>, 2> tile_map;
+      std::array<std::array<VramTileAttrib, 1024>, 2> tile_map;
     };
   };
 
@@ -195,6 +248,9 @@ public:
 
   void UpdatePalette(std::array<Color, 4> palette);
 
+  void SetHardwareMode(HardwareMode mode);
+  HardwareMode GetHardwareMode() const;
+
 private:
   void SetMode(PPUMode mode);
   void DrawLcdRow();
@@ -205,6 +261,7 @@ private:
 
   VramMemory& Bank();
   const VramMemory& Bank() const;
+  const VramMemory& BankAt(u8 bit) const;
 
 private:
   Mmu* mmu_ = nullptr;
@@ -218,18 +275,20 @@ private:
   RenderTexture2D target_sprites_ {};
   RenderTexture2D target_tiles_ {};
 
+  HardwareMode hardware_mode_ = HardwareMode::kDmgMode;
   std::array<VramMemory, kVramNumBanks> banks_ {};
+  std::array<Palette, kCgbNumPalettes> cgb_bg_palettes_ {};
+  std::array<Palette, kCgbNumPalettes> cgb_sprite_palettes_ {};
   OamMemory oam_ {};
   PpuRegs regs_ {};
   VramBankReg vbk_ {};
+  Palette palette_ {};
   DmaRegs dma_regs_ {};
   DmaState dma_state_ {};
+  CgbPpuRegs cgb_regs_ {};
 
+  size_t frame_count_ = 0;
   u16 cycle_counter_ = 0;
   u8 window_line_counter_ = 0;
-
   bool log_doctor_ = false;
-  size_t frame_count_ = 0;
-
-  std::array<Color, 4> palette_ {};
 };

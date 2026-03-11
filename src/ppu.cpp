@@ -176,7 +176,6 @@ void Ppu::DrawLcdRow() {
   bg_win_pixels.fill(0);
 
   if (regs_.lcdc.bg_window_enable) {
-    const auto& vram = Bank();
     const bool enable_window_flag = regs_.lcdc.window_enable &&
       regs_.wx >= 0 && regs_.wx <= 166 && regs_.wy >= 0 && regs_.wy <= 143;
     const u8 y = regs_.ly;
@@ -194,24 +193,33 @@ void Ppu::DrawLcdRow() {
         row = py % 8;
       }
 
-      auto& tilemap = vram.tile_map[enable_window ? regs_.lcdc.window_tilemap_area : regs_.lcdc.bg_tilemap_area];
+      auto tilemap_idx = enable_window ? regs_.lcdc.window_tilemap_area : regs_.lcdc.bg_tilemap_area;
+      auto& tilemap = BankAt(0).tile_map[tilemap_idx];
+      auto& attrmap = BankAt(1).tile_map[tilemap_idx];
 
       u8 px = enable_window ? x - (regs_.wx - 7) : regs_.scx + x;
       u8 tx = (px >> 3) & 31;
       u8 sub_x = px % 8;
 
       auto map_idx = (ty * 32) + tx;
-      auto tile_id = tilemap[map_idx];
+      auto tile_id = tilemap[map_idx].tile_id;
+      auto tile_attr = attrmap[map_idx];
       auto tile_idx = (AddrWithMode(regs_.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
-      auto tile = vram.tile_data[tile_idx];
+      auto tile = BankAt(tile_attr.bank).tile_data[tile_idx];
 
       u16 hi = (tile[row] >> 8) >> (7 - sub_x);
       u8 lo = tile[row] >> (7 - sub_x);
       u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
-      auto cid = GetPaletteIndex(bits, regs_.bgp);
-      auto color = palette_[cid];
-      ImageDrawPixel(&target_lcd_back_, x, y, color);
+      if (hardware_mode_ == HardwareMode::kDmgMode) {
+        auto cid = GetPaletteIndex(bits, regs_.bgp);
+        auto color = palette_[cid];
+        ImageDrawPixel(&target_lcd_back_, x, y, color);
+      } else {
+        auto cgb_palette = cgb_bg_palettes_[tile_attr.palette];
+        ImageDrawPixel(&target_lcd_back_, x, y, cgb_palette[bits & 0b11]);
+      }
+
       bg_win_pixels[x] = bits; // NOTE: might be cid...
     }
 
@@ -225,8 +233,6 @@ void Ppu::DrawLcdRow() {
   }
 
   if (regs_.lcdc.sprite_enable) {
-    const auto& vram = Bank();
-
     static std::vector<Sprite*> valid_sprites;
     valid_sprites.clear();
     valid_sprites.reserve(10);
@@ -260,8 +266,7 @@ void Ppu::DrawLcdRow() {
         }
       }
       auto tile_idx = (AddrWithMode(1, tile_id) - kVRAMAddrStart) / 16;
-      auto tile = vram.tile_data[tile_idx];
-      auto palette = sprite->attrs.dmg_palette ? regs_.obp1: regs_.obp0;
+      auto tile = BankAt(sprite->attrs.cgb_bank).tile_data[tile_idx];
       auto left = sprite->x - 8;
 
       for (auto x = sprite->x - 8; x < sprite->x; x += 1) {
@@ -283,8 +288,14 @@ void Ppu::DrawLcdRow() {
         u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
         if (bits) {
-        auto cid = GetPaletteIndex(bits, palette);
-          ImageDrawPixel(&target_lcd_back_, x, y, palette_[cid]);
+          if (hardware_mode_ == HardwareMode::kDmgMode) {
+            auto palette = sprite->attrs.dmg_palette ? regs_.obp1: regs_.obp0;
+            auto cid = GetPaletteIndex(bits, palette);
+            ImageDrawPixel(&target_lcd_back_, x, y, palette_[cid]);
+          } else {
+            auto cgb_palette = cgb_sprite_palettes_[sprite->attrs.cgb_palette];
+            ImageDrawPixel(&target_lcd_back_, x, y, cgb_palette[bits & 0b11]);
+          }
           sprite_prio[x] = sprite->x;
         }
       }
@@ -322,7 +333,7 @@ void Ppu::UpdateRenderTargets() {
   {
     ZoneScopedN("BeginTextureMode:target_tiles");
 
-    const auto& vram = Bank();
+    const auto& vram = BankAt(0);
 
     int x = 0;
     int y = 0;
@@ -354,14 +365,13 @@ void Ppu::UpdateRenderTargets() {
   {
     ZoneScopedN("BeginTextureMode:target_tilemap1");
 
-    const auto& vram = Bank();
     auto tiledata_area = regs_.lcdc.tiledata_area;
-    auto& tilemap = vram.tile_map[0];
+    auto& tilemap = BankAt(0).tile_map[0];
 
     int x = 0;
     int y = 0;
-    for (auto tile_id : tilemap) {
-      auto tile_idx = (AddrWithMode(tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+    for (auto tile : tilemap) {
+      auto tile_idx = (AddrWithMode(tiledata_area, tile.tile_id) - kVRAMAddrStart) / 16;
       auto dst_y = tile_idx / 16;
       auto dst_x = tile_idx % 16;
 
@@ -415,14 +425,13 @@ void Ppu::UpdateRenderTargets() {
   {
     ZoneScopedN("BeginTextureMode:target_tilemap2");
 
-    const auto& vram = Bank();
     auto tiledata_area = regs_.lcdc.tiledata_area;
-    auto& tilemap = vram.tile_map[1];
+    auto& tilemap = BankAt(0).tile_map[1];
 
     int x = 0;
     int y = 0;
-    for (auto tile_id : tilemap) {
-      auto tile_idx = (AddrWithMode(tiledata_area, tile_id) - kVRAMAddrStart) / 16;
+    for (auto tile : tilemap) {
+      auto tile_idx = (AddrWithMode(tiledata_area, tile.tile_id) - kVRAMAddrStart) / 16;
       auto dst_y = tile_idx / 16;
       auto dst_x = tile_idx % 16;
 
@@ -534,6 +543,10 @@ bool Ppu::IsValidFor(u16 addr) const {
     return true;
   }
 
+  if (addr == std::to_underlying(IO::BCPS) || addr == std::to_underlying(IO::BCPD) || addr == std::to_underlying(IO::OCPS) || addr == std::to_underlying(IO::OCPD)) {
+    return true;
+  }
+
   return false;
 }
 
@@ -589,6 +602,60 @@ void Ppu::Write8(u16 addr, u8 byte) {
       StartHBlankDma();
     } else {
       StartGPDma();
+    }
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::BCPS)) {
+    cgb_regs_.bcps.val = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::BCPD)) {
+    auto& col = cgb_regs_.bcpd[cgb_regs_.bcps.address >> 1];
+    if (cgb_regs_.bcps.address & 0x1) {
+      col.hi = byte;
+    } else {
+      col.lo = byte;
+    }
+
+    auto palette_idx = (cgb_regs_.bcps.address >> 3) & 0x7;
+    auto color_idx = (cgb_regs_.bcps.address >> 1) & 0x3;
+    auto& rgb_col = cgb_bg_palettes_[palette_idx][color_idx];
+    rgb_col.r = static_cast<u8>(static_cast<u16>(col.red * 0xff) / 0x31);
+    rgb_col.g = static_cast<u8>(static_cast<u16>(col.green * 0xff) / 0x31);
+    rgb_col.b = static_cast<u8>(static_cast<u16>(col.blue * 0xff) / 0x31);
+    rgb_col.a = 0xff;
+
+    if (cgb_regs_.bcps.auto_increment) {
+      cgb_regs_.bcps.address++;
+    }
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::OCPS)) {
+    cgb_regs_.ocps.val = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::OCPD)) {
+    auto& col = cgb_regs_.ocpd[cgb_regs_.ocps.address >> 1];
+    if (cgb_regs_.ocps.address & 0x1) {
+      col.hi = byte;
+    } else {
+      col.lo = byte;
+    }
+
+    auto palette_idx = (cgb_regs_.ocps.address >> 3) & 0x7;
+    auto color_idx = (cgb_regs_.ocps.address >> 1) & 0x3;
+    auto& rgb_col = cgb_sprite_palettes_[palette_idx][color_idx];
+    rgb_col.r = static_cast<u8>(static_cast<u16>(col.red * 0xff) / 0x31);
+    rgb_col.g = static_cast<u8>(static_cast<u16>(col.green * 0xff) / 0x31);
+    rgb_col.b = static_cast<u8>(static_cast<u16>(col.blue * 0xff) / 0x31);
+    rgb_col.a = 0xff;
+
+    if (cgb_regs_.ocps.auto_increment) {
+      cgb_regs_.ocps.address++;
     }
     return;
   }
@@ -655,6 +722,22 @@ u8 Ppu::Read8(u16 addr) const {
     return 0xff;
   }
 
+  if (addr == std::to_underlying(IO::BCPS)) {
+    return cgb_regs_.bcps.val;
+  }
+
+  if (addr == std::to_underlying(IO::BCPD)) {
+    return cgb_regs_.bcpd[cgb_regs_.bcps.address].value;
+  }
+
+  if (addr == std::to_underlying(IO::OCPS)) {
+    return cgb_regs_.ocps.val;
+  }
+
+  if (addr == std::to_underlying(IO::OCPD)) {
+    return cgb_regs_.ocpd[cgb_regs_.ocps.address].value;
+  }
+
   return regs_.bytes[addr - std::to_underlying(IO::LCDC)];
 }
 
@@ -667,6 +750,18 @@ void Ppu::Reset() {
   cycle_counter_ = 0;
   window_line_counter_ = 0;
   frame_count_ = 0;
+
+  // hardware_mode_ = HardwareMode::kDmgMode;
+  // banks_ = {};
+  // cgb_bg_palettes_ = {};
+  // cgb_sprite_palettes_ = {};
+  // oam_ = {};
+  // regs_ = {};
+  // vbk_ = {};
+  // palette_ = {};
+  // dma_regs_ = {};
+  // dma_state_ = {};
+  // cgb_regs_ = {};
 
   BeginTextureMode(target_tiles_);
   ClearBackground(BLACK);
@@ -740,6 +835,10 @@ const VramMemory& Ppu::Bank() const {
   return banks_.at(vbk_.bank);
 }
 
+const VramMemory& Ppu::BankAt(u8 bit) const {
+  return banks_.at(bit & 0b1);
+}
+
 void Ppu::StartGPDma() {
   state_->halt = true;
   dma_state_ = {
@@ -761,4 +860,12 @@ void Ppu::StartHBlankDma() {
     .destination = static_cast<u16>(0x8000 + (dma_regs_.destination.val & 0x1ff0)),
   };
   spdlog::debug("HBlank DMA triggered: src={:04x}, dst={:04x}, len={:02x}", dma_state_.source, dma_state_.destination, dma_state_.length);
+}
+
+void Ppu::SetHardwareMode(HardwareMode mode) {
+  hardware_mode_ = mode;
+}
+
+HardwareMode Ppu::GetHardwareMode() const {
+  return hardware_mode_;
 }

@@ -286,6 +286,8 @@ void Emulator::Reset() {
     }
     boot_.SetDisable(0xff);
   }
+
+  ppu_.SetHardwareMode(hardware_mode_);
 }
 
 void Emulator::Step() {

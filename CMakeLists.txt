@@ -93,6 +93,8 @@ set(SOURCE_FILES
         src/wram_device.hpp
         src/types.hpp
         src/cpu_state.hpp
+        src/emulation_mode.hpp
+        src/hardware_mode.hpp
 )
 
 set(ARGPARSE_BUILD_TESTS OFF)
