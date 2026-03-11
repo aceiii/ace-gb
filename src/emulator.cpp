@@ -372,6 +372,10 @@ const RenderTexture2D& Emulator::GetTargetSprites() const {
   return ppu_.GetTextureSprites();
 }
 
+const RenderTexture2D& Emulator::GetTargetPalettes() const {
+  return ppu_.GetTexturePalettes();
+}
+
 void Emulator::AddBreakPoint(u16 addr) {
   breakpoints_.insert(addr);
 }

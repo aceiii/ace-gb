@@ -73,6 +73,7 @@ public:
   [[nodiscard]] const RenderTexture2D& GetTargetTiles() const;
   [[nodiscard]] const RenderTexture2D& GetTargetTilemap(u8 id) const;
   [[nodiscard]] const RenderTexture2D& GetTargetSprites() const;
+  [[nodiscard]] const RenderTexture2D& GetTargetPalettes() const;
 
   void AddBreakPoint(u16 addr);
   void RemoveBreakPoint(u16 addr);

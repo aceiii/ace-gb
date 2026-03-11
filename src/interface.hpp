@@ -43,6 +43,7 @@ struct InterfaceSettings {
   bool show_tilemap1;
   bool show_tilemap2;
   bool show_sprites;
+  bool show_palettes;
   bool show_cpu_registers;
   bool show_input;
   bool show_memory;
@@ -93,6 +94,7 @@ private:
   void RenderTilemap1();
   void RenderTilemap2();
   void RenderSprites();
+  void RenderPalettes();
   void RenderRegisters();
   void RenderInput();
   void RenderMemory();

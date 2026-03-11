@@ -59,6 +59,10 @@ void Ppu::Init(PpuConfig cfg) {
   constexpr int tiles_height = 24 * 8;
   target_tiles_ = LoadRenderTexture(tiles_width, tiles_height);
 
+  constexpr int palettes_width = 136;
+  constexpr int palettes_height = 128;
+  target_palettes_ = LoadRenderTexture(palettes_width, palettes_height);
+
   constexpr int tilemap_width = 256;
   constexpr int tilemap_height = 256;
   target_tilemap1_ = LoadRenderTexture(tilemap_width, tilemap_height);
@@ -79,6 +83,7 @@ void Ppu::Cleanup() {
   UnloadRenderTexture(target_tilemap1_);
   UnloadRenderTexture(target_tilemap2_);
   UnloadRenderTexture(target_sprites_);
+  UnloadRenderTexture(target_palettes_);
 
   UnloadImage(target_lcd_back_);
   UnloadTexture(target_lcd_front_);
@@ -323,6 +328,10 @@ const RenderTexture2D& Ppu::GetTextureTiles() const {
   return target_tiles_;
 }
 
+const RenderTexture2D& Ppu::GetTexturePalettes() const {
+  return target_palettes_;
+}
+
 void Ppu::UpdateRenderTargets() {
   ZoneScoped;
 
@@ -517,6 +526,43 @@ void Ppu::UpdateRenderTargets() {
           row += 1;
         }
       }
+    }
+  }
+  EndTextureMode();
+
+  BeginTextureMode(target_palettes_);
+  {
+    ZoneScopedN("BeginTextureMode:target_palettes");
+
+    ClearBackground(BLANK);
+
+    const int w = 8;
+    const int h = 8;
+
+    DrawText("BG", 4, 4, 10, RED);
+    for (auto i = 0; i < kCgbNumPalettes; i++) {
+      int x = i * w;
+      int y = 0;
+      DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][0]);
+      y += h;
+      DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][1]);
+      y += h;
+      DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][2]);
+      y += h;
+      DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][3]);
+    }
+
+    DrawText("Sprite", 4, 50, 10, RED);
+      for (auto i = 0; i < kCgbNumPalettes; i++) {
+      int x = i * w;
+      int y = 64;
+      DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][0]);
+      y += h;
+      DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][1]);
+      y += h;
+      DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][2]);
+      y += h;
+      DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][3]);
     }
   }
   EndTextureMode();
@@ -776,6 +822,10 @@ void Ppu::Reset() {
   EndTextureMode();
 
   BeginTextureMode(target_sprites_);
+  ClearBackground(BLACK);
+  EndTextureMode();
+
+  BeginTextureMode(target_palettes_);
   ClearBackground(BLACK);
   EndTextureMode();
 

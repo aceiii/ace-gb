@@ -183,6 +183,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "show_tilemap1", settings.show_tilemap1 },
         { "show_tilemap2", settings.show_tilemap2 },
         { "show_sprites", settings.show_sprites },
+        { "show_palettes", settings.show_palettes },
         { "show_cpu_registers", settings.show_cpu_registers },
         { "show_input", settings.show_input },
         { "show_memory", settings.show_memory },
@@ -250,6 +251,7 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
   settings.show_tilemap1 = table["hardware"]["show_tilemap1"].value_or(true);
   settings.show_tilemap2 = table["hardware"]["show_tilemap2"].value_or(true);
   settings.show_sprites = table["hardware"]["show_sprites"].value_or(true);
+  settings.show_palettes = table["hardware"]["show_palettes"].value_or(true);
   settings.show_cpu_registers = table["hardware"]["show_cpu_registers"].value_or(true);
   settings.show_input = table["hardware"]["show_input"].value_or(true);
   settings.show_memory = table["hardware"]["show_memory"].value_or(true);
@@ -547,6 +549,7 @@ void Interface::Update() {
     RenderTilemap1();
     RenderTilemap2();
     RenderSprites();
+    RenderPalettes();
     RenderRegisters();
     RenderInput();
     RenderMemory();
@@ -847,6 +850,23 @@ void Interface::RenderSprites() {
 
   if (ImGui::Begin("Sprites", &config_.settings.show_sprites)) {
     auto& target = emulator_.GetTargetSprites();
+    auto width = target.texture.width;
+    auto height = target.texture.height;
+    auto scale = 2;
+    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
+  }
+  ImGui::End();
+}
+
+void Interface::RenderPalettes() {
+  ZoneScoped;
+
+  if (!config_.settings.show_palettes) {
+    return;
+  }
+
+  if (ImGui::Begin("Palettes", &config_.settings.show_palettes)) {
+    auto& target = emulator_.GetTargetPalettes();
     auto width = target.texture.width;
     auto height = target.texture.height;
     auto scale = 2;
@@ -1207,6 +1227,7 @@ void Interface::RenderMainMenu() {
       ImGui::MenuItem("TileMap 2", nullptr, &config_.settings.show_tilemap2);
       ImGui::MenuItem("Sprites", nullptr, &config_.settings.show_sprites);
       ImGui::MenuItem("Tiles", nullptr, &config_.settings.show_tiles);
+      ImGui::MenuItem("Palettes", nullptr, &config_.settings.show_palettes);
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("APU")) {

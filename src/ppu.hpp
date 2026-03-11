@@ -239,6 +239,7 @@ public:
   [[nodiscard]] const RenderTexture2D& GetTextureTilemap2() const;
   [[nodiscard]] const RenderTexture2D& GetTextureSprites() const;
   [[nodiscard]] const RenderTexture2D& GetTextureTiles() const;
+  [[nodiscard]] const RenderTexture2D& GetTexturePalettes() const;
 
   void ClearTargetBuffers();
   void UpdateRenderTargets();
@@ -274,6 +275,7 @@ private:
   RenderTexture2D target_tilemap2_ {};
   RenderTexture2D target_sprites_ {};
   RenderTexture2D target_tiles_ {};
+  RenderTexture2D target_palettes_ {};
 
   HardwareMode hardware_mode_ = HardwareMode::kDmgMode;
   std::array<VramMemory, kVramNumBanks> banks_ {};
