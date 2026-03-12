@@ -667,11 +667,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
 
     auto palette_idx = (cgb_regs_.bcps.address >> 3) & 0x7;
     auto color_idx = (cgb_regs_.bcps.address >> 1) & 0x3;
-    auto& rgb_col = cgb_bg_palettes_[palette_idx][color_idx];
-    rgb_col.r = static_cast<u8>(static_cast<u16>(col.red * 0xff) / 0x31);
-    rgb_col.g = static_cast<u8>(static_cast<u16>(col.green * 0xff) / 0x31);
-    rgb_col.b = static_cast<u8>(static_cast<u16>(col.blue * 0xff) / 0x31);
-    rgb_col.a = 0xff;
+    cgb_bg_palettes_[palette_idx][color_idx] = col.GetColor();
 
     if (cgb_regs_.bcps.auto_increment) {
       cgb_regs_.bcps.address++;
@@ -694,11 +690,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
 
     auto palette_idx = (cgb_regs_.ocps.address >> 3) & 0x7;
     auto color_idx = (cgb_regs_.ocps.address >> 1) & 0x3;
-    auto& rgb_col = cgb_sprite_palettes_[palette_idx][color_idx];
-    rgb_col.r = static_cast<u8>(static_cast<u16>(col.red * 0xff) / 0x31);
-    rgb_col.g = static_cast<u8>(static_cast<u16>(col.green * 0xff) / 0x31);
-    rgb_col.b = static_cast<u8>(static_cast<u16>(col.blue * 0xff) / 0x31);
-    rgb_col.a = 0xff;
+    cgb_sprite_palettes_[palette_idx][color_idx] = col.GetColor();
 
     if (cgb_regs_.ocps.auto_increment) {
       cgb_regs_.ocps.address++;
@@ -773,7 +765,12 @@ u8 Ppu::Read8(u16 addr) const {
   }
 
   if (addr == std::to_underlying(IO::BCPD)) {
-    return cgb_regs_.bcpd[cgb_regs_.bcps.address].value;
+    const auto& col = cgb_regs_.bcpd[cgb_regs_.bcps.address >> 1];
+    if (cgb_regs_.bcps.address & 0x01) {
+      return col.lo;
+    } else {
+      return col.hi;
+    }
   }
 
   if (addr == std::to_underlying(IO::OCPS)) {
@@ -781,7 +778,12 @@ u8 Ppu::Read8(u16 addr) const {
   }
 
   if (addr == std::to_underlying(IO::OCPD)) {
-    return cgb_regs_.ocpd[cgb_regs_.ocps.address].value;
+    const auto& col = cgb_regs_.ocpd[cgb_regs_.ocps.address >> 1];
+    if (cgb_regs_.ocps.address & 0x01) {
+      return col.lo;
+    } else {
+      return col.hi;
+    }
   }
 
   return regs_.bytes[addr - std::to_underlying(IO::LCDC)];

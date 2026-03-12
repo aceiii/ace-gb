@@ -78,18 +78,21 @@ struct PpuRegs {
   }
 };
 
-union CgbColor {
-  u16 value;
-  struct {
-    u8 lo : 8;
-    u8 hi : 8;
+struct CgbColor {
+  union {
+    u16 value;
+    struct {
+      u8 lo : 8;
+      u8 hi : 8;
+    };
   };
-  struct {
-    u8 red : 5;
-    u8 green : 5;
-    u8 blue : 5;
-    u8 : 1;
-  };
+
+  Color GetColor() const {
+    u8 r = (value & 0x1f) << 3;
+    u8 g = ((value >> 5) & 0x1f) << 3;
+    u8 b = ((value >> 10) & 0x1f) << 3;
+    return Color{ .r = r, .g = g, .b = b, .a = 0xff };
+  }
 };
 
 struct CgbPpuRegs {
