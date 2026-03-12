@@ -177,10 +177,19 @@ void Ppu::SwapLcdTargets() {
 
 void Ppu::DrawLcdRow() {
   ZoneScoped;
-  static std::array<u8, kLCDWidth> bg_win_pixels;
-  bg_win_pixels.fill(0);
 
-  if (regs_.lcdc.bg_window_enable) {
+  struct BgPixels {
+    u8 priority;
+    u8 bits;
+  };
+
+  static std::array<BgPixels, kLCDWidth> bg_win_pixels;
+  bg_win_pixels.fill({});
+
+  bool enable_bg = hardware_mode_ == HardwareMode::kDmgMode ? regs_.lcdc.bg_window_enable : true;
+  bool bg_low_priority = hardware_mode_ == HardwareMode::kDmgMode ? false : !regs_.lcdc.bg_window_enable;
+
+  if (enable_bg) {
     const bool enable_window_flag = regs_.lcdc.window_enable &&
       regs_.wx >= 0 && regs_.wx <= 166 && regs_.wy >= 0 && regs_.wy <= 143;
     const u8 y = regs_.ly;
@@ -212,8 +221,11 @@ void Ppu::DrawLcdRow() {
       auto tile_idx = (AddrWithMode(regs_.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
       auto tile = BankAt(tile_attr.bank).tile_data[tile_idx];
 
-      u16 hi = (tile[row] >> 8) >> (7 - sub_x);
-      u8 lo = tile[row] >> (7 - sub_x);
+      auto xi = tile_attr.x_flip ? sub_x : 7 - sub_x;
+      auto actual_row = tile_attr.y_flip ? 7 - row : row;
+
+      u16 hi = (tile[actual_row] >> 8) >> xi;
+      u8 lo = tile[actual_row] >> xi;
       u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
       if (hardware_mode_ == HardwareMode::kDmgMode) {
@@ -221,20 +233,25 @@ void Ppu::DrawLcdRow() {
         auto color = palette_[cid];
         ImageDrawPixel(&target_lcd_back_, x, y, color);
       } else {
+        bg_win_pixels[x].priority = tile_attr.priority;
         auto cgb_palette = cgb_bg_palettes_[tile_attr.palette];
         ImageDrawPixel(&target_lcd_back_, x, y, cgb_palette[bits & 0b11]);
       }
 
-      bg_win_pixels[x] = bits; // NOTE: might be cid...
+      bg_win_pixels[x].bits = bits;
     }
 
     if (enable_window) {
       window_line_counter_++;
     }
   } else {
-    auto cid = GetPaletteIndex(0, regs_.bgp);
-    auto color = palette_[cid];
-    ImageDrawLine(&target_lcd_back_, 0, regs_.ly, kLCDWidth -1, regs_.ly,  color);
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      auto cid = GetPaletteIndex(0, regs_.bgp);
+      auto color = palette_[cid];
+      ImageDrawLine(&target_lcd_back_, 0, regs_.ly, kLCDWidth, regs_.ly,  color);
+    } else {
+      ImageDrawLine(&target_lcd_back_, 0, regs_.ly, kLCDWidth, regs_.ly,  cgb_bg_palettes_[0][0]);
+    }
   }
 
   if (regs_.lcdc.sprite_enable) {
@@ -259,6 +276,7 @@ void Ppu::DrawLcdRow() {
     static std::array<u8, kLCDWidth> sprite_prio;
     sprite_prio.fill(0xff);
 
+    u8 oam_idx = 0;
     for (const auto sprite : valid_sprites) {
       auto top = sprite->y - 16;
       auto row = sprite->attrs.y_flip ? height - (y - top) - 1  : y - top;
@@ -279,7 +297,8 @@ void Ppu::DrawLcdRow() {
           continue;
         }
 
-        if (sprite->attrs.priority && bg_win_pixels[x] != 0) {
+        bool draw_sprite = bg_low_priority || bg_win_pixels[x].bits == 0 || (!sprite->attrs.priority && !bg_win_pixels[x].priority);
+        if (!draw_sprite) {
           continue;
         }
 
@@ -297,13 +316,15 @@ void Ppu::DrawLcdRow() {
             auto palette = sprite->attrs.dmg_palette ? regs_.obp1: regs_.obp0;
             auto cid = GetPaletteIndex(bits, palette);
             ImageDrawPixel(&target_lcd_back_, x, y, palette_[cid]);
+            sprite_prio[x] = sprite->x;
           } else {
             auto cgb_palette = cgb_sprite_palettes_[sprite->attrs.cgb_palette];
             ImageDrawPixel(&target_lcd_back_, x, y, cgb_palette[bits & 0b11]);
+            sprite_prio[x] = oam_idx;
           }
-          sprite_prio[x] = sprite->x;
         }
       }
+      oam_idx += 1;
     }
   }
 }
