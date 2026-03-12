@@ -643,26 +643,41 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::HDMA1)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return;
+    }
     dma_regs_.source.high = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::HDMA2)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return;
+    }
     dma_regs_.source.low = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::HDMA3)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return;
+    }
     dma_regs_.destination.high = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::HDMA4)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return;
+    }
     dma_regs_.destination.low = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::HDMA5)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return;
+    }
     const auto dma_type = (byte >> 7) & 0b1;
     dma_regs_.dma.mode_active = byte;
     if (dma_type) {
@@ -674,11 +689,17 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::BCPS)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return;
+    }
     cgb_regs_.bcps.val = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::BCPD)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return;
+    }
     auto& col = cgb_regs_.bcpd[cgb_regs_.bcps.address >> 1];
     if (cgb_regs_.bcps.address & 0x1) {
       col.hi = byte;
@@ -697,11 +718,17 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::OCPS)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return;
+    }
     cgb_regs_.ocps.val = byte;
     return;
   }
 
   if (addr == std::to_underlying(IO::OCPD)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return;
+    }
     auto& col = cgb_regs_.ocpd[cgb_regs_.ocps.address >> 1];
     if (cgb_regs_.ocps.address & 0x1) {
       col.hi = byte;
@@ -759,22 +786,37 @@ u8 Ppu::Read8(u16 addr) const {
   }
 
   if (addr == std::to_underlying(IO::HDMA1)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     return dma_regs_.source.high;
   }
 
   if (addr == std::to_underlying(IO::HDMA2)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     return dma_regs_.source.low;
   }
 
   if (addr == std::to_underlying(IO::HDMA3)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     return dma_regs_.destination.high;
   }
 
   if (addr == std::to_underlying(IO::HDMA4)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     return dma_regs_.destination.low;
   }
 
   if (addr == std::to_underlying(IO::HDMA5)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     if (dma_state_.active) {
       return ((dma_state_.length / 0x10) - 1) & 0x7f;
     }
@@ -782,10 +824,16 @@ u8 Ppu::Read8(u16 addr) const {
   }
 
   if (addr == std::to_underlying(IO::BCPS)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     return cgb_regs_.bcps.val;
   }
 
   if (addr == std::to_underlying(IO::BCPD)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     const auto& col = cgb_regs_.bcpd[cgb_regs_.bcps.address >> 1];
     if (cgb_regs_.bcps.address & 0x01) {
       return col.lo;
@@ -795,10 +843,16 @@ u8 Ppu::Read8(u16 addr) const {
   }
 
   if (addr == std::to_underlying(IO::OCPS)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     return cgb_regs_.ocps.val;
   }
 
   if (addr == std::to_underlying(IO::OCPD)) {
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     const auto& col = cgb_regs_.ocpd[cgb_regs_.ocps.address >> 1];
     if (cgb_regs_.ocps.address & 0x01) {
       return col.lo;
