@@ -68,7 +68,7 @@ void Ppu::Init(PpuConfig cfg) {
   target_tilemap1_ = LoadRenderTexture(tilemap_width, tilemap_height);
   target_tilemap2_ = LoadRenderTexture(tilemap_width, tilemap_height);
 
-  constexpr int sprites_width = 8 * 8;
+  constexpr int sprites_width = 8 * 9;
   constexpr int sprites_height = 5 * 16;
   target_sprites_ = LoadRenderTexture(sprites_width, sprites_height);
 
@@ -535,8 +535,8 @@ void Ppu::UpdateRenderTargets() {
         };
 
         Vector2 pos {
-          static_cast<float>(col * 8),
-          static_cast<float>((row * sprite_tile_height * 8) + (ti * 8))
+          static_cast<float>(col * 9),
+          static_cast<float>((row * sprite_tile_height * 9) + (ti * 9))
         };
 
         DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
