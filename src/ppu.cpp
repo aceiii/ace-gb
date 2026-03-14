@@ -56,7 +56,7 @@ void Ppu::Init(PpuConfig cfg) {
   target_lcd_front_ = LoadTextureFromImage(target_lcd_back_);
 
   constexpr int tiles_width = 16 * 8;
-  constexpr int tiles_height = 24 * 8;
+  constexpr int tiles_height = 48 * 8;
   target_tiles_ = LoadRenderTexture(tiles_width, tiles_height);
 
   constexpr int palettes_width = 136;
@@ -100,12 +100,11 @@ void Ppu::OnTick() {
 inline void Ppu::Step(int n) {
   ZoneScoped;
 
-  if (n % 2 == 0 && state_->halt && dma_state_.active && !dma_state_.hdma) {
-    mmu_->Write8(dma_state_.destination++, mmu_->Read8(dma_state_.source++));
+  if (n % 2 == 0 && state_->halt && dma_state_.length && !dma_state_.hdma) {
+    Bank().bytes[dma_state_.destination++] = mmu_->Read8(dma_state_.source++);
     dma_state_.length--;
     if (!dma_state_.length) {
       state_->halt = false;
-      dma_state_.active = false;
     }
   }
 
@@ -113,16 +112,13 @@ inline void Ppu::Step(int n) {
     return;
   }
 
-  auto mode = this->GetMode();
+  const auto mode = this->GetMode();
 
   static u8 hblank_dma_counter = 0;
   if (n % 2 == 0 && mode == PPUMode::HBlank && !state_->halt && hblank_dma_counter) {
     mmu_->Write8(dma_state_.destination++, mmu_->Read8(dma_state_.source++));
     hblank_dma_counter--;
     dma_state_.length--;
-    if (!dma_state_.length) {
-      dma_state_.active = false;
-    }
   }
 
   if (++cycle_counter_ >= kDotsPerRow) {
@@ -162,7 +158,7 @@ inline void Ppu::Step(int n) {
       if (regs_.stat.stat_interrupt_mode0) {
         interrupts_->RequestInterrupt(Interrupt::Stat);
       }
-      if (dma_state_.active && dma_state_.hdma && dma_state_.length) {
+      if (dma_state_.hdma && dma_state_.length) {
         hblank_dma_counter = static_cast<u8>(std::clamp<u16>(dma_state_.length, 0, 0x10));
       }
       DrawLcdRow();
@@ -216,8 +212,8 @@ void Ppu::DrawLcdRow() {
       u8 sub_x = px % 8;
 
       auto map_idx = (ty * 32) + tx;
-      auto tile_id = tilemap[map_idx].tile_id;
-      auto tile_attr = attrmap[map_idx];
+      auto tile_id = tilemap[map_idx];
+      auto tile_attr = VramTileAttrib(attrmap[map_idx]);
       auto tile_idx = (AddrWithMode(regs_.lcdc.tiledata_area, tile_id) - kVRAMAddrStart) / 16;
       auto tile = BankAt(tile_attr.bank).tile_data[tile_idx];
 
@@ -278,8 +274,9 @@ void Ppu::DrawLcdRow() {
 
     u8 oam_idx = 0;
     for (const auto sprite : valid_sprites) {
+      auto attrs = SpriteAttrs(sprite->attrs);
       auto top = sprite->y - 16;
-      auto row = sprite->attrs.y_flip ? height - (y - top) - 1  : y - top;
+      auto row = attrs.y_flip ? height - (y - top) - 1  : y - top;
       u8 tile_id = sprite->tile;
       if (regs_.lcdc.sprite_size) {
         if (row < 8) {
@@ -289,7 +286,7 @@ void Ppu::DrawLcdRow() {
         }
       }
       auto tile_idx = (AddrWithMode(1, tile_id) - kVRAMAddrStart) / 16;
-      auto tile = BankAt(sprite->attrs.cgb_bank).tile_data[tile_idx];
+      auto tile = BankAt(attrs.cgb_bank).tile_data[tile_idx];
       auto left = sprite->x - 8;
 
       for (auto x = sprite->x - 8; x < sprite->x; x += 1) {
@@ -297,7 +294,7 @@ void Ppu::DrawLcdRow() {
           continue;
         }
 
-        bool draw_sprite = bg_low_priority || bg_win_pixels[x].bits == 0 || (!sprite->attrs.priority && !bg_win_pixels[x].priority);
+        bool draw_sprite = bg_low_priority || bg_win_pixels[x].bits == 0 || (!attrs.priority && !bg_win_pixels[x].priority);
         if (!draw_sprite) {
           continue;
         }
@@ -306,19 +303,19 @@ void Ppu::DrawLcdRow() {
           continue;
         }
 
-        auto xi = sprite->attrs.x_flip ? x - left : 7 - (x - left);
+        auto xi = attrs.x_flip ? x - left : 7 - (x - left);
         u16 hi = (tile[row % 8] >> 8) >> xi;
         u8 lo = tile[row % 8] >> xi;
         u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
         if (bits) {
           if (hardware_mode_ == HardwareMode::kDmgMode) {
-            auto palette = sprite->attrs.dmg_palette ? regs_.obp1: regs_.obp0;
+            auto palette = attrs.dmg_palette ? regs_.obp1: regs_.obp0;
             auto cid = GetPaletteIndex(bits, palette);
             ImageDrawPixel(&target_lcd_back_, x, y, palette_[cid]);
             sprite_prio[x] = sprite->x;
           } else {
-            auto cgb_palette = cgb_sprite_palettes_[sprite->attrs.cgb_palette];
+            auto cgb_palette = cgb_sprite_palettes_[attrs.cgb_palette];
             ImageDrawPixel(&target_lcd_back_, x, y, cgb_palette[bits & 0b11]);
             sprite_prio[x] = oam_idx;
           }
@@ -363,12 +360,10 @@ void Ppu::UpdateRenderTargets() {
   {
     ZoneScopedN("BeginTextureMode:target_tiles");
 
-    const auto& vram = BankAt(0);
-
     int x = 0;
     int y = 0;
 
-    for (auto& tile : vram.tile_data) {
+    for (auto& tile : BankAt(0).tile_data) {
       for (int row = 0; row < tile.size(); row += 1) {
         u16 hi = (tile[row] >> 8) << 1;
         u8 lo = tile[row];
@@ -388,6 +383,30 @@ void Ppu::UpdateRenderTargets() {
         y += 1;
       }
     }
+
+    if (hardware_mode_ == HardwareMode::kCgbMode) {
+
+      for (auto& tile : BankAt(1).tile_data) {
+        for (int row = 0; row < tile.size(); row += 1) {
+          u16 hi = (tile[row] >> 8) << 1;
+          u8 lo = tile[row];
+          for (int b = 7; b >= 0; b -= 1) {
+            u8 bits = (hi & 0b10) | (lo & 0b1);
+            auto color = palette_[bits];
+            DrawPixel((x * 8) + b, (y * 8) + row, color);
+
+            hi >>= 1;
+            lo >>= 1;
+          }
+        }
+
+        x += 1;
+        if (x >= tile_width) {
+          x = 0;
+          y += 1;
+        }
+      }
+    }
   }
   EndTextureMode();
 
@@ -401,7 +420,7 @@ void Ppu::UpdateRenderTargets() {
     int x = 0;
     int y = 0;
     for (auto tile : tilemap) {
-      auto tile_idx = (AddrWithMode(tiledata_area, tile.tile_id) - kVRAMAddrStart) / 16;
+      auto tile_idx = (AddrWithMode(tiledata_area, tile) - kVRAMAddrStart) / 16;
       auto dst_y = tile_idx / 16;
       auto dst_x = tile_idx % 16;
 
@@ -460,8 +479,8 @@ void Ppu::UpdateRenderTargets() {
 
     int x = 0;
     int y = 0;
-    for (auto tile : tilemap) {
-      auto tile_idx = (AddrWithMode(tiledata_area, tile.tile_id) - kVRAMAddrStart) / 16;
+    for (const auto& tile : tilemap) {
+      auto tile_idx = (AddrWithMode(tiledata_area, tile) - kVRAMAddrStart) / 16;
       auto dst_y = tile_idx / 16;
       auto dst_x = tile_idx % 16;
 
@@ -614,12 +633,16 @@ bool Ppu::IsValidFor(u16 addr) const {
     return true;
   }
 
+  if (addr == std::to_underlying(IO::OPRI)) {
+    return true;
+  }
+
   return false;
 }
 
 void Ppu::Write8(u16 addr, u8 byte) {
   if (addr == std::to_underlying(IO::VBK)) {
-    vbk_.val = byte;
+    vbk_ = byte;
     return;
   }
 
@@ -633,20 +656,11 @@ void Ppu::Write8(u16 addr, u8 byte) {
     return;
   }
 
-  if (addr == std::to_underlying(IO::LY)) {
-    return;
-  }
-
-  if (addr == std::to_underlying(IO::STAT)) {
-    regs_.stat.val = (regs_.stat.val & 0b11) | (byte & ~0b11);
-    return;
-  }
-
   if (addr == std::to_underlying(IO::HDMA1)) {
     if (hardware_mode_ == HardwareMode::kDmgMode) {
       return;
     }
-    dma_regs_.source.high = byte;
+    dma_regs_.source = (byte << 8) | (dma_regs_.source & 0xff);
     return;
   }
 
@@ -654,7 +668,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
     if (hardware_mode_ == HardwareMode::kDmgMode) {
       return;
     }
-    dma_regs_.source.low = byte;
+    dma_regs_.source = byte | (dma_regs_.source & 0xff00);
     return;
   }
 
@@ -662,7 +676,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
     if (hardware_mode_ == HardwareMode::kDmgMode) {
       return;
     }
-    dma_regs_.destination.high = byte;
+    dma_regs_.destination = (byte << 8) | (dma_regs_.destination & 0xff);
     return;
   }
 
@@ -670,7 +684,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
     if (hardware_mode_ == HardwareMode::kDmgMode) {
       return;
     }
-    dma_regs_.destination.low = byte;
+    dma_regs_.destination = byte | (dma_regs_.destination & 0xff00);
     return;
   }
 
@@ -679,7 +693,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
       return;
     }
     const auto dma_type = (byte >> 7) & 0b1;
-    dma_regs_.dma.mode_active = byte;
+    dma_regs_.dma = byte;
     if (dma_type) {
       StartHBlankDma();
     } else {
@@ -746,27 +760,93 @@ void Ppu::Write8(u16 addr, u8 byte) {
     return;
   }
 
-  regs_.bytes[addr - std::to_underlying(IO::LCDC)] = byte;
+  if (addr == std::to_underlying(IO::OPRI)) {
+    opri_ = byte;
+    return;
+  }
 
-  if (addr == std::to_underlying(IO::LCDC) && !regs_.lcdc.lcd_enable) {
-    regs_.ly = 0;
-    cycle_counter_ = 0;
-    window_line_counter_ = 0;
-    regs_.stat.ppu_mode = 0;
-    ClearTargetBuffers();
-  } else if (addr == std::to_underlying(IO::LYC)) {
+  if (addr == std::to_underlying(IO::DMA)) {
+    regs_.dma = byte;
+    StartDma();
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::LCDC)) {
+    regs_.lcdc = PpuRegs::LCDC(byte);
+    if (!regs_.lcdc.lcd_enable) {
+      regs_.ly = 0;
+      cycle_counter_ = 0;
+      window_line_counter_ = 0;
+      regs_.stat.ppu_mode = 0;
+      ClearTargetBuffers();
+    }
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::STAT)) {
+    regs_.stat = (regs_.stat.ppu_mode & 0b11) | (byte & ~0b11);
+    return;
+  }
+
+
+  if (addr == std::to_underlying(IO::SCY)) {
+    regs_.scy = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::SCX)) {
+    regs_.scx = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::LY)) {
+    // read-only
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::LYC)) {
+    regs_.lyc = byte;
     regs_.stat.coincidence_flag = regs_.lyc == regs_.ly;
     if (regs_.stat.coincidence_flag && regs_.stat.stat_interrupt_lyc) {
       interrupts_->RequestInterrupt(Interrupt::Stat);
     }
-  } else if (addr == std::to_underlying(IO::DMA)) {
-    StartDma();
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::DMA)) {
+    regs_.dma = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::BGP)) {
+    regs_.bgp = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::OBP0)) {
+    regs_.obp0 = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::OBP1)) {
+    regs_.obp1 = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::WX)) {
+    regs_.wx = byte;
+    return;
+  }
+
+  if (addr == std::to_underlying(IO::WY)) {
+    regs_.wy = byte;
+    return;
   }
 }
 
 u8 Ppu::Read8(u16 addr) const {
   if (addr == std::to_underlying(IO::VBK)) {
-    return vbk_.val;
+    return (vbk_ & 0x1) | 0xfe;
   }
 
   if (addr >= kVRAMAddrStart && addr <= kVRAMAddrEnd) {
@@ -777,47 +857,39 @@ u8 Ppu::Read8(u16 addr) const {
     return oam_.bytes[addr - kOAMAddrStart];
   }
 
-  if (addr == std::to_underlying(IO::STAT)) {
-    return regs_.stat.val | 0b10000000;
-  }
-
-  if (log_doctor_ && addr == std::to_underlying(IO::LY)) {
-    return 0x90;
-  }
-
   if (addr == std::to_underlying(IO::HDMA1)) {
     if (hardware_mode_ == HardwareMode::kDmgMode) {
       return 0xFF;
     }
-    return dma_regs_.source.high;
+    return dma_regs_.source >> 8;
   }
 
   if (addr == std::to_underlying(IO::HDMA2)) {
     if (hardware_mode_ == HardwareMode::kDmgMode) {
       return 0xFF;
     }
-    return dma_regs_.source.low;
+    return dma_regs_.source;
   }
 
   if (addr == std::to_underlying(IO::HDMA3)) {
     if (hardware_mode_ == HardwareMode::kDmgMode) {
       return 0xFF;
     }
-    return dma_regs_.destination.high;
+    return dma_regs_.destination >> 8;
   }
 
   if (addr == std::to_underlying(IO::HDMA4)) {
     if (hardware_mode_ == HardwareMode::kDmgMode) {
       return 0xFF;
     }
-    return dma_regs_.destination.low;
+    return dma_regs_.destination;
   }
 
   if (addr == std::to_underlying(IO::HDMA5)) {
     if (hardware_mode_ == HardwareMode::kDmgMode) {
       return 0xFF;
     }
-    if (dma_state_.active) {
+    if (dma_state_.length) {
       return ((dma_state_.length / 0x10) - 1) & 0x7f;
     }
     return 0xff;
@@ -861,56 +933,103 @@ u8 Ppu::Read8(u16 addr) const {
     }
   }
 
-  return regs_.bytes[addr - std::to_underlying(IO::LCDC)];
+  if (addr == std::to_underlying(IO::LCDC)) {
+    return regs_.lcdc.byte();
+  }
+
+  if (addr == std::to_underlying(IO::STAT)) {
+    return regs_.stat.byte() | 0b10000000;
+  }
+
+  if (addr == std::to_underlying(IO::SCY)) {
+    return regs_.scy;
+  }
+
+  if (addr == std::to_underlying(IO::SCX)) {
+    return regs_.scx;
+  }
+
+  if (addr == std::to_underlying(IO::LY)) {
+    if (log_doctor_) {
+      return 0x90;
+    }
+    return regs_.ly;
+  }
+
+  if (addr == std::to_underlying(IO::LYC)) {
+    return regs_.lyc;
+  }
+
+  if (addr == std::to_underlying(IO::DMA)) {
+    return regs_.dma;
+  }
+
+  if (addr == std::to_underlying(IO::BGP)) {
+    return regs_.bgp;
+  }
+
+  if (addr == std::to_underlying(IO::OBP0)) {
+    return regs_.obp0;
+  }
+
+  if (addr == std::to_underlying(IO::OBP1)) {
+    return regs_.obp1;
+  }
+
+  if (addr == std::to_underlying(IO::WX)) {
+    return regs_.wx;
+  }
+
+  if (addr == std::to_underlying(IO::WY)) {
+    return regs_.wy;
+  }
+
+  std::unreachable();
 }
 
 void Ppu::Reset() {
+  hardware_mode_ = HardwareMode::kDmgMode;
   for (auto& bank : banks_) {
-    bank.reset();
+    bank.Reset();
   }
-  oam_.reset();
-  regs_.reset();
+  oam_.Reset();
+  regs_.Reset();
   cycle_counter_ = 0;
   window_line_counter_ = 0;
   frame_count_ = 0;
-
-  // hardware_mode_ = HardwareMode::kDmgMode;
-  // banks_ = {};
-  // cgb_bg_palettes_ = {};
-  // cgb_sprite_palettes_ = {};
-  // oam_ = {};
-  // regs_ = {};
-  // vbk_ = {};
-  // palette_ = {};
-  // dma_regs_ = {};
-  // dma_state_ = {};
-  // cgb_regs_ = {};
+  banks_ = {};
+  vbk_ = {};
+  cgb_bg_palettes_ = {};
+  cgb_sprite_palettes_ = {};
+  dma_regs_ = {};
+  dma_state_ = {};
+  cgb_regs_ = {};
 
   BeginTextureMode(target_tiles_);
-  ClearBackground(BLACK);
+  ClearBackground(BLANK);
   EndTextureMode();
 
   BeginTextureMode(target_tilemap1_);
-  ClearBackground(BLACK);
+  ClearBackground(BLANK);
   EndTextureMode();
 
   BeginTextureMode(target_tilemap2_);
-  ClearBackground(BLACK);
+  ClearBackground(BLANK);
   EndTextureMode();
 
   BeginTextureMode(target_sprites_);
-  ClearBackground(BLACK);
+  ClearBackground(BLANK);
   EndTextureMode();
 
   BeginTextureMode(target_palettes_);
-  ClearBackground(BLACK);
+  ClearBackground(BLANK);
   EndTextureMode();
 
   ClearTargetBuffers();
 }
 
 void Ppu::ClearTargetBuffers() {
-  ImageClearBackground(&target_lcd_back_, BLACK);
+  ImageClearBackground(&target_lcd_back_, BLANK);
   UpdateTexture(target_lcd_front_, target_lcd_back_.data);
 }
 
@@ -955,36 +1074,34 @@ void Ppu::UpdatePalette(std::array<Color, 4> palette) {
 }
 
 VramMemory& Ppu::Bank() {
-  return banks_.at(vbk_.bank);
+  return banks_.at(vbk_ & 0x1);
 }
 
 const VramMemory& Ppu::Bank() const {
-  return banks_.at(vbk_.bank);
+  return banks_.at(vbk_ & 0x1);
 }
 
 const VramMemory& Ppu::BankAt(u8 bit) const {
-  return banks_.at(bit & 0b1);
+  return banks_.at(bit & 0x1);
 }
 
 void Ppu::StartGPDma() {
   state_->halt = true;
   dma_state_ = {
-    .active = true,
     .hdma = false,
-    .length = static_cast<u16>((dma_regs_.dma.length + 1) * 0x10),
-    .source = static_cast<u16>(dma_regs_.source.val & 0xfff0),
-    .destination = static_cast<u16>(0x8000 + (dma_regs_.destination.val & 0x1ff0)),
+    .length = static_cast<u16>(((dma_regs_.dma & 0x7f) + 1) * 0x10),
+    .source = static_cast<u16>(dma_regs_.source & 0xfff0),
+    .destination = static_cast<u16>(dma_regs_.destination & 0x1ff0),
   };
   spdlog::debug("GP DMA triggered: src={:04x}, dst={:04x}, len={:02x}", dma_state_.source, dma_state_.destination, dma_state_.length);
 }
 
 void Ppu::StartHBlankDma() {
   dma_state_ = {
-    .active = true,
     .hdma = true,
-    .length = static_cast<u16>((dma_regs_.dma.length + 1) * 0x10),
-    .source = static_cast<u16>(dma_regs_.source.val & 0xfff0),
-    .destination = static_cast<u16>(0x8000 + (dma_regs_.destination.val & 0x1ff0)),
+    .length = static_cast<u16>(((dma_regs_.dma & 0x7f) + 1) * 0x10),
+    .source = static_cast<u16>(dma_regs_.source & 0xfff0),
+    .destination = static_cast<u16>(dma_regs_.destination & 0x1ff0),
   };
   spdlog::debug("HBlank DMA triggered: src={:04x}, dst={:04x}, len={:02x}", dma_state_.source, dma_state_.destination, dma_state_.length);
 }

@@ -25,56 +25,81 @@ enum class PPUMode : u8 {
 };
 
 struct PpuRegs {
-  union {
-    std::array<u8, 12> bytes;
-    struct {
-      union {
-        struct {
-          u8 bg_window_enable: 1;
-          u8 sprite_enable: 1;
-          u8 sprite_size: 1;
-          u8 bg_tilemap_area: 1;
-          u8 tiledata_area: 1;
-          u8 window_enable: 1;
-          u8 window_tilemap_area: 1;
-          u8 lcd_enable: 1;
-        };
-        u8 val;
-      } lcdc;
+  struct LCDC {
+    u8 bg_window_enable;
+    u8 sprite_enable;
+    u8 sprite_size;
+    u8 bg_tilemap_area;
+    u8 tiledata_area;
+    u8 window_enable;
+    u8 window_tilemap_area;
+    u8 lcd_enable;
 
-      union {
-        struct {
-          u8 ppu_mode: 2;
-          u8 coincidence_flag: 1;
-          u8 stat_interrupt_mode0: 1;
-          u8 stat_interrupt_mode1: 1;
-          u8 stat_interrupt_mode2: 1;
-          u8 stat_interrupt_lyc: 1;
-          u8 : 1;
-        };
-        u8 val;
-      } stat;
+    LCDC(u8 val) {
+      bg_window_enable = val & 0x1;
+      sprite_enable = (val >> 1) & 0x1;
+      sprite_size = (val >> 2) & 0x1;
+      bg_tilemap_area = (val >> 3) & 0x1;
+      tiledata_area = (val >> 4) & 0x1;
+      window_enable = (val >> 5) & 0x1;
+      window_tilemap_area = (val >> 6) & 0x1;
+      lcd_enable = (val >> 7) & 0x1;
+    }
 
-      u8 scy;
-      u8 scx;
-      u8 ly;
-      u8 lyc;
-      u8 dma;
-      u8 bgp;
-      u8 obp0;
-      u8 obp1;
-      u8 wy;
-      u8 wx;
-    };
+    u8 byte() const {
+      return (lcd_enable << 7) | (window_tilemap_area << 6) | (window_enable << 5) | (tiledata_area << 4) | (bg_tilemap_area << 3) | (sprite_size << 2) | (sprite_enable << 1) | bg_window_enable;
+    }
   };
 
-  inline void reset() {
-    lcdc.val = 0;
-    stat.val = 0;
+  struct Stat {
+    u8 ppu_mode: 2;
+    u8 coincidence_flag: 1;
+    u8 stat_interrupt_mode0: 1;
+    u8 stat_interrupt_mode1: 1;
+    u8 stat_interrupt_mode2: 1;
+    u8 stat_interrupt_lyc: 1;
+    u8 : 1;
+
+    Stat(u8 val) {
+      ppu_mode = val & 0x2;
+      coincidence_flag = (val >> 2) & 0x1;
+      stat_interrupt_mode0 = (val >> 3) & 0x1;
+      stat_interrupt_mode1 = (val >> 4) & 0x1;
+      stat_interrupt_mode2 = (val >> 5) & 0x1;
+      stat_interrupt_lyc = (val >> 6) & 0x1;
+    }
+
+    u8 byte() const {
+      return 0x80 | (stat_interrupt_lyc << 6) | (stat_interrupt_mode2 << 5) | (stat_interrupt_mode1 << 4) | (stat_interrupt_mode0 << 3) | (coincidence_flag << 2) | ppu_mode;
+    }
+  };
+
+  PpuRegs::LCDC lcdc = 0;
+  Stat stat = 0;
+  u8 scy;
+  u8 scx;
+  u8 ly;
+  u8 lyc;
+  u8 dma;
+  u8 bgp;
+  u8 obp0;
+  u8 obp1;
+  u8 wy;
+  u8 wx;
+
+  void Reset() {
+    lcdc = 0;
+    stat = 0;
     scy = 0;
     scx = 0;
     ly = 0;
     lyc = 0;
+    dma = 0;
+    bgp = 0;
+    obp0 = 0;
+    obp1 = 0;
+    wy = 0;
+    wx = 0;
   }
 };
 
@@ -86,6 +111,9 @@ struct CgbColor {
       u8 hi : 8;
     };
   };
+
+  CgbColor() = default;
+  CgbColor(u16 val):value{val} {}
 
   Color GetColor() const {
     u8 r = (value & 0x1f) << 3;
@@ -103,36 +131,53 @@ struct CgbPpuRegs {
       u8 : 1;
       u8 auto_increment : 1;
     };
-  } bcps;
+  } bcps {};
 
-union {
+  union {
     u8 val;
     struct {
       u8 address : 6;
       u8 : 1;
       u8 auto_increment : 1;
     };
-  } ocps;
+  } ocps {};
 
-  std::array<CgbColor, 32> bcpd;
-  std::array<CgbColor, 32> ocpd;
+  std::array<CgbColor, 32> bcpd {};
+  std::array<CgbColor, 32> ocpd {};
+
+  CgbPpuRegs() = default;
+
+  void Reset() {
+    bcps.val = 0;
+    ocps.val = 0;
+    bcpd.fill(0);
+    ocpd.fill(0);
+  }
 };
 
 struct Sprite {
   u8 y;
   u8 x;
   u8 tile;
-  union {
-    struct {
-      u8 cgb_palette : 3;
-      u8 cgb_bank    : 1;
-      u8 dmg_palette : 1;
-      u8 x_flip      : 1;
-      u8 y_flip      : 1;
-      u8 priority    : 1;
-    };
-    u8 val;
-  } attrs;
+  u8 attrs;
+};
+
+struct SpriteAttrs {
+  u8 cgb_palette : 3;
+  u8 cgb_bank    : 1;
+  u8 dmg_palette : 1;
+  u8 x_flip      : 1;
+  u8 y_flip      : 1;
+  u8 priority    : 1;
+
+  SpriteAttrs(u8 val) {
+    cgb_palette = static_cast<u8>(val & 0x7);
+    cgb_bank = static_cast<u8>((val >> 3) & 0x1);
+    dmg_palette = static_cast<u8>((val >> 4) & 0x1);
+    x_flip = static_cast<u8>((val >> 5) & 0x1);
+    y_flip = static_cast<u8>((val >> 6) & 0x1);
+    priority = static_cast<u8>((val >> 7) & 0x1);
+  }
 };
 
 struct OamMemory {
@@ -141,21 +186,9 @@ struct OamMemory {
     std::array<Sprite, 40> sprites;
   };
 
-  inline void reset() {
+  inline void Reset() {
     bytes.fill(0);
   }
-};
-
-union VramTileAttrib {
-  u8 tile_id;
-  struct {
-    u8 palette : 3;
-    u8 bank : 1;
-    u8 : 1;
-    u8 x_flip : 1;
-    u8 y_flip : 1;
-    u8 priority : 1;
-  };
 };
 
 struct VramMemory {
@@ -163,49 +196,35 @@ struct VramMemory {
     std::array<u8, 8192> bytes;
     struct {
       std::array<std::array<u16, 8>, kNumTiles> tile_data;
-      std::array<std::array<VramTileAttrib, 1024>, 2> tile_map;
+      std::array<std::array<u8, 1024>, 2> tile_map;
     };
   };
 
-  inline void reset() {
+  inline void Reset() {
     bytes.fill(0);
   }
 };
 
-struct VramBankReg {
-  union {
-    u8 val;
-    struct {
-      u8 bank: 1;
-      u8 : 7;
-    };
-  };
+struct VramTileAttrib {
+  u8 palette;
+  u8 bank;
+  u8 x_flip;
+  u8 y_flip;
+  u8 priority;
+
+  VramTileAttrib(u8 val) {
+    palette = static_cast<u8>(val & 0x7);
+    bank = static_cast<u8>((val >> 3) & 0x1);
+    x_flip = static_cast<u8>((val >> 5) & 0x1);
+    y_flip = static_cast<u8>((val >> 6) & 0x1);
+    priority = static_cast<u8>((val >> 7) & 0x1);
+  }
 };
 
 struct DmaRegs {
-  union {
-    struct {
-      u8 low;
-      u8 high;
-    };
-    u16 val;
-  } source;
-
-  union {
-    struct {
-      u8 low;
-      u8 high;
-    };
-    u16 val;
-  } destination;
-
-  union {
-    u8 val;
-    struct {
-      u8 length : 7;
-      u8 mode_active : 1;
-    };
-  } dma;
+  u16 source;
+  u16 destination;
+  u8 dma;
 };
 
 struct DmaState {
@@ -213,7 +232,6 @@ struct DmaState {
   u16 destination;
   u16 source;
   bool hdma;
-  bool active;
 };
 
 struct PpuConfig {
@@ -286,11 +304,12 @@ private:
   std::array<Palette, kCgbNumPalettes> cgb_sprite_palettes_ {};
   OamMemory oam_ {};
   PpuRegs regs_ {};
-  VramBankReg vbk_ {};
+  u8 vbk_ {};
   Palette palette_ {};
   DmaRegs dma_regs_ {};
   DmaState dma_state_ {};
   CgbPpuRegs cgb_regs_ {};
+  u8 opri_ {};
 
   size_t frame_count_ = 0;
   u16 cycle_counter_ = 0;

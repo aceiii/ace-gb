@@ -24,7 +24,7 @@ bool WramDevice::IsValidFor(u16 addr) const {
 
 void WramDevice::Write8(u16 addr, u8 byte) {
   if (addr == std::to_underlying(IO::SVBK)) {
-    svbk_.val = byte;
+    svbk_ = byte;
     return;
   }
 
@@ -33,7 +33,7 @@ void WramDevice::Write8(u16 addr, u8 byte) {
 
 u8 WramDevice::Read8(u16 addr) const {
   if (addr == std::to_underlying(IO::SVBK)) {
-    return svbk_.val;
+    return svbk_;
   }
 
   return BankAt(addr).at(addr & kWramIndexMask);
@@ -52,7 +52,7 @@ const WramBank& WramDevice::Bank0() const {
 }
 
 WramBank& WramDevice::Bank1() {
-  u8 bank_idx = svbk_.wram_bank;
+  u8 bank_idx = svbk_ & 0x7;
   if (bank_idx == 0) {
     bank_idx = 1;
   }
@@ -61,7 +61,7 @@ WramBank& WramDevice::Bank1() {
 }
 
 const WramBank& WramDevice::Bank1() const {
-  u8 bank_idx = svbk_.wram_bank;
+  u8 bank_idx = svbk_ & 0x7;
   if (bank_idx == 0) {
     bank_idx = 1;
   }

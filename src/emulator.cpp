@@ -140,6 +140,7 @@ static void SetCgbBootRegisters(Mmu& mmu, Registers& regs) {
     mmu.Write8(std::to_underlying(IO::BCPD), 0x00);
     mmu.Write8(std::to_underlying(IO::OCPS), 0x00);
     mmu.Write8(std::to_underlying(IO::OCPD), 0x00);
+    mmu.Write8(std::to_underlying(IO::OPRI), 0x01);
     mmu.Write8(std::to_underlying(IO::SVBK), 0xf8);
     mmu.Write8(std::to_underlying(IO::IE), 0x00);
 }
@@ -277,6 +278,7 @@ void Emulator::Reset() {
   spdlog::debug("Using boot rom type:{} at '{}'", magic_enum::enum_name(hardware_mode_), boot_rom.path);
 
   boot_.LoadBytes(boot_rom.data);
+  ppu_.SetHardwareMode(hardware_mode_);
 
   if (skip_bootrom_) {
     if (hardware_mode_ == HardwareMode::kCgbMode) {
@@ -286,8 +288,6 @@ void Emulator::Reset() {
     }
     boot_.SetDisable(0xff);
   }
-
-  ppu_.SetHardwareMode(hardware_mode_);
 }
 
 void Emulator::Step() {

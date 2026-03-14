@@ -31,11 +31,5 @@ private:
 private:
   Mmu* mmu_ = nullptr;
   std::array<WramBank, kWramNumBanks> banks_;
-  union {
-    struct {
-      u8 wram_bank : 3;
-      u8 : 5;
-    };
-    u8 val;
-  } svbk_;
+  u8 svbk_;
 };
