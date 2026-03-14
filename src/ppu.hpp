@@ -228,10 +228,10 @@ struct DmaRegs {
 };
 
 struct DmaState {
-  u16 length;
-  u16 destination;
-  u16 source;
   bool hdma;
+  u16 length;
+  u16 source;
+  u16 destination;
 };
 
 struct PpuConfig {

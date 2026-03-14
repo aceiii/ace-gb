@@ -156,9 +156,9 @@ void Emulator::Init(EmulatorConfig emu_cfg) {
 
   audio_.Init({
     .clock_speed = config_.clock_speed,
+    .sample_rate = config_.sample_rate,
     .buffer_size = config_.buffer_size,
     .num_channels = config_.num_channels,
-    .sample_rate = config_.sample_rate,
   });
 
   mmu_.Init();
@@ -432,8 +432,8 @@ std::expected<void, std::string> Emulator::SetBootRomPath(HardwareMode mode, std
   }
 
   boot_roms_[mode] = BootRomData{
-    .data = result.value(),
     .path = std::string(path),
+    .data = result.value(),
   };
 
   return {};
