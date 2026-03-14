@@ -594,9 +594,12 @@ void Interface::ConfigureDockSpace() {
     ImGui::DockBuilderDockWindow("LCD", main);
     ImGui::DockBuilderDockWindow("Logs", bottom);
     ImGui::DockBuilderDockWindow("Input", left);
+    ImGui::DockBuilderDockWindow("Debugger", left);
     ImGui::DockBuilderDockWindow("TileMap 2", center_top);
     ImGui::DockBuilderDockWindow("TileMap 1", center_top);
     ImGui::DockBuilderDockWindow("Tile Data", center_top);
+    ImGui::DockBuilderDockWindow("Graphics", center_bottom);
+    ImGui::DockBuilderDockWindow("Palettes", center_bottom);
     ImGui::DockBuilderDockWindow("Sprites", center_bottom);
     ImGui::DockBuilderDockWindow("Memory", right);
     ImGui::DockBuilderDockWindow("Registers", right_center);
