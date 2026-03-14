@@ -152,7 +152,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
         "-sEXPORTED_RUNTIME_METHODS=[${EXPORTED_RUNTIME_METHODS}]" # for some reason this one requires the brackets
         "-sEXPORTED_FUNCTIONS=[_main,_malloc,_free]"
         "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources@resources"
-        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/roms/dmg_boot.bin@boot.bin"
+        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/roms/dmg_boot.bin@roms/dmg_boot.bin"
+        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/roms/cgb_boot.bin@roms/cgb_boot.bin"
     )
 else()
     include(cmake/nfd.cmake)
