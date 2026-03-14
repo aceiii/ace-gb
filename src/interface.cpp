@@ -48,6 +48,8 @@ constexpr int kDefaultWindowHeight = 600;
 constexpr char const* kWindowTitle = "Ace::GB - GameBoy Emulator";
 constexpr char const* kDmgDefaultBootRomPath = "roms/dmg_boot.bin";
 constexpr char const* kCgbDefaultBootRomPath = "roms/cgb_boot.bin";
+constexpr char const* kDemoRomGb = "resources/roms/demo-gb.gb";
+constexpr char const* kDemoRomGbc = "resources/roms/demo-gbc.gbc";
 
 constexpr int kAudioSampleRate = 44100;
 constexpr int kAudioSampleSize = 32;
@@ -1134,6 +1136,18 @@ void Interface::RenderMainMenu() {
       spdlog::info("Unloading cart...");
       Stop();
       UnloadCartridge();
+    }
+
+    if (ImGui::BeginMenu("Demo Cartridges")) {
+      if (ImGui::MenuItem("GBStudio GB Demo")) {
+        spdlog::debug("Loading GB Demo");
+        LoadCartRom(kDemoRomGb);
+      }
+      if (ImGui::MenuItem("GBStudio GBC Demo")) {
+        spdlog::debug("Loading GBC Demo");
+        LoadCartRom(kDemoRomGbc);
+      }
+      ImGui::EndMenu();
     }
 
     auto& recent_files = config_.settings.recent_files;
