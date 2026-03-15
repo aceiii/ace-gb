@@ -1138,11 +1138,6 @@ void execute_ei(Cpu& cpu, Mmu& mmu, Instruction& instr) {
   cpu.GetState().ime = true;
 }
 
-void execute_stop(Cpu& cpu, Mmu& mmu, Instruction& instr) {
-  cpu.GetState().stop = true;
-  cpu.Write8(std::to_underlying(IO::DIV), 0);
-}
-
 void Cpu::Init(CpuConfig cfg) {
   mmu_ = cfg.mmu;
   interrupts_ = cfg.interrupts;
@@ -1150,6 +1145,10 @@ void Cpu::Init(CpuConfig cfg) {
 
 u8 Cpu::Execute() {
   ZoneScoped;
+
+  if (state_.stop) {
+    return 4;
+  }
 
   tick_counter = 0;
 
@@ -1280,7 +1279,7 @@ u8 Cpu::Execute() {
   case Opcode::SET: execute_set(*this, mmu, instr); break;
   case Opcode::DI: execute_di(*this, mmu, instr); break;
   case Opcode::EI: execute_ei(*this, mmu, instr); break;
-  case Opcode::STOP: execute_stop(*this, mmu, instr); break;
+  case Opcode::STOP: ExecuteStop(); break;
   case Opcode::PREFIX: break;
   }
 
@@ -1332,52 +1331,57 @@ u16 Cpu::ReadNext16() {
 }
 
 void Cpu::Reset() {
+  hardware_mode_ = HardwareMode::kDmgMode;
   regs_.Reset();
   state_.Reset();
+  key0_ = 0;
+  key1_ = 0;
 }
 
 u8 Cpu::Read8(u16 addr) {
   ZoneScoped;
-  auto result = mmu_->Read8(addr);
+
+  u8 result;
+  switch (addr) {
+    case std::to_underlying(IO::KEY0): result = hardware_mode_ == HardwareMode::kDmgMode ? 0xFF : key0_; break;
+    case std::to_underlying(IO::KEY1): result = hardware_mode_ == HardwareMode::kDmgMode ? 0xFF : key1_; break;
+    default: result = mmu_->Read8(addr); break;
+  }
   Tick();
   return result;
 }
 
 void Cpu::Write8(u16 addr, u8 val) {
   ZoneScoped;
-  mmu_->Write8(addr, val);
+  switch (addr) {
+    case std::to_underlying(IO::KEY0): key0_ = val; break;
+    case std::to_underlying(IO::KEY1): key1_ = val; break;
+    default: mmu_->Write8(addr, val); break;
+  }
   Tick();
 }
 
 
 u16 Cpu::Read16(u16 addr) {
-  u8 lo = mmu_->Read8(addr);
-  Tick();
-  u8 hi = mmu_->Read8(addr + 1);
-  Tick();
+  u8 lo = Read8(addr);
+  u8 hi = Read8(addr + 1);
   return lo | (hi << 8);
 }
 
 void Cpu::Write16(u16 addr, u16 word) {
-  mmu_->Write8(addr, word & 0xff);
-  Tick();
-  mmu_->Write8(addr + 1, word >> 8);
-  Tick();
+  Write8(addr, word & 0xff);
+  Write8(addr + 1, word >> 8);
 }
 
 
 void Cpu::Push16(u16 word) {
-  mmu_->Write8(--regs_.sp, word >> 8);
-  Tick();
-  mmu_->Write8(--regs_.sp, word & 0xff);
-  Tick();
+  Write8(--regs_.sp, word >> 8);
+  Write8(--regs_.sp, word & 0xff);
 }
 
 u16 Cpu::Pop16() {
-  u8 lo = mmu_->Read8(regs_.sp++);
-  Tick();
-  u8 hi = mmu_->Read8(regs_.sp++);
-  Tick();
+  u8 lo = Read8(regs_.sp++);
+  u8 hi = Read8(regs_.sp++);
   return lo | (hi << 8);
 }
 
@@ -1411,4 +1415,27 @@ CpuState& Cpu::GetState() {
 
 const CpuState& Cpu::GetState() const {
   return state_;
+}
+
+
+HardwareMode Cpu::GetHardwareMode() const {
+  return hardware_mode_;
+}
+
+void Cpu::SetHardwareMode(HardwareMode mode) {
+  hardware_mode_ = mode;
+}
+
+void Cpu::ExecuteStop() {
+  if (hardware_mode_ == HardwareMode::kDmgMode) {
+    state_.stop = true;
+  } else {
+    state_.double_speed = key1_ & 0x1;
+    if (state_.double_speed) {
+      key1_ = 0x80;
+    } else {
+      key1_ = 0x00;
+    }
+  }
+  Write8(std::to_underlying(IO::DIV), 0);
 }

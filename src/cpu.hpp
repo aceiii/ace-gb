@@ -13,6 +13,8 @@
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
 #include "cpu_state.hpp"
+#include "hardware_mode.hpp"
+
 
 struct CpuConfig {
   Mmu* mmu;
@@ -44,15 +46,22 @@ public:
   CpuState& GetState();
   const CpuState& GetState() const;
 
+  HardwareMode GetHardwareMode() const;
+  void SetHardwareMode(HardwareMode mode);
+
 private:
   Mmu* mmu_ = nullptr;
   InterruptDevice* interrupts_ = nullptr;
   Registers regs_ {};
   CpuState state_ {};
-
   std::vector<SyncedDevice*> synced_devices {};
   uint64_t tick_counter = 0;
+  HardwareMode hardware_mode_ = HardwareMode::kDmgMode;
+  u8 key0_;
+  u8 key1_;
 
 private:
   u8 ExecuteInterrupts();
+
+  void ExecuteStop();
 };

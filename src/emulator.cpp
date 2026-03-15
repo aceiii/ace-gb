@@ -207,7 +207,8 @@ void Emulator::Update(float dt) {
   ZoneScoped;
 
   static int current_cycles = 0;
-  const auto target_cycles_per_frame = static_cast<int>(config_.clock_speed / config_.frame_rate);
+  const auto clock_speed = cpu_.GetState().double_speed ? 2 * config_.clock_speed : config_.clock_speed;
+  const auto target_cycles_per_frame = static_cast<int>(clock_speed / config_.frame_rate);
 
   int prev_cycles = current_cycles;
   do {
@@ -279,6 +280,7 @@ void Emulator::Reset() {
 
   boot_.LoadBytes(boot_rom.data);
   ppu_.SetHardwareMode(hardware_mode_);
+  cpu_.SetHardwareMode(hardware_mode_);
 
   if (skip_bootrom_) {
     if (hardware_mode_ == HardwareMode::kCgbMode) {
