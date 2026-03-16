@@ -1392,7 +1392,7 @@ void Cpu::AddSyncedDevice(SyncedDevice* device) {
 void Cpu::Tick() {
   ZoneScoped;
   for (auto& device : synced_devices) {
-    device->OnTick();
+    device->OnTick(state_.double_speed);
   }
   tick_counter += 4;
 }

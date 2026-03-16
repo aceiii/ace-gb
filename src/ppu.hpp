@@ -245,9 +245,9 @@ class Ppu : public MmuDevice, public SyncedDevice {
 public:
   void Init(PpuConfig config);
   void Cleanup();
-  void Step(int n = 0);
+  void Step();
 
-  void OnTick() override;
+  void OnTick(bool double_speed) override;
 
   [[nodiscard]] bool IsValidFor(u16 addr) const override;
   void Write8(u16 addr, u8 byte) override;
@@ -315,4 +315,5 @@ private:
   u16 cycle_counter_ = 0;
   u8 window_line_counter_ = 0;
   bool log_doctor_ = false;
+  u8 tick_counter_ = 0;
 };

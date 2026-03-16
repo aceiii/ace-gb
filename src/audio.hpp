@@ -46,7 +46,7 @@ public:
   void Reset() override;
   void PowerOff();
 
-  void OnTick() override;
+  void OnTick(bool double_speed) override;
 
   void GetSamples(std::span<float> out_buffer);
 

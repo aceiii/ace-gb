@@ -109,12 +109,14 @@ void Audio::PowerOff() {
   ch4_.PowerOff();
 }
 
-void Audio::OnTick() {
+void Audio::OnTick(bool double_speed) {
   ZoneScoped;
   Step();
   Step();
-  Step();
-  Step();
+  if (!double_speed) {
+    Step();
+    Step();
+  }
 }
 
 void Audio::Step() {

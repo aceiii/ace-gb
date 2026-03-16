@@ -33,7 +33,7 @@ public:
   void Reset() override;
 
   void Execute(u8 cycles);
-  void OnTick() override;
+  void OnTick(bool double_speed) override;
 
   u16 div() const;
 

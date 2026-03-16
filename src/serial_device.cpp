@@ -45,7 +45,7 @@ void SerialDevice::Reset() {
   sc_.unused = 0x1f;
 }
 
-void SerialDevice::OnTick() {
+void SerialDevice::OnTick(bool double_speed) {
   ZoneScoped;
   Step();
 }

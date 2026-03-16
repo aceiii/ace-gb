@@ -24,7 +24,7 @@ public:
   void Reset() override;
 
   void Step();
-  void OnTick() override;
+  void OnTick(bool double_speed) override;
   void TriggerCallbacks();
 
   std::string_view LineBuffer() const;

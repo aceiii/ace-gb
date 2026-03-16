@@ -89,18 +89,22 @@ void Ppu::Cleanup() {
   UnloadTexture(target_lcd_front_);
 }
 
-void Ppu::OnTick() {
+void Ppu::OnTick(bool double_speed) {
   ZoneScoped;
-  Step(0);
-  Step(1);
-  Step(2);
-  Step(3);
-}
+  Step();
+  Step();
+  if (!double_speed) {
+    Step();
+    Step();
+  }}
 
-inline void Ppu::Step(int n) {
+inline void Ppu::Step() {
   ZoneScoped;
 
-  if (n % 2 == 0 && state_->halt && dma_state_.length && !dma_state_.hdma) {
+  auto n = tick_counter_++;
+  tick_counter_ %= 4;
+
+  if (n % 4 == 0 && state_->halt && dma_state_.length && !dma_state_.hdma) {
     Bank().bytes[dma_state_.destination++] = mmu_->Read8(dma_state_.source++);
     dma_state_.length--;
     if (!dma_state_.length) {
@@ -115,7 +119,7 @@ inline void Ppu::Step(int n) {
   const auto mode = this->GetMode();
 
   static u8 hblank_dma_counter = 0;
-  if (n % 2 == 0 && mode == PPUMode::HBlank && !state_->halt && hblank_dma_counter) {
+  if (n % 4 == 0 && mode == PPUMode::HBlank && !state_->halt && hblank_dma_counter) {
     mmu_->Write8(dma_state_.destination++, mmu_->Read8(dma_state_.source++));
     hblank_dma_counter--;
     dma_state_.length--;
@@ -1004,6 +1008,7 @@ void Ppu::Reset() {
   dma_regs_ = {};
   dma_state_ = {};
   cgb_regs_ = {};
+  tick_counter_ = 0;
 
   BeginTextureMode(target_tiles_);
   ClearBackground(BLANK);

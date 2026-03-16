@@ -5,5 +5,5 @@ class SyncedDevice {
 public:
   virtual ~SyncedDevice() = default;
 
-  virtual void OnTick() = 0;
+  virtual void OnTick(bool double_speed) = 0;
 };

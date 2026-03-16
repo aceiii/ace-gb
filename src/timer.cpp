@@ -99,7 +99,7 @@ void Timer::Execute(u8 cycles) {
   }
 }
 
-void Timer::OnTick() {
+void Timer::OnTick(bool double_speed) {
   ZoneScoped;
   Execute(4);
 }
