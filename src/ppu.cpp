@@ -140,7 +140,7 @@ inline void Ppu::Step() {
       window_line_counter_ = 0;
       regs_.stat.ppu_mode = std::to_underlying(PPUMode::VBlank);
       interrupts_->RequestInterrupt(Interrupt::VBlank);
-      if (regs_.stat.stat_interrupt_mode0) {
+      if (regs_.stat.stat_interrupt_mode1) {
         interrupts_->RequestInterrupt(Interrupt::Stat);
       }
       SwapLcdTargets();
@@ -788,7 +788,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::STAT)) {
-    regs_.stat = (regs_.stat.ppu_mode & 0b11) | (byte & ~0b11);
+    regs_.stat = (regs_.stat.byte() & 0b111) | (byte & 0b11111000);
     return;
   }
 
@@ -1064,6 +1064,12 @@ void Ppu::StartDma() {
   for (auto i = 0; i < oam_.bytes.size(); i += 1) {
     oam_.bytes[i] = mmu_->Read8(source + i);
   }
+}
+
+void Ppu::SetBootState(u8 ly, PPUMode mode) {
+  regs_.ly = ly;
+  regs_.stat.ppu_mode = std::to_underlying(mode);
+  regs_.stat.coincidence_flag = regs_.ly == regs_.lyc;
 }
 
 void Ppu::ResetFrameCount() {

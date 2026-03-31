@@ -103,6 +103,10 @@ void Timer::OnTick(bool double_speed) {
   Execute(4);
 }
 
+void Timer::SetDiv(u16 div) {
+  regs_.div = div;
+}
+
 u16 Timer::div() const {
   return regs_.div >> 8;
 }

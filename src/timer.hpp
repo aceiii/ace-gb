@@ -34,6 +34,7 @@ public:
 
   void Execute(u8 cycles);
   void OnTick(bool double_speed) override;
+  void SetDiv(u16 div);
 
   u16 div() const;
 

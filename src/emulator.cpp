@@ -18,7 +18,7 @@ namespace {
   constexpr int kMinBootRomSize = 256;
 };
 
-static void SetDmgBootRegisters(Mmu& mmu, Registers& regs) {
+static void SetDmgBootRegisters(Mmu& mmu, Timer& timer, Ppu& ppu, Registers& regs) {
     regs.Set(Reg8::A, 0x01);
     regs.Set(Reg8::F, 0xb0);
     regs.Set(Reg8::B, 0x00);
@@ -33,7 +33,7 @@ static void SetDmgBootRegisters(Mmu& mmu, Registers& regs) {
     mmu.Write8(std::to_underlying(IO::P1), 0xcf);
     mmu.Write8(std::to_underlying(IO::SB), 0x00);
     mmu.Write8(std::to_underlying(IO::SC), 0x7e);
-    mmu.Write8(std::to_underlying(IO::DIV), 0xab);
+    timer.SetDiv(0xab00);
     mmu.Write8(std::to_underlying(IO::TIMA), 0x00);
     mmu.Write8(std::to_underlying(IO::TMA), 0x00);
     mmu.Write8(std::to_underlying(IO::TAC), 0xf8);
@@ -58,12 +58,12 @@ static void SetDmgBootRegisters(Mmu& mmu, Registers& regs) {
     mmu.Write8(std::to_underlying(IO::NR44), 0xbf);
     mmu.Write8(std::to_underlying(IO::NR50), 0x77);
     mmu.Write8(std::to_underlying(IO::NR51), 0xf3);
-    mmu.Write8(std::to_underlying(IO::NR52), 0xf0);
+    mmu.Write8(std::to_underlying(IO::NR52), 0xf1);
     mmu.Write8(std::to_underlying(IO::LCDC), 0x91);
     mmu.Write8(std::to_underlying(IO::STAT), 0x85);
     mmu.Write8(std::to_underlying(IO::SCX), 0x00);
     mmu.Write8(std::to_underlying(IO::SCY), 0x00);
-    mmu.Write8(std::to_underlying(IO::LY), 0x91);
+    ppu.SetBootState(0x00, PPUMode::VBlank);
     mmu.Write8(std::to_underlying(IO::LYC), 0x00);
     mmu.Write8(std::to_underlying(IO::DMA), 0xff);
     mmu.Write8(std::to_underlying(IO::BGP), 0xfc);
@@ -74,7 +74,7 @@ static void SetDmgBootRegisters(Mmu& mmu, Registers& regs) {
     mmu.Write8(std::to_underlying(IO::IE), 0x00);
 }
 
-static void SetCgbBootRegisters(Mmu& mmu, Registers& regs) {
+static void SetCgbBootRegisters(Mmu& mmu, Timer& timer, Registers& regs) {
     regs.Set(Reg8::A, 0x11);
     regs.Set(Reg8::F, 0x80);
     regs.Set(Reg8::B, 0x00);
@@ -89,7 +89,7 @@ static void SetCgbBootRegisters(Mmu& mmu, Registers& regs) {
     mmu.Write8(std::to_underlying(IO::P1), 0xc7);
     mmu.Write8(std::to_underlying(IO::SB), 0x00);
     mmu.Write8(std::to_underlying(IO::SC), 0x7f);
-    mmu.Write8(std::to_underlying(IO::DIV), 0xab);
+    timer.SetDiv(0xab00);
     mmu.Write8(std::to_underlying(IO::TIMA), 0x00);
     mmu.Write8(std::to_underlying(IO::TMA), 0x00);
     mmu.Write8(std::to_underlying(IO::TAC), 0xf8);
@@ -282,14 +282,14 @@ void Emulator::Reset() {
   ppu_.SetHardwareMode(hardware_mode_);
   cpu_.SetHardwareMode(hardware_mode_);
 
-  if (skip_bootrom_) {
-    if (hardware_mode_ == HardwareMode::kCgbMode) {
-      SetCgbBootRegisters(mmu_, cpu_.GetRegisters());
-    } else {
-      SetDmgBootRegisters(mmu_, cpu_.GetRegisters());
+    if (skip_bootrom_) {
+      if (hardware_mode_ == HardwareMode::kCgbMode) {
+        SetCgbBootRegisters(mmu_, timer_, cpu_.GetRegisters());
+      } else {
+        SetDmgBootRegisters(mmu_, timer_, ppu_, cpu_.GetRegisters());
+      }
+      boot_.SetDisable(0xff);
     }
-    boot_.SetDisable(0xff);
-  }
 }
 
 void Emulator::Step() {
