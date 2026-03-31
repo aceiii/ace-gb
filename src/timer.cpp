@@ -44,7 +44,6 @@ void Timer::Write8(u16 addr, u8 byte) {
       return;
     case std::to_underlying(IO::TMA):
       regs_.tma = byte;
-      tima_counter_ = 0;
       return;
     case std::to_underlying(IO::TAC):
       regs_.tac = (byte & 0b111) | (0b11111000);

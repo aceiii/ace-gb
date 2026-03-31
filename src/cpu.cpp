@@ -982,6 +982,16 @@ bool execute_jr(Cpu& cpu, Mmu& mmu, Instruction& instr) {
 }
 
 void execute_halt(Cpu& cpu, Mmu& mmu, Instruction& instr) {
+  if (!cpu.GetState().ime) {
+    // HALT bug: if IME=0 and there is a pending enabled interrupt,
+    // HALT is not entered; instead the next opcode byte is read twice.
+    u8 ie = mmu.Read8(std::to_underlying(IO::IE));
+    u8 if_ = mmu.Read8(std::to_underlying(IO::IF));
+    if (ie & if_ & 0x1F) {
+      cpu.GetState().halt_bug = true;
+      return;
+    }
+  }
   cpu.GetState().halt = true;
 }
 
@@ -1319,6 +1329,10 @@ u8 Cpu::ExecuteInterrupts() {
 
 u8 Cpu::ReadNext8() {
   ZoneScoped;
+  if (state_.halt_bug) {
+    state_.halt_bug = false;
+    return Read8(regs_.pc);  // read opcode byte without advancing PC (HALT bug)
+  }
   return Read8(regs_.pc++);
 }
 
