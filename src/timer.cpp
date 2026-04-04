@@ -10,7 +10,7 @@ namespace {
   constexpr u16 kTimerFreqs[] = {
     kClockSpeed / 4096,
     kClockSpeed / 262144,
-    kClockSpeed / 65535,
+    kClockSpeed / 65536,
     kClockSpeed / 16384,
   };
 }
