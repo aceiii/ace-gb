@@ -140,7 +140,7 @@ inline void Ppu::Step() {
       window_line_counter_ = 0;
       regs_.stat.ppu_mode = std::to_underlying(PPUMode::VBlank);
       interrupts_->RequestInterrupt(Interrupt::VBlank);
-      if (regs_.stat.stat_interrupt_mode0) {
+      if (regs_.stat.stat_interrupt_mode1) {
         interrupts_->RequestInterrupt(Interrupt::Stat);
       }
       SwapLcdTargets();
