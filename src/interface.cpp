@@ -1,3 +1,4 @@
+#include <charconv>
 #include <filesystem>
 #include <span>
 #include <string>
@@ -888,7 +889,7 @@ void Interface::RenderRegisters() {
   }
 
   if (ImGui::Begin("Registers", &config_.settings.show_cpu_registers)) {
-    const auto& regs = emulator_.GetRegisters();
+    auto& regs = emulator_.GetRegisters();
 
     auto a = regs.Get(Reg8::A);
     auto f = regs.Get(Reg8::F);
@@ -906,6 +907,16 @@ void Interface::RenderRegisters() {
     auto neg = regs.Get(Flag::N);
     auto half_carry = regs.Get(Flag::H);
     auto carry = regs.Get(Flag::C);
+
+    std::string pc_str = std::format("{:04X}", regs.pc);
+    if (ImGui::InputText("PC##Input", &pc_str)) {
+      try {
+        int new_pc = std::stoi(pc_str, nullptr, 16);
+        regs.pc = new_pc;
+      } catch (std::exception& e) {
+        // pass
+      }
+    }
 
     ImGui::Text("PC=%04X (%d)", regs.pc, regs.pc);
     ImGui::Text("SP=%04X (%d)", regs.sp, regs.sp);

@@ -61,7 +61,9 @@ public:
   [[nodiscard]] bool ShouldSkipBootRom() const;
 
   [[nodiscard]] const Registers& GetRegisters() const;
+  [[nodiscard]] Registers& GetRegisters();
   [[nodiscard]] const CpuState& GetState() const;
+  [[nodiscard]] CpuState& GetState();
   [[nodiscard]] size_t GetTotalCycles() const;
   [[nodiscard]] PPUMode GetMode() const;
   [[nodiscard]] Instruction GetCurrentInstruction() const;
