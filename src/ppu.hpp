@@ -61,7 +61,7 @@ struct PpuRegs {
     u8 : 1;
 
     Stat(u8 val) {
-      ppu_mode = val & 0x2;
+      ppu_mode = val & 0x3;
       coincidence_flag = (val >> 2) & 0x1;
       stat_interrupt_mode0 = (val >> 3) & 0x1;
       stat_interrupt_mode1 = (val >> 4) & 0x1;
