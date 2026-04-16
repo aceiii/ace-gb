@@ -7,10 +7,10 @@
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
-#include "cpu.h"
-#include "mmu.h"
-#include "registers.h"
-#include "interrupt_device.h"
+#include "cpu.hpp"
+#include "mmu.hpp"
+#include "registers.hpp"
+#include "interrupt_device.hpp"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -94,8 +94,8 @@ std::vector<std::tuple<std::string, u8, u8>> MismatchedRegisters(const Registers
   std::vector<std::tuple<std::string, u8, u8>> failed;
   for (int i = 0; i < std::to_underlying(Reg8::Count); i += 1) {
     Reg8 r {i};
-    u8 a = regs.get(r);
-    u8 b = target.get(r);
+    u8 a = regs.Get(r);
+    u8 b = target.Get(r);
     if (a != b) {
       failed.emplace_back(magic_enum::enum_name(r), a, b);
     }
@@ -154,11 +154,15 @@ std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig& confi
 
   Mmu mmu;
   InterruptDevice interrupts;
-  Cpu cpu{mmu, interrupts};
+  Cpu cpu;
+  cpu.Init({
+    .mmu = &mmu,
+    .interrupts = &interrupts,
+  });
 
   TestMemory mem;
   TestMemoryDevice device{mem};
-  mmu.add_device(&device);
+  mmu.AddDevice(&device);
 
   for (const auto i : tests_to_run) {
     auto test = data.at(i);
@@ -169,17 +173,17 @@ std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig& confi
 
     spdlog::debug("Running case #{} of {}: {}", i, result.total, name);
 
-    cpu.reset();
-    mmu.reset_devices();
+    cpu.Reset();
+    mmu.ResetDevices();
 
-    Registers& regs = cpu.regs;
+    Registers& regs = cpu.GetRegisters();
     LoadRegisters(initial, regs);
 
     Registers final_regs;
     LoadRegisters(final, final_regs);
     LoadMemory(initial.at("ram"), mem);
 
-    cpu.execute();
+    cpu.Execute();
 
     auto reg_match = regs == final_regs;
     auto ram_match = CheckMemory(final.at("ram"), mem);
