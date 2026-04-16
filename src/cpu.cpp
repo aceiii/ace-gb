@@ -1141,6 +1141,7 @@ void execute_ei(Cpu& cpu, Mmu& mmu, Instruction& instr) {
 void Cpu::Init(CpuConfig cfg) {
   mmu_ = cfg.mmu;
   interrupts_ = cfg.interrupts;
+  test_ = cfg.test;
 }
 
 u8 Cpu::Execute() {
@@ -1342,10 +1343,14 @@ u8 Cpu::Read8(u16 addr) {
   ZoneScoped;
 
   u8 result;
-  switch (addr) {
-    case std::to_underlying(IO::KEY0): result = hardware_mode_ == HardwareMode::kDmgMode ? 0xFF : key0_; break;
-    case std::to_underlying(IO::KEY1): result = hardware_mode_ == HardwareMode::kDmgMode ? 0xFF : key1_; break;
-    default: result = mmu_->Read8(addr); break;
+  if (test_) {
+    result = mmu_->Read8(addr);
+  } else {
+    switch (addr) {
+      case std::to_underlying(IO::KEY0): result = hardware_mode_ == HardwareMode::kDmgMode ? 0xFF : key0_; break;
+      case std::to_underlying(IO::KEY1): result = hardware_mode_ == HardwareMode::kDmgMode ? 0xFF : key1_; break;
+      default: result = mmu_->Read8(addr); break;
+    }
   }
   Tick();
   return result;
@@ -1353,10 +1358,14 @@ u8 Cpu::Read8(u16 addr) {
 
 void Cpu::Write8(u16 addr, u8 val) {
   ZoneScoped;
-  switch (addr) {
-    case std::to_underlying(IO::KEY0): key0_ = val; break;
-    case std::to_underlying(IO::KEY1): key1_ = val; break;
-    default: mmu_->Write8(addr, val); break;
+  if (test_) {
+    mmu_->Write8(addr, val);
+  } else {
+    switch (addr) {
+      case std::to_underlying(IO::KEY0): key0_ = val; break;
+      case std::to_underlying(IO::KEY1): key1_ = val; break;
+      default: mmu_->Write8(addr, val); break;
+    }
   }
   Tick();
 }

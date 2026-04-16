@@ -17,6 +17,7 @@
 
 
 struct CpuConfig {
+  bool test = false;
   Mmu* mmu;
   InterruptDevice* interrupts;
 };
@@ -59,6 +60,7 @@ private:
   HardwareMode hardware_mode_ = HardwareMode::kDmgMode;
   u8 key0_;
   u8 key1_;
+  bool test_;
 
 private:
   u8 ExecuteInterrupts();

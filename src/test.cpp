@@ -153,16 +153,18 @@ std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig& confi
   result.total = tests_to_run.size();
 
   Mmu mmu;
-  InterruptDevice interrupts;
-  Cpu cpu;
-  cpu.Init({
-    .mmu = &mmu,
-    .interrupts = &interrupts,
-  });
-
   TestMemory mem;
   TestMemoryDevice device{mem};
   mmu.AddDevice(&device);
+
+
+  InterruptDevice interrupts;
+  Cpu cpu;
+  cpu.Init({
+    .test = true,
+    .mmu = &mmu,
+    .interrupts = &interrupts,
+  });
 
   for (const auto i : tests_to_run) {
     auto test = data.at(i);
