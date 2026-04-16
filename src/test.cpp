@@ -193,7 +193,7 @@ std::expected<TestResult<int, int>, std::string> RunTest(const TestConfig& confi
       spdlog::debug("Test #{} succeeded.", i);
     } else {
       result.failed.emplace_back(i);
-      spdlog::error("Test #{} failed.", i);
+      spdlog::error("Test failed: {} - {}/{}", name, i, result.total);
     }
 
     if (!is_success && config.fail_details) {
