@@ -186,8 +186,8 @@ void Ppu::DrawLcdRow() {
   static std::array<BgPixels, kLCDWidth> bg_win_pixels;
   bg_win_pixels.fill({});
 
-  bool enable_bg = hardware_mode_ == HardwareMode::kDmgMode ? regs_.lcdc.bg_window_enable : true;
-  bool bg_low_priority = hardware_mode_ == HardwareMode::kDmgMode ? false : !regs_.lcdc.bg_window_enable;
+  bool enable_bg = hardware_mode() == HardwareMode::kDmgMode ? regs_.lcdc.bg_window_enable : true;
+  bool bg_low_priority = hardware_mode() == HardwareMode::kDmgMode ? false : !regs_.lcdc.bg_window_enable;
 
   if (enable_bg) {
     const bool enable_window_flag = regs_.lcdc.window_enable &&
@@ -228,7 +228,7 @@ void Ppu::DrawLcdRow() {
       u8 lo = tile[actual_row] >> xi;
       u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
-      if (hardware_mode_ == HardwareMode::kDmgMode) {
+      if (hardware_mode() == HardwareMode::kDmgMode) {
         auto cid = GetPaletteIndex(bits, regs_.bgp);
         auto color = palette_[cid];
         ImageDrawPixel(&target_lcd_back_, x, y, color);
@@ -245,7 +245,7 @@ void Ppu::DrawLcdRow() {
       window_line_counter_++;
     }
   } else {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       auto cid = GetPaletteIndex(0, regs_.bgp);
       auto color = palette_[cid];
       ImageDrawLine(&target_lcd_back_, 0, regs_.ly, kLCDWidth, regs_.ly,  color);
@@ -313,7 +313,7 @@ void Ppu::DrawLcdRow() {
         u8 bits = ((hi & 0b1) << 1) | (lo & 0b1);
 
         if (bits) {
-          if (hardware_mode_ == HardwareMode::kDmgMode) {
+          if (hardware_mode() == HardwareMode::kDmgMode) {
             auto palette = attrs.dmg_palette ? regs_.obp1: regs_.obp0;
             auto cid = GetPaletteIndex(bits, palette);
             ImageDrawPixel(&target_lcd_back_, x, y, palette_[cid]);
@@ -388,7 +388,7 @@ void Ppu::UpdateRenderTargets() {
       }
     }
 
-    if (hardware_mode_ == HardwareMode::kCgbMode) {
+    if (hardware_mode() == HardwareMode::kCgbMode) {
 
       for (auto& tile : BankAt(1).tile_data) {
         for (int row = 0; row < tile.size(); row += 1) {
@@ -646,6 +646,9 @@ bool Ppu::IsValidFor(u16 addr) const {
 
 void Ppu::Write8(u16 addr, u8 byte) {
   if (addr == std::to_underlying(IO::VBK)) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
+      return;
+    }
     vbk_ = byte;
     return;
   }
@@ -661,7 +664,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::HDMA1)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
     }
     dma_regs_.source = (byte << 8) | (dma_regs_.source & 0xff);
@@ -669,7 +672,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::HDMA2)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
     }
     dma_regs_.source = byte | (dma_regs_.source & 0xff00);
@@ -677,7 +680,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::HDMA3)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
     }
     dma_regs_.destination = (byte << 8) | (dma_regs_.destination & 0xff);
@@ -685,7 +688,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::HDMA4)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
     }
     dma_regs_.destination = byte | (dma_regs_.destination & 0xff00);
@@ -693,7 +696,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::HDMA5)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
     }
     const auto dma_type = (byte >> 7) & 0b1;
@@ -707,7 +710,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::BCPS)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
     }
     cgb_regs_.bcps.val = byte;
@@ -715,7 +718,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::BCPD)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
     }
     auto& col = cgb_regs_.bcpd[cgb_regs_.bcps.address >> 1];
@@ -736,7 +739,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::OCPS)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
     }
     cgb_regs_.ocps.val = byte;
@@ -744,7 +747,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::OCPD)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
     }
     auto& col = cgb_regs_.ocpd[cgb_regs_.ocps.address >> 1];
@@ -765,6 +768,10 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr == std::to_underlying(IO::OPRI)) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
+      return;
+    }
+
     opri_ = byte;
     return;
   }
@@ -817,11 +824,6 @@ void Ppu::Write8(u16 addr, u8 byte) {
     return;
   }
 
-  if (addr == std::to_underlying(IO::DMA)) {
-    regs_.dma = byte;
-    return;
-  }
-
   if (addr == std::to_underlying(IO::BGP)) {
     regs_.bgp = byte;
     return;
@@ -850,6 +852,9 @@ void Ppu::Write8(u16 addr, u8 byte) {
 
 u8 Ppu::Read8(u16 addr) const {
   if (addr == std::to_underlying(IO::VBK)) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     return (vbk_ & 0x1) | 0xfe;
   }
 
@@ -862,35 +867,35 @@ u8 Ppu::Read8(u16 addr) const {
   }
 
   if (addr == std::to_underlying(IO::HDMA1)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
     }
     return dma_regs_.source >> 8;
   }
 
   if (addr == std::to_underlying(IO::HDMA2)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
     }
     return dma_regs_.source;
   }
 
   if (addr == std::to_underlying(IO::HDMA3)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
     }
     return dma_regs_.destination >> 8;
   }
 
   if (addr == std::to_underlying(IO::HDMA4)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
     }
     return dma_regs_.destination;
   }
 
   if (addr == std::to_underlying(IO::HDMA5)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
     }
     if (dma_state_.length) {
@@ -900,14 +905,14 @@ u8 Ppu::Read8(u16 addr) const {
   }
 
   if (addr == std::to_underlying(IO::BCPS)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
     }
     return cgb_regs_.bcps.val;
   }
 
   if (addr == std::to_underlying(IO::BCPD)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
     }
     const auto& col = cgb_regs_.bcpd[cgb_regs_.bcps.address >> 1];
@@ -919,14 +924,14 @@ u8 Ppu::Read8(u16 addr) const {
   }
 
   if (addr == std::to_underlying(IO::OCPS)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
     }
     return cgb_regs_.ocps.val;
   }
 
   if (addr == std::to_underlying(IO::OCPD)) {
-    if (hardware_mode_ == HardwareMode::kDmgMode) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
     }
     const auto& col = cgb_regs_.ocpd[cgb_regs_.ocps.address >> 1];
@@ -964,6 +969,7 @@ u8 Ppu::Read8(u16 addr) const {
     return regs_.lyc;
   }
 
+
   if (addr == std::to_underlying(IO::DMA)) {
     return regs_.dma;
   }
@@ -988,11 +994,14 @@ u8 Ppu::Read8(u16 addr) const {
     return regs_.wy;
   }
 
+  if (addr == std::to_underlying(IO::OPRI)) {
+    return 0xFF;
+  }
+
   std::unreachable();
 }
 
 void Ppu::Reset() {
-  hardware_mode_ = HardwareMode::kDmgMode;
   for (auto& bank : banks_) {
     bank.Reset();
   }
@@ -1109,12 +1118,4 @@ void Ppu::StartHBlankDma() {
     .destination = static_cast<u16>(dma_regs_.destination & 0x1ff0),
   };
   spdlog::debug("HBlank DMA triggered: src={:04x}, dst={:04x}, len={:02x}", dma_state_.source, dma_state_.destination, dma_state_.length);
-}
-
-void Ppu::SetHardwareMode(HardwareMode mode) {
-  hardware_mode_ = mode;
-}
-
-HardwareMode Ppu::GetHardwareMode() const {
-  return hardware_mode_;
 }

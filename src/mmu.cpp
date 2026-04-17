@@ -15,6 +15,12 @@ void Mmu::AddDevice(MmuDevicePtr device) {
   devices_.emplace_back(device);
 }
 
+void Mmu::SetHardwareMode(HardwareMode mode) {
+  for (const auto& device : devices_) {
+    device->SetHardwareMode(mode);
+  }
+}
+
 void Mmu::Write8(u16 addr, u8 byte) {
   ZoneScoped;
   for (auto& device : devices_) {
@@ -40,4 +46,5 @@ void Mmu::ResetDevices() {
   for (auto& device : devices_) {
     device->Reset();
   }
+  SetHardwareMode(HardwareMode::kDmgMode);
 }

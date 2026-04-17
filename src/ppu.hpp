@@ -8,7 +8,6 @@
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
 #include "cpu_state.hpp"
-#include "hardware_mode.hpp"
 
 
 constexpr size_t kNumTiles = 384;
@@ -270,9 +269,6 @@ public:
 
   void UpdatePalette(std::array<Color, 4> palette);
 
-  void SetHardwareMode(HardwareMode mode);
-  HardwareMode GetHardwareMode() const;
-
 private:
   void SetMode(PPUMode mode);
   void DrawLcdRow();
@@ -298,7 +294,6 @@ private:
   RenderTexture2D target_tiles_ {};
   RenderTexture2D target_palettes_ {};
 
-  HardwareMode hardware_mode_ = HardwareMode::kDmgMode;
   std::array<VramMemory, kVramNumBanks> banks_ {};
   std::array<Palette, kCgbNumPalettes> cgb_bg_palettes_ {};
   std::array<Palette, kCgbNumPalettes> cgb_sprite_palettes_ {};

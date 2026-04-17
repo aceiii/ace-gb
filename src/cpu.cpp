@@ -1433,6 +1433,7 @@ HardwareMode Cpu::GetHardwareMode() const {
 
 void Cpu::SetHardwareMode(HardwareMode mode) {
   hardware_mode_ = mode;
+  mmu_->SetHardwareMode(mode);
 }
 
 void Cpu::ExecuteStop() {

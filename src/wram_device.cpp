@@ -24,6 +24,9 @@ bool WramDevice::IsValidFor(u16 addr) const {
 
 void WramDevice::Write8(u16 addr, u8 byte) {
   if (addr == std::to_underlying(IO::SVBK)) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
+      return;
+    }
     svbk_ = byte;
     return;
   }
@@ -33,6 +36,9 @@ void WramDevice::Write8(u16 addr, u8 byte) {
 
 u8 WramDevice::Read8(u16 addr) const {
   if (addr == std::to_underlying(IO::SVBK)) {
+    if (hardware_mode() == HardwareMode::kDmgMode) {
+      return 0xFF;
+    }
     return svbk_;
   }
 

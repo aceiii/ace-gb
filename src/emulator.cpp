@@ -279,7 +279,6 @@ void Emulator::Reset() {
   spdlog::debug("Using boot rom type:{} at '{}'", magic_enum::enum_name(hardware_mode_), boot_rom.path);
 
   boot_.LoadBytes(boot_rom.data);
-  ppu_.SetHardwareMode(hardware_mode_);
   cpu_.SetHardwareMode(hardware_mode_);
 
   if (skip_bootrom_) {
