@@ -67,10 +67,6 @@ void SerialDevice::Step() {
     return;
   }
 
-  if (clock_ % 256 == 0) {
-    return;
-  }
-
   if (!transfer_bytes_) {
     return;
   }
