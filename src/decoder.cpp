@@ -136,7 +136,7 @@ Instruction Decode(u8 op) {
   case 0x0F:
     return {Opcode::RRCA, 1, 4, 4, Operands_None{}};
   case 0x10:
-    return {Opcode::STOP, 2, 4, 4, Operands_None{}};
+    return {Opcode::STOP, 2, 4, 4, Operands_Imm8{}};
   case 0x11:
     return {Opcode::LD, 3, 12, 12, Operands_Reg16_Imm16{Reg16::DE}};
   case 0x12:
