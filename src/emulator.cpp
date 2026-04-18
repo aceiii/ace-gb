@@ -397,6 +397,10 @@ void Emulator::ClearBreakPoints() {
   breakpoints_.clear();
 }
 
+const std::set<u16>& Emulator::GetBreakpoints() const {
+  return breakpoints_;
+}
+
 void Emulator::UpdateInput(JoypadButton btn, bool pressed) {
   input_device_.Update(btn, pressed);
 }

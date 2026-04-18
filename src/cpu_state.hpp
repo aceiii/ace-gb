@@ -2,6 +2,8 @@
 
 
 struct CpuState {
+  u8 ime_counter = 0;
+
   bool ime = false;
   bool halt = false;
   bool stop = false;

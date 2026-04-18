@@ -80,6 +80,7 @@ public:
   void AddBreakPoint(u16 addr);
   void RemoveBreakPoint(u16 addr);
   void ClearBreakPoints();
+  const std::set<u16>& GetBreakpoints() const;
 
   void UpdateInput(JoypadButton btn, bool pressed);
   bool IsButtonPressed(JoypadButton btn) const;

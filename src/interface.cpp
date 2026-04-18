@@ -176,6 +176,7 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
         { "dmg_boot_rom_path", settings.dmg_boot_rom_path },
         { "cgb_boot_rom_path", settings.cgb_boot_rom_path },
         { "show_debugger", settings.show_debugger },
+        { "show_breakpoints", settings.show_breakpoints },
       },
     },
     {
@@ -248,6 +249,7 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
   settings.dmg_boot_rom_path = table["emulator"]["dmg_boot_rom_path"].value_or(std::string{kDmgDefaultBootRomPath});
   settings.cgb_boot_rom_path = table["emulator"]["cgb_boot_rom_path"].value_or(std::string{kCgbDefaultBootRomPath});
   settings.show_debugger = table["emulator"]["show_debugger"].value_or(true);
+  settings.show_breakpoints = table["emulator"]["show_breakpoints"].value_or(false);
 
   settings.show_lcd = table["hardware"]["show_lcd"].value_or(true);
   settings.show_tiles = table["hardware"]["show_tiles"].value_or(true);
@@ -558,6 +560,7 @@ void Interface::Update() {
     RenderMemory();
     RenderInstructions();
     RenderDebugger();
+    RenderBreakpoints();
     RenderLogs();
     RenderGraphicOptions();
     RenderMainMenu();
@@ -777,6 +780,79 @@ void Interface::RenderDebugger() {
     ImGui::EndDisabled();
   }
   ImGui::End();
+}
+
+void Interface::RenderBreakpoints() {
+  ZoneScoped;
+
+  bool add_breakpoint;
+
+  if (config_.settings.show_breakpoints) {
+    if (ImGui::Begin("Breakpoints", &config_.settings.show_breakpoints)) {
+      add_breakpoint = ImGui::Button("Add");
+
+      ImGui::SameLine();
+      if (ImGui::Button("Clear")) {
+        emulator_.ClearBreakPoints();
+      }
+
+      if (ImGui::BeginChild("scrolling", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar)) {
+        auto& breakpoints = emulator_.GetBreakpoints();
+        ImGuiListClipper clipper;
+        clipper.Begin(emulator_.GetBreakpoints().size());
+        while (clipper.Step()) {
+          int line = clipper.DisplayStart;
+          auto it = std::next(breakpoints.begin(), line);
+          for (; line < clipper.DisplayEnd; it++, line++) {
+            ImGui::Text("0x%02X", *it);
+          }
+        }
+        clipper.End();
+
+        ImGui::EndChild();
+      }
+
+      ImGui::End();
+    }
+  }
+
+  static std::string text;
+  if (add_breakpoint) {
+    text = "";
+    ImGui::OpenPopup("Add breakpoint");
+  }
+
+  if (ImGui::BeginPopupModal("Add breakpoint", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::InputText("Address", &text);
+
+    if (ImGui::Button("Cancel")) {
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Add")) {
+      try {
+        int val;
+        if (text.starts_with("0x") || text.starts_with("0X")) {
+          val = std::stoi(text.substr(2), nullptr, 16);
+        } else {
+          val = std::stoi(text);
+        }
+
+        if (val >= 0 && val < 65536) {
+          emulator_.AddBreakPoint(val);
+        }
+
+        text = "";
+        ImGui::CloseCurrentPopup();
+      } catch (std::exception&) {
+        spdlog::error("Invalid breakpoint address: {}", text);
+      }
+    }
+
+    ImGui::EndPopup();
+  }
+
 }
 
 void Interface::RenderLCD() {
@@ -1298,6 +1374,12 @@ void Interface::RenderMainMenu() {
     ImGui::MenuItem("Instructions", nullptr, &config_.settings.show_instructions);
     ImGui::EndMenu();
   }
+
+  if (ImGui::BeginMenu("Debug")) {
+    ImGui::MenuItem("Breakpoints", nullptr, &config_.settings.show_breakpoints);
+    ImGui::EndMenu();
+  }
+
   if (ImGui::BeginMenu("View")) {
     ImGui::MenuItem("Graphic Options", nullptr, &config_.settings.show_graphic_options);
     ImGui::MenuItem("Debugger", nullptr, &config_.settings.show_debugger);

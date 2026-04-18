@@ -19,6 +19,7 @@ void InterruptDevice::Write8(u16 addr, u8 byte) {
       flag_.val = byte;
       return;
     case std::to_underlying(IO::IE):
+      spdlog::info("write8: 0x{:02x}", byte);
       enable_.val = byte;
       return;
     default: std::unreachable();

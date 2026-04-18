@@ -22,7 +22,7 @@ void SerialDevice::Write8(u16 addr, u8 byte) {
     case std::to_underlying(IO::SC): {
       sc_.val = byte;
       if (sc_.transfer_enable == 0b1 && sc_.clock_select == 0b1) {
-        spdlog::info("start serial transfer");
+        // spdlog::info("start serial transfer");
         transfer_bytes_ = 8;
       }
       return;
@@ -71,7 +71,7 @@ void SerialDevice::Step() {
     return;
   }
 
-  spdlog::info("serial transfer -- bytes left: {}", transfer_bytes_);
+  // spdlog::info("serial transfer -- bytes left: {}", transfer_bytes_);
 
   byte_buffer_ = (byte_buffer_ << 1) | ((sb_ & 0x80) >> 7);
   sb_ <<= 1;

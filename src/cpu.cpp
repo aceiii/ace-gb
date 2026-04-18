@@ -1135,7 +1135,7 @@ void execute_di(Cpu& cpu, Mmu& mmu, Instruction& instr) {
 }
 
 void execute_ei(Cpu& cpu, Mmu& mmu, Instruction& instr) {
-  cpu.GetState().ime = true;
+  cpu.GetState().ime_counter = 2;
 }
 
 void Cpu::Init(CpuConfig cfg) {
@@ -1289,6 +1289,13 @@ u8 Cpu::Execute() {
 
 u8 Cpu::ExecuteInterrupts() {
   ZoneScoped;
+
+  if (state_.ime_counter) {
+    state_.ime_counter--;
+    if (!state_.ime_counter) {
+      state_.ime = true;
+    }
+  }
 
   if (!state_.ime && !state_.halt) {
     return 0;
