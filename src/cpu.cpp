@@ -1135,7 +1135,9 @@ void execute_di(Cpu& cpu, Mmu& mmu, Instruction& instr) {
 }
 
 void execute_ei(Cpu& cpu, Mmu& mmu, Instruction& instr) {
-  cpu.GetState().ime_counter = 2;
+  if (!cpu.GetState().ime) {
+    cpu.GetState().ime_trigger = true;
+  }
 }
 
 void Cpu::Init(CpuConfig cfg) {
@@ -1290,14 +1292,14 @@ u8 Cpu::Execute() {
 u8 Cpu::ExecuteInterrupts() {
   ZoneScoped;
 
-  if (state_.ime_counter) {
-    state_.ime_counter--;
-    if (!state_.ime_counter) {
-      state_.ime = true;
-    }
+  bool ime_state = state_.ime;
+
+  if (state_.ime_trigger) {
+    state_.ime = true;
+    state_.ime_trigger = false;
   }
 
-  if (!state_.ime && !state_.halt) {
+  if (!ime_state && !state_.halt) {
     return 0;
   }
 
@@ -1305,13 +1307,15 @@ u8 Cpu::ExecuteInterrupts() {
     Interrupt interrupt { i };
     if (interrupts_->IsInterruptRequested(interrupt)) {
       state_.halt = false;
-      if (!state_.ime) {
+      if (!ime_state) {
         return 0;
       }
 
       state_.ime = false;
       interrupts_->ClearInterrupt(interrupt);
 
+      Tick();
+      Tick();
       Tick();
       Tick();
 

@@ -2,7 +2,7 @@
 
 
 struct CpuState {
-  u8 ime_counter = 0;
+  bool ime_trigger = false;
 
   bool ime = false;
   bool halt = false;
