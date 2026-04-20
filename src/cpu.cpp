@@ -1312,16 +1312,32 @@ u8 Cpu::ExecuteInterrupts() {
       }
 
       state_.ime = false;
-      interrupts_->ClearInterrupt(interrupt);
 
       Tick();
       Tick();
-      Tick();
+
+      Write8(--regs_.sp, regs_.pc >> 8);
+      bool is_cancelled = true;
+      while (i < std::to_underlying(Interrupt::Count)) {
+        interrupt = Interrupt{i};
+        if (interrupts_->IsInterruptRequested(interrupt)) {
+          is_cancelled = false;
+          break;
+        }
+        i++;
+      }
+
+      Write8(--regs_.sp, regs_.pc & 0xff);
+      if (!is_cancelled) {
+        regs_.pc = interrupt_handler(interrupt);
+        interrupts_->ClearInterrupt(interrupt);
+      } else {
+        regs_.pc = 0;
+      }
+
       Tick();
 
-      auto handler_addr = interrupt_handler(interrupt);
-      instr_call_imm16(*this, handler_addr);
-
+      state_.ime = false;
       return 20;
     }
   }
