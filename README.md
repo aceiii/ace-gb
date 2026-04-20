@@ -44,7 +44,7 @@ cmake --build --preset Release
 - [x] bits/reg_f.gb
 - [x] bits/unused_hwio-GS.gb
 - [x] instr/daa.gb
-- [ ] interrupts/ie_push.gb
+- [x] interrupts/ie_push.gb
 - [x] oam_dma/basic.gb
 - [x] oam_dma/reg_read.gb
 - [x] oam_dma/sources-GS.gb
