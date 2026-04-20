@@ -93,8 +93,8 @@ cmake --build --preset Release
 - [ ] call_timing2.gb
 - [ ] di_timing-GS.gb
 - [x] div_timing.gb
-- [ ] ei_sequence.gb
-- [ ] ei_timing.gb
+- [x] ei_sequence.gb
+- [x] ei_timing.gb
 - [x] halt_ime0_ei.gb
 - [ ] halt_ime0_nointr_timing.gb
 - [x] halt_ime1_timing.gb
@@ -109,10 +109,10 @@ cmake --build --preset Release
 - [ ] oam_dma_timing.gb
 - [x] pop_timing.gb
 - [ ] push_timing.gb
-- [ ] rapid_di_ei.gb
+- [x] rapid_di_ei.gb
 - [ ] ret_cc_timing.gb
 - [ ] ret_timing.gb
-- [ ] reti_intr_timing.gb
+- [x] reti_intr_timing.gb
 - [ ] reti_timing.gb
 - [ ] rst_timing.gb
 
