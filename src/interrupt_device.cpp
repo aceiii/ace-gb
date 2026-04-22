@@ -30,7 +30,7 @@ u8 InterruptDevice::Read8(u16 addr) const {
     case std::to_underlying(IO::IF):
       return flag_.val | 0b11100000;
     case std::to_underlying(IO::IE):
-      return enable_.val | 0b11100000;
+      return enable_.val;
     default: std::unreachable();
   }
 }
