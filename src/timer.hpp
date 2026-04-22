@@ -40,5 +40,5 @@ public:
 private:
   InterruptDevice* interrupts_ = nullptr;
   TimerRegisters regs_ {};
-  u16 tima_counter_ = 0;
+  u8 prev_bit_ = 0;
 };

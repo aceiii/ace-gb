@@ -5,13 +5,11 @@
 #include "cpu.hpp"
 
 namespace {
-  constexpr int kClockSpeed = 4194304;
-
-  constexpr u16 kTimerFreqs[] = {
-    kClockSpeed / 4096,
-    kClockSpeed / 262144,
-    kClockSpeed / 65536,
-    kClockSpeed / 16384,
+  constexpr u8 kDivTimerBit[] = {
+    9,
+    3,
+    5,
+    7,
   };
 }
 
@@ -21,7 +19,6 @@ void Timer::Init(TimerConfig cfg) {
 
 bool Timer::IsValidFor(u16 addr) const {
   switch (addr) {
-//    case std::to_underlying(IO::DIV)-1:
     case std::to_underlying(IO::DIV):
     case std::to_underlying(IO::TIMA):
     case std::to_underlying(IO::TMA):
@@ -34,8 +31,6 @@ bool Timer::IsValidFor(u16 addr) const {
 void Timer::Write8(u16 addr, u8 byte) {
   ZoneScoped;
   switch (addr) {
-//    case std::to_underlying(IO::DIV)-1:
-//      return;
     case std::to_underlying(IO::DIV):
       regs_.div = 0;
       return;
@@ -44,7 +39,6 @@ void Timer::Write8(u16 addr, u8 byte) {
       return;
     case std::to_underlying(IO::TMA):
       regs_.tma = byte;
-      tima_counter_ = 0;
       return;
     case std::to_underlying(IO::TAC):
       regs_.tac = (byte & 0b111) | (0b11111000);
@@ -56,8 +50,6 @@ void Timer::Write8(u16 addr, u8 byte) {
 u8 Timer::Read8(u16 addr) const {
   ZoneScoped;
   switch (addr) {
-//    case std::to_underlying(IO::DIV)-1:
-//      return regs.div & 0xff;
     case std::to_underlying(IO::DIV):
       return div();
     case std::to_underlying(IO::TIMA):
@@ -75,28 +67,27 @@ void Timer::Reset() {
   regs_.tima = 0;
   regs_.tma = 0;
   regs_.tac = 0;
+  prev_bit_ = 0;
 }
 
 void Timer::Execute(u8 cycles) {
   ZoneScoped;
-  regs_.div += cycles;
 
-  if (regs_.enable_tima) {
-    tima_counter_ += cycles;
+  u16 orig_div = regs_.div;
+  regs_.div += 4;
 
-    const auto freq = kTimerFreqs[regs_.clock_select];
-    auto overflows = tima_counter_ / freq;
-    tima_counter_ = tima_counter_ % freq;
+  u8 bit = kDivTimerBit[regs_.clock_select];
+  u8 enable_bit = (regs_.div >> (bit - 1)) & regs_.enable_tima;
 
-    while (overflows) {
-      regs_.tima += 1;
-      if (regs_.tima == 0) {
-        regs_.tima = regs_.tma;
-        interrupts_->RequestInterrupt(Interrupt::Timer);
-      }
-      overflows -= 1;
+  if (prev_bit_ && !enable_bit) {
+    regs_.tima += 1;
+    if (regs_.tima == 0) {
+      regs_.tima = regs_.tma;
+      interrupts_->RequestInterrupt(Interrupt::Timer);
     }
   }
+
+  prev_bit_ = enable_bit;
 }
 
 void Timer::OnTick(bool double_speed) {
