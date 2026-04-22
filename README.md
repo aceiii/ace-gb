@@ -61,7 +61,7 @@ cmake --build --preset Release
 - [ ] ppu/stat_lyc_onoff.gb
 - [ ] ppu/vblank_stat_intr-GS.gb
 - [ ] serial/boot_sclk_align-dmgABCmgb.gb
-- [ ] timer/div_write.gb
+- [x] timer/div_write.gb
 - [ ] timer/rapid_toggle.gb
 - [x] timer/tim00_div_trigger.gb
 - [ ] timer/tim00.gb
