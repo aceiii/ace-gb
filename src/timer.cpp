@@ -30,18 +30,28 @@ bool Timer::IsValidFor(u16 addr) const {
 
 void Timer::Write8(u16 addr, u8 byte) {
   ZoneScoped;
+  u16 prev_div = regs_.div;
+  u8 prev_tac = regs_.tac;
   switch (addr) {
     case std::to_underlying(IO::DIV):
+      spdlog::info("Write8 div: {}", byte);
       regs_.div = 0;
+      ComputeTimer(prev_div, prev_tac);
       return;
-    case std::to_underlying(IO::TIMA):
+      case std::to_underlying(IO::TIMA):
+      spdlog::info("Write8 tima: {}", byte);
       regs_.tima = byte;
+      did_overflow_ = false;
+      ComputeTimer(prev_div, prev_tac);
       return;
-    case std::to_underlying(IO::TMA):
+      case std::to_underlying(IO::TMA):
+      spdlog::info("Write8 tma: {}", byte);
       regs_.tma = byte;
       return;
-    case std::to_underlying(IO::TAC):
-      regs_.tac = (byte & 0b111) | (0b11111000);
+      case std::to_underlying(IO::TAC):
+      spdlog::info("Write8 tac: {}", byte);
+      regs_.tac = byte | 0b11111000;
+      ComputeTimer(prev_div, prev_tac);
       return;
     default: std::unreachable();
   }
@@ -67,27 +77,35 @@ void Timer::Reset() {
   regs_.tima = 0;
   regs_.tma = 0;
   regs_.tac = 0;
-  prev_bit_ = 0;
+  did_overflow_ = false;
 }
 
 void Timer::Execute(u8 cycles) {
   ZoneScoped;
 
-  u16 orig_div = regs_.div;
-  regs_.div += 4;
-
-  u8 bit = kDivTimerBit[regs_.clock_select];
-  u8 enable_bit = (regs_.div >> (bit - 1)) & regs_.enable_tima;
-
-  if (prev_bit_ && !enable_bit) {
-    regs_.tima += 1;
-    if (regs_.tima == 0) {
-      regs_.tima = regs_.tma;
-      interrupts_->RequestInterrupt(Interrupt::Timer);
-    }
+  if (did_overflow_) {
+    regs_.tima = regs_.tma;
+    interrupts_->RequestInterrupt(Interrupt::Timer);
+    did_overflow_ = false;
   }
 
-  prev_bit_ = enable_bit;
+  u16 prev_div = regs_.div;
+  regs_.div += 4;
+  ComputeTimer(prev_div, regs_.tac);
+}
+
+void Timer::ComputeTimer(u16 prev_div, u8 prev_tac) {
+  u8 bit = kDivTimerBit[regs_.clock_select];
+  u8 prev_bit = (prev_div >> kDivTimerBit[prev_tac & 0b11]) & (prev_tac >> 2) & 0b1;
+  u8 enable_bit = (regs_.div >> kDivTimerBit[regs_.clock_select]) & regs_.enable_tima & 0b1;
+
+  if (prev_bit && !enable_bit) {
+    regs_.tima += 1;
+    spdlog::info("tima: {}", regs_.tima);
+    if (regs_.tima == 0) {
+      did_overflow_ = true;
+    }
+  }
 }
 
 void Timer::OnTick(bool double_speed) {

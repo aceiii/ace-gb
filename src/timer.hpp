@@ -34,11 +34,12 @@ public:
 
   void Execute(u8 cycles);
   void OnTick(bool double_speed) override;
+  void ComputeTimer(u16 prev_div, u8 prev_tac);
 
   u16 div() const;
 
 private:
   InterruptDevice* interrupts_ = nullptr;
   TimerRegisters regs_ {};
-  u8 prev_bit_ = 0;
+  bool did_overflow_ = false;
 };
