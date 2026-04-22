@@ -62,7 +62,7 @@ cmake --build --preset Release
 - [ ] ppu/vblank_stat_intr-GS.gb
 - [ ] serial/boot_sclk_align-dmgABCmgb.gb
 - [x] timer/div_write.gb
-- [ ] timer/rapid_toggle.gb
+- [x] timer/rapid_toggle.gb
 - [x] timer/tim00_div_trigger.gb
 - [ ] timer/tim00.gb
 - [ ] timer/tim01_div_trigger.gb
