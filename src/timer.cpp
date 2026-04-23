@@ -101,7 +101,6 @@ void Timer::ComputeTimer(u16 prev_div, u8 prev_tac) {
 
   if (prev_bit && !enable_bit) {
     regs_.tima += 1;
-    spdlog::info("tima: {}", regs_.tima);
     if (regs_.tima == 0) {
       did_overflow_ = true;
     }
