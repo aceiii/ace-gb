@@ -64,14 +64,14 @@ cmake --build --preset Release
 - [x] timer/div_write.gb
 - [x] timer/rapid_toggle.gb
 - [x] timer/tim00_div_trigger.gb
-- [ ] timer/tim00.gb
-- [ ] timer/tim01_div_trigger.gb
+- [x] timer/tim00.gb
+- [x] timer/tim01_div_trigger.gb
 - [x] timer/tim01.gb
-- [ ] timer/tim10_div_trigger.gb
-- [ ] timer/tim10.gb
+- [x] timer/tim10_div_trigger.gb
+- [x] timer/tim10.gb
 - [x] timer/tim11_div_trigger.gb
-- [ ] timer/tim11.gb
-- [ ] timer/tima_reload.gb
+- [x] timer/tim11.gb
+- [x] timer/tima_reload.gb
 - [ ] timer/tima_write_reloading.gb
 - [ ] timer/tma_write_reloading.gb
 - [ ] add_sp_e_timing.gb
