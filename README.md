@@ -72,8 +72,8 @@ cmake --build --preset Release
 - [x] timer/tim11_div_trigger.gb
 - [x] timer/tim11.gb
 - [x] timer/tima_reload.gb
-- [ ] timer/tima_write_reloading.gb
-- [ ] timer/tma_write_reloading.gb
+- [x] timer/tima_write_reloading.gb
+- [x] timer/tma_write_reloading.gb
 - [ ] add_sp_e_timing.gb
 - [ ] boot_div-dmg0.gb
 - [ ] boot_div-dmgABCmgb.gb
