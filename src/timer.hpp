@@ -41,5 +41,6 @@ public:
 private:
   InterruptDevice* interrupts_ = nullptr;
   TimerRegisters regs_ {};
-  bool did_overflow_ = false;
+  int overflowing_ = -1;
+  u64 cycles = 0;
 };
