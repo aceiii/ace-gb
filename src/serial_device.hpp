@@ -31,6 +31,8 @@ public:
   void OnLine(const LineCallback& callback);
 
 private:
+  void TransferByte();
+
   InterruptDevice* interrupts_ = nullptr;
   u16 clock_ = 0;
   u16 transfer_bytes_ = 0;
@@ -49,4 +51,5 @@ private:
     u8 val;
   } sc_;
 
+  u8 delay_ = 0;
 };

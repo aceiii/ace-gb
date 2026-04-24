@@ -22,8 +22,9 @@ void SerialDevice::Write8(u16 addr, u8 byte) {
     case std::to_underlying(IO::SC): {
       sc_.val = byte;
       if (sc_.transfer_enable == 0b1 && sc_.clock_select == 0b1) {
-        // spdlog::info("start serial transfer");
         transfer_bytes_ = 8;
+        // clock_ = 0;
+        // TransferByte();
       }
       return;
     }
@@ -43,6 +44,8 @@ void SerialDevice::Reset() {
   sb_ = 0xff;
   sc_.val = 0;
   sc_.unused = 0x1f;
+  clock_ = 0;
+  delay_ = 0;
 }
 
 void SerialDevice::OnTick(bool double_speed) {
@@ -71,8 +74,23 @@ void SerialDevice::Step() {
     return;
   }
 
+  if (clock_ % 512 != 0) {
+    return;
+  }
+
   // spdlog::info("serial transfer -- bytes left: {}", transfer_bytes_);
 
+  TransferByte();
+}
+
+void SerialDevice::TriggerCallbacks() {
+  std::string str = str_buffer_;
+  for (const auto& callback : callbacks_) {
+    callback(str);
+  }
+}
+
+void SerialDevice::TransferByte() {
   byte_buffer_ = (byte_buffer_ << 1) | ((sb_ & 0x80) >> 7);
   sb_ <<= 1;
   sb_ |= 0b1;
@@ -93,12 +111,5 @@ void SerialDevice::Step() {
 
     sc_.transfer_enable = 0;
     interrupts_->RequestInterrupt(Interrupt::Serial);
-  }
-}
-
-void SerialDevice::TriggerCallbacks() {
-  std::string str = str_buffer_;
-  for (const auto& callback : callbacks_) {
-    callback(str);
   }
 }
