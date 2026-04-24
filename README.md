@@ -60,7 +60,7 @@ cmake --build --preset Release
 - [ ] ppu/stat_irq_blocking.gb
 - [ ] ppu/stat_lyc_onoff.gb
 - [ ] ppu/vblank_stat_intr-GS.gb
-- [ ] serial/boot_sclk_align-dmgABCmgb.gb
+- [x] serial/boot_sclk_align-dmgABCmgb.gb
 - [x] timer/div_write.gb
 - [x] timer/rapid_toggle.gb
 - [x] timer/tim00_div_trigger.gb
@@ -248,3 +248,7 @@ cmake --build --preset Release
 ### DMG Acid2
 
 - [x] dmg-acid2
+
+### CGB Acid2
+
+- [x] cgb-acid2
