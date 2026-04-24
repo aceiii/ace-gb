@@ -50,6 +50,4 @@ private:
     };
     u8 val;
   } sc_;
-
-  u8 delay_ = 0;
 };

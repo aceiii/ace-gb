@@ -23,8 +23,7 @@ void SerialDevice::Write8(u16 addr, u8 byte) {
       sc_.val = byte;
       if (sc_.transfer_enable == 0b1 && sc_.clock_select == 0b1) {
         transfer_bytes_ = 8;
-        // clock_ = 0;
-        // TransferByte();
+        clock_ = 48;
       }
       return;
     }
@@ -45,7 +44,6 @@ void SerialDevice::Reset() {
   sc_.val = 0;
   sc_.unused = 0x1f;
   clock_ = 0;
-  delay_ = 0;
 }
 
 void SerialDevice::OnTick(bool double_speed) {
@@ -78,9 +76,10 @@ void SerialDevice::Step() {
     return;
   }
 
-  // spdlog::info("serial transfer -- bytes left: {}", transfer_bytes_);
-
-  TransferByte();
+  while (clock_ >= 512) {
+    clock_ -= 512;
+    TransferByte();
+  }
 }
 
 void SerialDevice::TriggerCallbacks() {
