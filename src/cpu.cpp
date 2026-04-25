@@ -1466,6 +1466,7 @@ void Cpu::SetHardwareMode(HardwareMode mode) {
 void Cpu::ExecuteStop() {
   if (hardware_mode_ == HardwareMode::kDmgMode) {
     state_.stop = true;
+    GetRegisters().pc -= 1;
   } else {
     state_.double_speed = key1_ & 0x1;
     if (state_.double_speed) {
