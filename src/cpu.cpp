@@ -1150,7 +1150,18 @@ u8 Cpu::Execute() {
   ZoneScoped;
 
   if (state_.stop) {
-    return 4;
+    if (hardware_mode_ == HardwareMode::kDmgMode) {
+      return 0;
+    } else {
+      GetRegisters().pc += 1;
+      state_.stop = false;
+      state_.double_speed = key1_ & 0x1;
+      if (state_.double_speed) {
+        key1_ = 0x80;
+      } else {
+        key1_ = 0x00;
+      }
+    }
   }
 
   tick_counter = 0;
@@ -1464,16 +1475,7 @@ void Cpu::SetHardwareMode(HardwareMode mode) {
 }
 
 void Cpu::ExecuteStop() {
-  if (hardware_mode_ == HardwareMode::kDmgMode) {
-    state_.stop = true;
-    GetRegisters().pc -= 1;
-  } else {
-    state_.double_speed = key1_ & 0x1;
-    if (state_.double_speed) {
-      key1_ = 0x80;
-    } else {
-      key1_ = 0x00;
-    }
-  }
+  state_.stop = true;
+  GetRegisters().pc -= 1;
   Write8(std::to_underlying(IO::DIV), 0);
 }
