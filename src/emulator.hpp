@@ -48,7 +48,7 @@ public:
   void Cleanup();
   void Update(float dt);
   void Reset();
-  void Step();
+  void Step(int cycles = 4);
   void Play();
   void Stop();
 

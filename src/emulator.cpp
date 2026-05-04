@@ -291,11 +291,16 @@ void Emulator::Reset() {
   }
 }
 
-void Emulator::Step() {
+void Emulator::Step(int cycles) {
   if (running_) {
     return;
   }
-  num_cycles_ += cpu_.Execute();
+  int n = 0;
+  while (n < cycles) {
+    auto c = cpu_.Execute();
+    n += c;
+    num_cycles_ += c;
+  }
   ppu_.UpdateRenderTargets();
 }
 

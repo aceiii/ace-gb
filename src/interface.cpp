@@ -1375,9 +1375,35 @@ void Interface::RenderMainMenu() {
     ImGui::EndMenu();
   }
 
+  static bool open_step_dialog = false;
   if (ImGui::BeginMenu("Debug")) {
     ImGui::MenuItem("Breakpoints", nullptr, &config_.settings.show_breakpoints);
+    if (ImGui::MenuItem("Step N...")) {
+      open_step_dialog = true;
+    }
     ImGui::EndMenu();
+  }
+
+  if (open_step_dialog) {
+    ImGui::OpenPopup("Step N");
+    open_step_dialog = false;
+  }
+
+  if (ImGui::BeginPopupModal("Step N")) {
+
+    static int value = 10;
+    ImGui::InputInt("Step Amount", &value);
+
+    if (ImGui::Button("OK") && value > 0) {
+      spdlog::info("Stepping {} cycles", value);
+      emulator_.Step(value);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
   }
 
   if (ImGui::BeginMenu("View")) {
