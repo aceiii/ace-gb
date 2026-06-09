@@ -105,7 +105,7 @@ inline void Ppu::Step() {
   tick_counter_ %= 4;
 
   if (n % 4 == 0 && state_->halt && dma_state_.length && !dma_state_.hdma) {
-    Bank().bytes[dma_state_.destination++] = mmu_->Read8(dma_state_.source++);
+    Bank().bytes[dma_state_.destination++] = mmu_->Read8(dma_state_.source++, true);
     dma_state_.length--;
     if (!dma_state_.length) {
       state_->halt = false;
@@ -850,7 +850,7 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 }
 
-u8 Ppu::Read8(u16 addr) const {
+u8 Ppu::Read8(u16 addr, bool dma) const {
   if (addr == std::to_underlying(IO::VBK)) {
     if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;
@@ -1071,7 +1071,7 @@ void Ppu::StartDma() {
   }
 
   for (auto i = 0; i < oam_.bytes.size(); i += 1) {
-    oam_.bytes[i] = mmu_->Read8(source + i);
+    oam_.bytes[i] = mmu_->Read8(source + i, true);
   }
 }
 

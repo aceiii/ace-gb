@@ -31,7 +31,7 @@ void SerialDevice::Write8(u16 addr, u8 byte) {
   }
 }
 
-u8 SerialDevice::Read8(u16 addr) const {
+u8 SerialDevice::Read8(u16 addr, bool dma) const {
   switch (addr) {
     case std::to_underlying(IO::SB): return sb_;
     case std::to_underlying(IO::SC): return sc_.val | 0b01111110;

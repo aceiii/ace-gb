@@ -14,7 +14,7 @@ void NullDevice::Write8(u16 addr, u8 byte) {
   spdlog::debug("NullDevice: Write to 0x{:02x} = {:02x}", addr, byte);
 }
 
-[[nodiscard]] u8 NullDevice::Read8(u16 addr) const {
+[[nodiscard]] u8 NullDevice::Read8(u16 addr, bool dma) const {
   if (auto it = overrides.find(addr); it != overrides.end()) {
     u8 val = it->second.value | it->second.mask;
     spdlog::debug("NullDevice: Read from override:0x{:02x} -> {:02x}", addr, val);

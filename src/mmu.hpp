@@ -12,7 +12,7 @@ public:
   void AddDevice(MmuDevicePtr device);
   void SetHardwareMode(HardwareMode mode);
 
-  [[nodiscard]] u8 Read8(u16 addr) const;
+  [[nodiscard]] u8 Read8(u16 addr, bool dma = false) const;
   void Write8(u16 addr, u8 byte);
 
   void ResetDevices();

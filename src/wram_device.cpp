@@ -34,7 +34,7 @@ void WramDevice::Write8(u16 addr, u8 byte) {
   BankAt(addr).at(addr & kWramIndexMask) = byte;
 }
 
-u8 WramDevice::Read8(u16 addr) const {
+u8 WramDevice::Read8(u16 addr, bool dma) const {
   if (addr == std::to_underlying(IO::SVBK)) {
     if (hardware_mode() == HardwareMode::kDmgMode) {
       return 0xFF;

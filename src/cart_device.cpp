@@ -22,7 +22,7 @@ void CartDevice::Write8(u16 addr, u8 byte) {
   return mbc_->WriteReg(addr, byte);
 }
 
-u8 CartDevice::Read8(u16 addr) const {
+u8 CartDevice::Read8(u16 addr, bool dma) const {
   if (addr <= kRomBank00End) {
     return mbc_->ReadRom0(addr);
   }

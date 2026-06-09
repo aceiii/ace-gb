@@ -31,7 +31,7 @@ public:
     mem_[addr] = byte;
   }
 
-  [[nodiscard]] u8 Read8(u16 addr) const override {
+  [[nodiscard]] u8 Read8(u16 addr, bool dma = false) const override {
     return mem_[addr];
   }
 

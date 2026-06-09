@@ -14,7 +14,7 @@ class CartDevice : public MmuDevice {
 public:
   [[nodiscard]] bool IsValidFor(u16 addr) const override;
   void Write8(u16 addr, u8 byte) override;
-  [[nodiscard]] u8 Read8(u16 addr) const override;
+  [[nodiscard]] u8 Read8(u16 addr, bool dma = false) const override;
   void Reset() override;
 
   void LoadCartBytes(const std::vector<u8>& bytes);

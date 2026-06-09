@@ -13,7 +13,7 @@ public:
 
   [[nodiscard]] virtual bool IsValidFor(u16 addr) const = 0;
   virtual void Write8(u16 addr, u8 byte) = 0;
-  [[nodiscard]] virtual u8 Read8(u16 addr) const = 0;
+  [[nodiscard]] virtual u8 Read8(u16 addr, bool dma = false) const = 0;
   virtual void Reset() = 0;
 
   void SetHardwareMode(HardwareMode mode) {

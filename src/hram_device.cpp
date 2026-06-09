@@ -8,7 +8,7 @@ void HramDevice::Write8(u16 addr, u8 byte) {
   ram_[addr - kHramStart] = byte;
 }
 
-u8 HramDevice::Read8(u16 addr) const {
+u8 HramDevice::Read8(u16 addr, bool dram) const {
   return ram_[addr - kHramStart];
 }
 

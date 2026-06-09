@@ -351,7 +351,7 @@ Instruction Emulator::GetCurrentInstruction() const {
   return instr;
 }
 
-u8 Emulator::Read8(u16 addr) const {
+u8 Emulator::Read8(u16 addr, bool dma) const {
   return mmu_.Read8(addr);
 }
 

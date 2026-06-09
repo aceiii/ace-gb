@@ -32,11 +32,11 @@ void Mmu::Write8(u16 addr, u8 byte) {
   spdlog::error("No device implemented for address: 0x{:02x}", addr);
 }
 
-u8 Mmu::Read8(u16 addr) const {
+u8 Mmu::Read8(u16 addr, bool dma) const {
   ZoneScoped;
   for (const auto& device : devices_) {
     if (device->IsValidFor(addr)) {
-      return device->Read8(addr);
+      return device->Read8(addr, dma);
     }
   }
   std::unreachable();

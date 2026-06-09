@@ -225,15 +225,18 @@ inline void instr_add_reg16_reg16(Cpu& cpu, Reg16 r1, Reg16 r2) {
 
 inline void instr_add_sp_offset(Cpu& cpu, i8 e) {
   u32 sp = cpu.GetRegisters().sp;
-  u32 result = sp + e;
+  u32 result = (sp & 0xff) + e;
+
+  u8 carry = (result >> 8) & 0x1;
+  cpu.GetRegisters().sp = (sp & 0xff00) | (result & 0xff);
+  cpu.Tick();
 
   cpu.GetRegisters().Set(Flag::Z, 0);
   cpu.GetRegisters().Set(Flag::N, 0);
   cpu.GetRegisters().Set(Flag::H, (sp & 0xf) + (e & 0xf) > 0xf ? 1 : 0);
   cpu.GetRegisters().Set(Flag::C, (sp & 0xff) + (e & 0xff) > 0xff ? 1 : 0);
 
-  cpu.GetRegisters().sp = result;
-  cpu.Tick();
+  cpu.GetRegisters().sp = sp + e;
   cpu.Tick();
 }
 

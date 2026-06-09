@@ -58,7 +58,7 @@ void Timer::Write8(u16 addr, u8 byte) {
   }
 }
 
-u8 Timer::Read8(u16 addr) const {
+u8 Timer::Read8(u16 addr, bool dma) const {
   ZoneScoped;
   switch (addr) {
     case std::to_underlying(IO::DIV):

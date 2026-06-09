@@ -51,7 +51,7 @@ void Audio::Write8(u16 addr, u8 byte) {
   }
 }
 
-u8 Audio::Read8(u16 addr) const {
+u8 Audio::Read8(u16 addr, bool dram) const {
   if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
     return ch3_.ReadWave(addr - kWaveRamStart);
   }
