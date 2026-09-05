@@ -96,7 +96,8 @@ void Ppu::OnTick(bool double_speed) {
   if (!double_speed) {
     Step();
     Step();
-  }}
+  }
+}
 
 inline void Ppu::Step() {
   ZoneScoped;
@@ -135,6 +136,8 @@ inline void Ppu::Step() {
     cycle_counter_ = 0;
   }
 
+  static u8 scx = 0;
+
   if (regs_.ly >= kLCDHeight) {
     if (mode != PPUMode::VBlank) {
       window_line_counter_ = 0;
@@ -152,12 +155,14 @@ inline void Ppu::Step() {
         interrupts_->RequestInterrupt(Interrupt::Stat);
       }
     }
-  } else if (cycle_counter_ <= (kDotsPerOAM + kDotsPerDraw)) {
+  } else if (cycle_counter_ < (kDotsPerOAM + kDotsPerDraw + scx)) {
     if (mode != PPUMode::Draw) {
+      scx = regs_.scx & 7;
       regs_.stat.ppu_mode = std::to_underlying(PPUMode::Draw);
     }
   } else {
     if (mode != PPUMode::HBlank) {
+      scx = 0;
       regs_.stat.ppu_mode = std::to_underlying(PPUMode::HBlank);
       if (regs_.stat.stat_interrupt_mode0) {
         interrupts_->RequestInterrupt(Interrupt::Stat);

@@ -49,11 +49,11 @@ cmake --build --preset Release
 - [x] oam_dma/reg_read.gb
 - [x] oam_dma/sources-GS.gb
 - [ ] ppu/hblank_ly_scx_timing-GS.gb
-- [ ] ppu/intr_1_2_timing-GS.gb
-- [ ] ppu/intr_2_0_timing.gb
+- [x] ppu/intr_1_2_timing-GS.gb
+- [x] ppu/intr_2_0_timing.gb
 - [ ] ppu/intr_2_mode0_timing_sprites.gb
-- [ ] ppu/intr_2_mode0_timing.gb
-- [ ] ppu/intr_2_mode3_timing.gb
+- [x] ppu/intr_2_mode0_timing.gb
+- [x] ppu/intr_2_mode3_timing.gb
 - [ ] ppu/intr_2_oam_ok_timing.gb
 - [ ] ppu/lcdon_timing-GS.gb
 - [ ] ppu/lcdon_write_timing-GS.gb
