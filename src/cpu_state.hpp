@@ -15,6 +15,6 @@ struct CpuState {
     halt = false;
     stop = false;
     hard_lock = false;
-    double_speed = true;
+    double_speed = false;
   }
 };
