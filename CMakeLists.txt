@@ -29,6 +29,9 @@ set(SOURCE_FILES
         src/cart_device.hpp
         src/cart_header.hpp
         src/cart_info.hpp
+        src/command.hpp
+        src/command_parser.cpp
+        src/command_parser.hpp
         src/config.cpp
         src/config.hpp
         src/cpu.cpp
@@ -41,6 +44,8 @@ set(SOURCE_FILES
         src/error_messages.hpp
         src/file.cpp
         src/file.hpp
+        src/headless.cpp
+        src/headless.hpp
         src/hram_device.cpp
         src/hram_device.hpp
         src/input_device.cpp

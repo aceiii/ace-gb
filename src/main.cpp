@@ -2,6 +2,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "args.hpp"
+#include "headless.hpp"
 #include "interface.hpp"
 
 namespace {
@@ -16,9 +17,19 @@ auto main(int argc, char* argv[]) -> int {
     return 1;
   }
 
-  app::Interface interface;
-  interface.Init(args.value());
-  interface.Run();
-  interface.Cleanup();
+  const auto& arg_values = args.value();
+
+  if (arg_values.headless) {
+    app::Headless headless;
+    headless.Init(arg_values);
+    headless.Run();
+    headless.Cleanup();
+  } else {
+    app::Interface interface;
+    interface.Init(arg_values);
+    interface.Run();
+    interface.Cleanup();
+  }
+
   return 0;
 }
