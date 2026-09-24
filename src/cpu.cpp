@@ -151,7 +151,7 @@ inline u8 instr_add8(Cpu& cpu, u8 a, u8 b, u8 c) {
   cpu.GetRegisters().Set(Flag::H, (result_half >> 4) & 0x1);
   cpu.GetRegisters().Set(Flag::C, (result >> 8) & 0x1);
 
-  return (u8)result;
+  return static_cast<u8>(result);
 }
 
 inline u16 instr_add16(Cpu& cpu, u16 a, u16 b) {
@@ -244,7 +244,7 @@ inline u8 instr_sub8(Cpu& cpu, u8 a, u8 b, u8 c) {
   auto half_result = static_cast<i16>(a & 0xf) - (b & 0xf) - c;
   auto result = static_cast<i16>(a) - b - c;
 
-  cpu.GetRegisters().Set(Flag::Z, (u8)result == 0 ? 1 : 0);
+  cpu.GetRegisters().Set(Flag::Z, result == 0 ? 1 : 0);
   cpu.GetRegisters().Set(Flag::N, 1);
   cpu.GetRegisters().Set(Flag::H, half_result < 0 ? 1 : 0);
   cpu.GetRegisters().Set(Flag::C, result < 0 ? 1 : 0);

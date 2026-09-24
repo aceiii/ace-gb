@@ -8,23 +8,18 @@
 struct InputRegister {
   union {
     struct {
-      union {
-        struct {
-          u8 a_right: 1;
-          u8 b_left: 1;
-          u8 select_up: 1;
-          u8 start_down: 1;
-        };
-        u8 buttons : 4;
-      };
-      union {
-        struct {
-          u8 sel_buttons: 1;
-          u8 sel_dpad: 1;
-        };
-        u8 select : 2;
-      };
-      u8 unused: 2;
+      u8 a_right: 1;
+      u8 b_left: 1;
+      u8 select_up: 1;
+      u8 start_down: 1;
+      u8 sel_buttons: 1;
+      u8 sel_dpad: 1;
+      u8 : 2;
+    };
+    struct {
+      u8 buttons: 4;
+      u8 select: 2;
+      u8 : 2;
     };
     u8 val;
   };
