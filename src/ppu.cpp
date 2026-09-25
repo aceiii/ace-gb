@@ -7,9 +7,6 @@
 
 
 namespace {
-  constexpr u16 kLCDWidth = 160;
-  constexpr u16 kLCDHeight = 144;
-
   constexpr u16 kVRAMAddrStart = 0x8000;
   constexpr u16 kVRAMAddrEnd = 0x9FFF;
   constexpr u16 kVRAMRelStart = 0x9000;
@@ -50,43 +47,43 @@ void Ppu::Init(PpuConfig cfg) {
   auto logger = spdlog::get("doctor_logger");
   log_doctor_ = logger != nullptr;
 
-  target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
-  ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+  // target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
+  // ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
 
-  target_lcd_front_ = LoadTextureFromImage(target_lcd_back_);
+  // target_lcd_front_ = LoadTextureFromImage(target_lcd_back_);
 
-  constexpr int tiles_width = 16 * 8;
-  constexpr int tiles_height = 48 * 8;
-  target_tiles_ = LoadRenderTexture(tiles_width, tiles_height);
+  // constexpr int tiles_width = 16 * 8;
+  // constexpr int tiles_height = 48 * 8;
+  // target_tiles_ = LoadRenderTexture(tiles_width, tiles_height);
 
-  constexpr int palettes_width = 136;
-  constexpr int palettes_height = 128;
-  target_palettes_ = LoadRenderTexture(palettes_width, palettes_height);
+  // constexpr int palettes_width = 136;
+  // constexpr int palettes_height = 128;
+  // target_palettes_ = LoadRenderTexture(palettes_width, palettes_height);
 
-  constexpr int tilemap_width = 256;
-  constexpr int tilemap_height = 256;
-  target_tilemap1_ = LoadRenderTexture(tilemap_width, tilemap_height);
-  target_tilemap2_ = LoadRenderTexture(tilemap_width, tilemap_height);
+  // constexpr int tilemap_width = 256;
+  // constexpr int tilemap_height = 256;
+  // target_tilemap1_ = LoadRenderTexture(tilemap_width, tilemap_height);
+  // target_tilemap2_ = LoadRenderTexture(tilemap_width, tilemap_height);
 
-  constexpr int sprites_width = 8 * 9;
-  constexpr int sprites_height = 5 * 16;
-  target_sprites_ = LoadRenderTexture(sprites_width, sprites_height);
+  // constexpr int sprites_width = 8 * 9;
+  // constexpr int sprites_height = 5 * 16;
+  // target_sprites_ = LoadRenderTexture(sprites_width, sprites_height);
 
-  target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
-  ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+  // target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
+  // ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
 
-  palette_ = std::move(cfg.palette);
+  // palette_ = std::move(cfg.palette);
 }
 
 void Ppu::Cleanup() {
-  UnloadRenderTexture(target_tiles_);
-  UnloadRenderTexture(target_tilemap1_);
-  UnloadRenderTexture(target_tilemap2_);
-  UnloadRenderTexture(target_sprites_);
-  UnloadRenderTexture(target_palettes_);
+  // UnloadRenderTexture(target_tiles_);
+  // UnloadRenderTexture(target_tilemap1_);
+  // UnloadRenderTexture(target_tilemap2_);
+  // UnloadRenderTexture(target_sprites_);
+  // UnloadRenderTexture(target_palettes_);
 
-  UnloadImage(target_lcd_back_);
-  UnloadTexture(target_lcd_front_);
+  // UnloadImage(target_lcd_back_);
+  // UnloadTexture(target_lcd_front_);
 }
 
 void Ppu::OnTick(bool double_speed) {
@@ -177,7 +174,7 @@ inline void Ppu::Step() {
 
 void Ppu::SwapLcdTargets() {
   frame_count_ += 1;
-  UpdateTexture(target_lcd_front_, target_lcd_back_.data);
+  // UpdateTexture(target_lcd_front_, target_lcd_back_.data);
 }
 
 void Ppu::DrawLcdRow() {
@@ -236,11 +233,11 @@ void Ppu::DrawLcdRow() {
       if (hardware_mode() == HardwareMode::kDmgMode) {
         auto cid = GetPaletteIndex(bits, regs_.bgp);
         auto color = palette_[cid];
-        ImageDrawPixel(&target_lcd_back_, x, y, color);
+        DrawPixel(x, y, color);
       } else {
         bg_win_pixels[x].priority = tile_attr.priority;
         auto cgb_palette = cgb_bg_palettes_[tile_attr.palette];
-        ImageDrawPixel(&target_lcd_back_, x, y, cgb_palette[bits & 0b11]);
+        DrawPixel(x, y, cgb_palette[bits & 0b11]);
       }
 
       bg_win_pixels[x].bits = bits;
@@ -253,9 +250,9 @@ void Ppu::DrawLcdRow() {
     if (hardware_mode() == HardwareMode::kDmgMode) {
       auto cid = GetPaletteIndex(0, regs_.bgp);
       auto color = palette_[cid];
-      ImageDrawLine(&target_lcd_back_, 0, regs_.ly, kLCDWidth, regs_.ly,  color);
+      DrawLine(0, kLCDWidth, regs_.ly,  color);
     } else {
-      ImageDrawLine(&target_lcd_back_, 0, regs_.ly, kLCDWidth, regs_.ly,  cgb_bg_palettes_[0][0]);
+      DrawLine(0, kLCDWidth, regs_.ly,  cgb_bg_palettes_[0][0]);
     }
   }
 
@@ -321,11 +318,11 @@ void Ppu::DrawLcdRow() {
           if (hardware_mode() == HardwareMode::kDmgMode) {
             auto palette = attrs.dmg_palette ? regs_.obp1: regs_.obp0;
             auto cid = GetPaletteIndex(bits, palette);
-            ImageDrawPixel(&target_lcd_back_, x, y, palette_[cid]);
+            DrawPixel(x, y, palette_[cid]);
             sprite_prio[x] = sprite->x;
           } else {
             auto cgb_palette = cgb_sprite_palettes_[attrs.cgb_palette];
-            ImageDrawPixel(&target_lcd_back_, x, y, cgb_palette[bits & 0b11]);
+            DrawPixel(x, y, cgb_palette[bits & 0b11]);
             sprite_prio[x] = oam_idx;
           }
         }
@@ -335,287 +332,287 @@ void Ppu::DrawLcdRow() {
   }
 }
 
-const Texture2D& Ppu::GetTextureLcd() const {
-  return target_lcd_front_;
-}
+// const Texture2D& Ppu::GetTextureLcd() const {
+//   return target_lcd_front_;
+// }
 
-const RenderTexture2D& Ppu::GetTextureTilemap1() const {
-  return target_tilemap1_;
-}
+// const RenderTexture2D& Ppu::GetTextureTilemap1() const {
+//   return target_tilemap1_;
+// }
 
-const RenderTexture2D& Ppu::GetTextureTilemap2() const {
-  return target_tilemap2_;
-}
+// const RenderTexture2D& Ppu::GetTextureTilemap2() const {
+//   return target_tilemap2_;
+// }
 
-const RenderTexture2D& Ppu::GetTextureSprites() const {
-  return target_sprites_;
-}
+// const RenderTexture2D& Ppu::GetTextureSprites() const {
+//   return target_sprites_;
+// }
 
-const RenderTexture2D& Ppu::GetTextureTiles() const {
-  return target_tiles_;
-}
+// const RenderTexture2D& Ppu::GetTextureTiles() const {
+//   return target_tiles_;
+// }
 
-const RenderTexture2D& Ppu::GetTexturePalettes() const {
-  return target_palettes_;
-}
+// const RenderTexture2D& Ppu::GetTexturePalettes() const {
+//   return target_palettes_;
+// }
 
-void Ppu::UpdateRenderTargets() {
-  ZoneScoped;
+// void Ppu::UpdateRenderTargets() {
+//   ZoneScoped;
 
-  constexpr int tile_width = 16;
-  constexpr int tile_height = 24;
+//   constexpr int tile_width = 16;
+//   constexpr int tile_height = 24;
 
-  BeginTextureMode(target_tiles_);
-  {
-    ZoneScopedN("BeginTextureMode:target_tiles");
+//   BeginTextureMode(target_tiles_);
+//   {
+//     ZoneScopedN("BeginTextureMode:target_tiles");
 
-    int x = 0;
-    int y = 0;
+//     int x = 0;
+//     int y = 0;
 
-    for (auto& tile : BankAt(0).tile_data) {
-      for (int row = 0; row < tile.size(); row += 1) {
-        u16 hi = (tile[row] >> 8) << 1;
-        u8 lo = tile[row];
-        for (int b = 7; b >= 0; b -= 1) {
-          u8 bits = (hi & 0b10) | (lo & 0b1);
-          auto color = palette_[bits];
-          DrawPixel((x * 8) + b, (y * 8) + row, color);
+//     for (auto& tile : BankAt(0).tile_data) {
+//       for (int row = 0; row < tile.size(); row += 1) {
+//         u16 hi = (tile[row] >> 8) << 1;
+//         u8 lo = tile[row];
+//         for (int b = 7; b >= 0; b -= 1) {
+//           u8 bits = (hi & 0b10) | (lo & 0b1);
+//           auto color = palette_[bits];
+//           DrawPixel((x * 8) + b, (y * 8) + row, color);
 
-          hi >>= 1;
-          lo >>= 1;
-        }
-      }
+//           hi >>= 1;
+//           lo >>= 1;
+//         }
+//       }
 
-      x += 1;
-      if (x >= tile_width) {
-        x = 0;
-        y += 1;
-      }
-    }
+//       x += 1;
+//       if (x >= tile_width) {
+//         x = 0;
+//         y += 1;
+//       }
+//     }
 
-    if (hardware_mode() == HardwareMode::kCgbMode) {
+//     if (hardware_mode() == HardwareMode::kCgbMode) {
 
-      for (auto& tile : BankAt(1).tile_data) {
-        for (int row = 0; row < tile.size(); row += 1) {
-          u16 hi = (tile[row] >> 8) << 1;
-          u8 lo = tile[row];
-          for (int b = 7; b >= 0; b -= 1) {
-            u8 bits = (hi & 0b10) | (lo & 0b1);
-            auto color = palette_[bits];
-            DrawPixel((x * 8) + b, (y * 8) + row, color);
+//       for (auto& tile : BankAt(1).tile_data) {
+//         for (int row = 0; row < tile.size(); row += 1) {
+//           u16 hi = (tile[row] >> 8) << 1;
+//           u8 lo = tile[row];
+//           for (int b = 7; b >= 0; b -= 1) {
+//             u8 bits = (hi & 0b10) | (lo & 0b1);
+//             auto color = palette_[bits];
+//             DrawPixel((x * 8) + b, (y * 8) + row, color);
 
-            hi >>= 1;
-            lo >>= 1;
-          }
-        }
+//             hi >>= 1;
+//             lo >>= 1;
+//           }
+//         }
 
-        x += 1;
-        if (x >= tile_width) {
-          x = 0;
-          y += 1;
-        }
-      }
-    }
-  }
-  EndTextureMode();
+//         x += 1;
+//         if (x >= tile_width) {
+//           x = 0;
+//           y += 1;
+//         }
+//       }
+//     }
+//   }
+//   EndTextureMode();
 
-  BeginTextureMode(target_tilemap1_);
-  {
-    ZoneScopedN("BeginTextureMode:target_tilemap1");
+//   BeginTextureMode(target_tilemap1_);
+//   {
+//     ZoneScopedN("BeginTextureMode:target_tilemap1");
 
-    auto tiledata_area = regs_.lcdc.tiledata_area;
-    auto& tilemap = BankAt(0).tile_map[0];
+//     auto tiledata_area = regs_.lcdc.tiledata_area;
+//     auto& tilemap = BankAt(0).tile_map[0];
 
-    int x = 0;
-    int y = 0;
-    for (auto tile : tilemap) {
-      auto tile_idx = (AddrWithMode(tiledata_area, tile) - kVRAMAddrStart) / 16;
-      auto dst_y = tile_idx / 16;
-      auto dst_x = tile_idx % 16;
+//     int x = 0;
+//     int y = 0;
+//     for (auto tile : tilemap) {
+//       auto tile_idx = (AddrWithMode(tiledata_area, tile) - kVRAMAddrStart) / 16;
+//       auto dst_y = tile_idx / 16;
+//       auto dst_x = tile_idx % 16;
 
-      Rectangle rect {
-        static_cast<float>(dst_x * 8),
-        static_cast<float>(target_tiles_.texture.height - (dst_y * 8) - 8),
-        8.f,
-        -8.f,
-      };
+//       Rectangle rect {
+//         static_cast<float>(dst_x * 8),
+//         static_cast<float>(target_tiles_.texture.height - (dst_y * 8) - 8),
+//         8.f,
+//         -8.f,
+//       };
 
-      Vector2 pos {
-        static_cast<float>(x * 8),
-        static_cast<float>(y * 8),
-      };
+//       Vector2 pos {
+//         static_cast<float>(x * 8),
+//         static_cast<float>(y * 8),
+//       };
 
-      DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
+//       DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
 
-      x += 1;
-      if (x >= 32) {
-        x = 0;
-        y += 1;
-      }
-    }
+//       x += 1;
+//       if (x >= 32) {
+//         x = 0;
+//         y += 1;
+//       }
+//     }
 
-    if (regs_.lcdc.bg_tilemap_area == 0) {
-      auto x1 = regs_.scx;
-      auto y1 = regs_.scy;
-      auto x2 = (x1 + kLCDWidth - 1) % 256;
-      auto y2 = (y1 + kLCDHeight - 1) % 256;
+//     if (regs_.lcdc.bg_tilemap_area == 0) {
+//       auto x1 = regs_.scx;
+//       auto y1 = regs_.scy;
+//       auto x2 = (x1 + kLCDWidth - 1) % 256;
+//       auto y2 = (y1 + kLCDHeight - 1) % 256;
 
-      DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, RED);
-      DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, RED);
-      DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, RED);
-      DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, RED);
-    }
-    if (regs_.lcdc.window_tilemap_area == 0) {
-      auto x1 = regs_.wx < 7 ? kLCDWidth + regs_.wx - 7 : regs_.wx - 7;
-      auto y1 = regs_.wy;
-      auto x2 = (x1 + kLCDWidth - 1) % 256;
-      auto y2 = (y1 + kLCDHeight - 1) % 256;
+//       DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, RED);
+//       DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, RED);
+//       DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, RED);
+//       DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, RED);
+//     }
+//     if (regs_.lcdc.window_tilemap_area == 0) {
+//       auto x1 = regs_.wx < 7 ? kLCDWidth + regs_.wx - 7 : regs_.wx - 7;
+//       auto y1 = regs_.wy;
+//       auto x2 = (x1 + kLCDWidth - 1) % 256;
+//       auto y2 = (y1 + kLCDHeight - 1) % 256;
 
-      DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, BLUE);
-      DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, BLUE);
-      DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, BLUE);
-      DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, BLUE);
-    }
-  }
-  EndTextureMode();
+//       DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, BLUE);
+//       DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, BLUE);
+//       DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, BLUE);
+//       DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, BLUE);
+//     }
+//   }
+//   EndTextureMode();
 
-  BeginTextureMode(target_tilemap2_);
-  {
-    ZoneScopedN("BeginTextureMode:target_tilemap2");
+//   BeginTextureMode(target_tilemap2_);
+//   {
+//     ZoneScopedN("BeginTextureMode:target_tilemap2");
 
-    auto tiledata_area = regs_.lcdc.tiledata_area;
-    auto& tilemap = BankAt(0).tile_map[1];
+//     auto tiledata_area = regs_.lcdc.tiledata_area;
+//     auto& tilemap = BankAt(0).tile_map[1];
 
-    int x = 0;
-    int y = 0;
-    for (const auto& tile : tilemap) {
-      auto tile_idx = (AddrWithMode(tiledata_area, tile) - kVRAMAddrStart) / 16;
-      auto dst_y = tile_idx / 16;
-      auto dst_x = tile_idx % 16;
+//     int x = 0;
+//     int y = 0;
+//     for (const auto& tile : tilemap) {
+//       auto tile_idx = (AddrWithMode(tiledata_area, tile) - kVRAMAddrStart) / 16;
+//       auto dst_y = tile_idx / 16;
+//       auto dst_x = tile_idx % 16;
 
-      Rectangle rect {
-        static_cast<float>(dst_x * 8),
-        static_cast<float>(target_tiles_.texture.height - (dst_y * 8) - 8),
-        8.f,
-        -8.f,
-      };
+//       Rectangle rect {
+//         static_cast<float>(dst_x * 8),
+//         static_cast<float>(target_tiles_.texture.height - (dst_y * 8) - 8),
+//         8.f,
+//         -8.f,
+//       };
 
-      Vector2 pos {
-        static_cast<float>(x * 8),
-        static_cast<float>(y * 8),
-      };
+//       Vector2 pos {
+//         static_cast<float>(x * 8),
+//         static_cast<float>(y * 8),
+//       };
 
-      DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
+//       DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
 
-      x += 1;
-      if (x >= 32) {
-        x = 0;
-        y += 1;
-      }
-    }
+//       x += 1;
+//       if (x >= 32) {
+//         x = 0;
+//         y += 1;
+//       }
+//     }
 
-    if (regs_.lcdc.bg_tilemap_area == 1) {
-      auto x1 = regs_.scx;
-      auto y1 = regs_.scy;
-      auto x2 = (x1 + kLCDWidth - 1) % 256;
-      auto y2 = (y1 + kLCDHeight - 1) % 256;
+//     if (regs_.lcdc.bg_tilemap_area == 1) {
+//       auto x1 = regs_.scx;
+//       auto y1 = regs_.scy;
+//       auto x2 = (x1 + kLCDWidth - 1) % 256;
+//       auto y2 = (y1 + kLCDHeight - 1) % 256;
 
-      DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, RED);
-      DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, RED);
-      DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, RED);
-      DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, RED);
-    }
-    if (regs_.lcdc.window_tilemap_area == 1) {
-      auto x1 = regs_.wx < 7 ? kLCDWidth + (regs_.wx - 7) : regs_.wx - 7;
-      auto y1 = regs_.wy;
-      auto x2 = (x1 + kLCDWidth - 1) % 256;
-      auto y2 = (y1 + kLCDHeight - 1) % 256;
+//       DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, RED);
+//       DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, RED);
+//       DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, RED);
+//       DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, RED);
+//     }
+//     if (regs_.lcdc.window_tilemap_area == 1) {
+//       auto x1 = regs_.wx < 7 ? kLCDWidth + (regs_.wx - 7) : regs_.wx - 7;
+//       auto y1 = regs_.wy;
+//       auto x2 = (x1 + kLCDWidth - 1) % 256;
+//       auto y2 = (y1 + kLCDHeight - 1) % 256;
 
-      DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, BLUE);
-      DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, BLUE);
-      DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, BLUE);
-      DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, BLUE);
-    }
-  }
-  EndTextureMode();
+//       DrawLine(x1, y1, x2 < x1 ? 255 : x2, y1, BLUE);
+//       DrawLine(x1, y2, x2 < x1 ? 255 : x2, y2, BLUE);
+//       DrawLine(x1, y1, x1, y2 < y1 ? 255 : y2, BLUE);
+//       DrawLine(x2, y1, x2, y2 < y1 ? 255 : y2, BLUE);
+//     }
+//   }
+//   EndTextureMode();
 
-  BeginTextureMode(target_sprites_);
-  {
-    ZoneScopedN("BeginTextureMode:target_sprites");
+//   BeginTextureMode(target_sprites_);
+//   {
+//     ZoneScopedN("BeginTextureMode:target_sprites");
 
-    ClearBackground(BLANK);
+//     ClearBackground(BLANK);
 
-    auto sprite_tile_height = regs_.lcdc.sprite_size ? 2 : 1;
-    auto row = 0;
-    auto col = 0;
+//     auto sprite_tile_height = regs_.lcdc.sprite_size ? 2 : 1;
+//     auto row = 0;
+//     auto col = 0;
 
-    for (auto& sprite : oam_.sprites) {
-      for (auto ti = 0; ti < sprite_tile_height; ti += 1) {
-        auto tile_idx = ((AddrWithMode(1, sprite.tile) - kVRAMAddrStart) / 16) + ti;
-        auto dst_y = tile_idx / 16;
-        auto dst_x = tile_idx % 16;
+//     for (auto& sprite : oam_.sprites) {
+//       for (auto ti = 0; ti < sprite_tile_height; ti += 1) {
+//         auto tile_idx = ((AddrWithMode(1, sprite.tile) - kVRAMAddrStart) / 16) + ti;
+//         auto dst_y = tile_idx / 16;
+//         auto dst_x = tile_idx % 16;
 
-        Rectangle rect {
-          static_cast<float>(dst_x * 8),
-          static_cast<float>(target_tiles_.texture.height - (dst_y * 8) - 8),
-          8.f,
-          -8.f,
-        };
+//         Rectangle rect {
+//           static_cast<float>(dst_x * 8),
+//           static_cast<float>(target_tiles_.texture.height - (dst_y * 8) - 8),
+//           8.f,
+//           -8.f,
+//         };
 
-        Vector2 pos {
-          static_cast<float>(col * 9),
-          static_cast<float>((row * sprite_tile_height * 9) + (ti * 9))
-        };
+//         Vector2 pos {
+//           static_cast<float>(col * 9),
+//           static_cast<float>((row * sprite_tile_height * 9) + (ti * 9))
+//         };
 
-        DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
+//         DrawTextureRec(target_tiles_.texture, rect, pos, WHITE);
 
-        col += 1;
-        if (col >= 8) {
-          col = 0;
-          row += 1;
-        }
-      }
-    }
-  }
-  EndTextureMode();
+//         col += 1;
+//         if (col >= 8) {
+//           col = 0;
+//           row += 1;
+//         }
+//       }
+//     }
+//   }
+//   EndTextureMode();
 
-  BeginTextureMode(target_palettes_);
-  {
-    ZoneScopedN("BeginTextureMode:target_palettes");
+//   BeginTextureMode(target_palettes_);
+//   {
+//     ZoneScopedN("BeginTextureMode:target_palettes");
 
-    ClearBackground(BLANK);
+//     ClearBackground(BLANK);
 
-    const int w = 8;
-    const int h = 8;
+//     const int w = 8;
+//     const int h = 8;
 
-    DrawText("BG", 4, 4, 10, RED);
-    for (auto i = 0; i < kCgbNumPalettes; i++) {
-      int x = i * w;
-      int y = 0;
-      DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][0]);
-      y += h;
-      DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][1]);
-      y += h;
-      DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][2]);
-      y += h;
-      DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][3]);
-    }
+//     DrawText("BG", 4, 4, 10, RED);
+//     for (auto i = 0; i < kCgbNumPalettes; i++) {
+//       int x = i * w;
+//       int y = 0;
+//       DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][0]);
+//       y += h;
+//       DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][1]);
+//       y += h;
+//       DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][2]);
+//       y += h;
+//       DrawRectangle(4 + x, 14 + y, w, h, cgb_bg_palettes_[i][3]);
+//     }
 
-    DrawText("Sprite", 4, 50, 10, RED);
-      for (auto i = 0; i < kCgbNumPalettes; i++) {
-      int x = i * w;
-      int y = 64;
-      DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][0]);
-      y += h;
-      DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][1]);
-      y += h;
-      DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][2]);
-      y += h;
-      DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][3]);
-    }
-  }
-  EndTextureMode();
-}
+//     DrawText("Sprite", 4, 50, 10, RED);
+//       for (auto i = 0; i < kCgbNumPalettes; i++) {
+//       int x = i * w;
+//       int y = 64;
+//       DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][0]);
+//       y += h;
+//       DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][1]);
+//       y += h;
+//       DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][2]);
+//       y += h;
+//       DrawRectangle(4 + x, 14 + y, w, h, cgb_sprite_palettes_[i][3]);
+//     }
+//   }
+//   EndTextureMode();
+// }
 
 bool Ppu::IsValidFor(u16 addr) const {
   if (addr == std::to_underlying(IO::VBK)) {
@@ -794,7 +791,8 @@ void Ppu::Write8(u16 addr, u8 byte) {
       cycle_counter_ = 0;
       window_line_counter_ = 0;
       regs_.stat.ppu_mode = 0;
-      ClearTargetBuffers();
+
+      // ClearTargetBuffers();
     }
     return;
   }
@@ -1024,33 +1022,33 @@ void Ppu::Reset() {
   cgb_regs_ = {};
   tick_counter_ = 0;
 
-  BeginTextureMode(target_tiles_);
-  ClearBackground(BLANK);
-  EndTextureMode();
+  // BeginTextureMode(target_tiles_);
+  // ClearBackground(BLANK);
+  // EndTextureMode();
 
-  BeginTextureMode(target_tilemap1_);
-  ClearBackground(BLANK);
-  EndTextureMode();
+  // BeginTextureMode(target_tilemap1_);
+  // ClearBackground(BLANK);
+  // EndTextureMode();
 
-  BeginTextureMode(target_tilemap2_);
-  ClearBackground(BLANK);
-  EndTextureMode();
+  // BeginTextureMode(target_tilemap2_);
+  // ClearBackground(BLANK);
+  // EndTextureMode();
 
-  BeginTextureMode(target_sprites_);
-  ClearBackground(BLANK);
-  EndTextureMode();
+  // BeginTextureMode(target_sprites_);
+  // ClearBackground(BLANK);
+  // EndTextureMode();
 
-  BeginTextureMode(target_palettes_);
-  ClearBackground(BLANK);
-  EndTextureMode();
+  // BeginTextureMode(target_palettes_);
+  // ClearBackground(BLANK);
+  // EndTextureMode();
 
-  ClearTargetBuffers();
+  // ClearTargetBuffers();
 }
 
-void Ppu::ClearTargetBuffers() {
-  ImageClearBackground(&target_lcd_back_, BLANK);
-  UpdateTexture(target_lcd_front_, target_lcd_back_.data);
-}
+// void Ppu::ClearTargetBuffers() {
+//   ImageClearBackground(&target_lcd_back_, BLANK);
+//   UpdateTexture(target_lcd_front_, target_lcd_back_.data);
+// }
 
 PPUMode Ppu::GetMode() const {
   return static_cast<PPUMode>(regs_.stat.ppu_mode);
@@ -1088,7 +1086,7 @@ size_t Ppu::GetFrameCount() const {
   return frame_count_;
 }
 
-void Ppu::UpdatePalette(std::array<Color, 4> palette) {
+void Ppu::UpdatePalette(std::array<Colour, 4> palette) {
   palette_ = std::move(palette);
 }
 
@@ -1123,4 +1121,14 @@ void Ppu::StartHBlankDma() {
     .destination = static_cast<u16>(dma_regs_.destination & 0x1ff0),
   };
   spdlog::debug("HBlank DMA triggered: src={:04x}, dst={:04x}, len={:02x}", dma_state_.source, dma_state_.destination, dma_state_.length);
+}
+
+void Ppu::DrawPixel(int x, int y, const Colour &colour) {
+  // TODO:
+}
+
+void Ppu::DrawLine(int x0, int x1, int y, const Colour &colour) {
+  for (int x = x0; x < x1; x++) {
+    DrawPixel(x, y, colour);
+  }
 }

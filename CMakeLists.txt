@@ -59,6 +59,8 @@ set(SOURCE_FILES
         src/interrupt.hpp
         src/io.hpp
         src/joypad.hpp
+        src/lcd.hpp
+        src/lcd.cpp
         src/main.cpp
         src/mbc1.cpp
         src/mbc1.hpp

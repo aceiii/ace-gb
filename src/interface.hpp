@@ -14,7 +14,7 @@
 #include "emulator.hpp"
 #include "error_messages.hpp"
 #include "recent_files.hpp"
-
+#include "lcd.hpp"
 
 namespace app {
 
@@ -64,7 +64,7 @@ struct InterfaceSettings {
   bool lock_framerate;
   bool show_scanlines;
 
-  std::array<Color, 4> palette;
+  std::array<Colour, 4> palette;
 };
 
 class Interface : public app::IApp {
@@ -118,6 +118,7 @@ private:
   MemoryEditor mem_editor_ {};
   AppLog app_log_ {};
   ErrorMessages error_messages_ {};
+  LCD lcd_ {};
 
   bool should_close_ = false;
   bool show_settings_ = false;

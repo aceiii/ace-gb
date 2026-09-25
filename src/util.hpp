@@ -6,6 +6,8 @@
 #include <raylib.h>
 #include <imgui.h>
 
+#include "types.hpp"
+
 
 Color StringToColor(const std::string& str) {
   unsigned int val;
@@ -28,11 +30,29 @@ ImVec4 ColorToImVec4(const Color& color) {
   );
 }
 
+ImVec4 ColourToImVec4(const Colour& color) {
+  return ImVec4(
+    color.red / 255.0f,
+    color.green / 255.0f,
+    color.blue / 255.0f,
+    color.alpha / 255.0f
+  );
+}
+
 Color ImVec4ToColor(const ImVec4& vec) {
   return Color{
-    .r = static_cast<unsigned char>(vec.x * 255.0f),
-    .g = static_cast<unsigned char>(vec.y * 255.0f),
-    .b = static_cast<unsigned char>(vec.z * 255.0f),
-    .a = static_cast<unsigned char>(vec.w * 255.0f),
+    .r = static_cast<u8>(vec.x * 255.0f),
+    .g = static_cast<u8>(vec.y * 255.0f),
+    .b = static_cast<u8>(vec.z * 255.0f),
+    .a = static_cast<u8>(vec.w * 255.0f),
+  };
+}
+
+Colour ImVec4ToColour(const ImVec4& vec) {
+  return Colour{
+    .red = static_cast<u8>(vec.x * 255.0f),
+    .green = static_cast<u8>(vec.y * 255.0f),
+    .blue = static_cast<u8>(vec.z * 255.0f),
+    .alpha = static_cast<u8>(vec.w * 255.0f),
   };
 }

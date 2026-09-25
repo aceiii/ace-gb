@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "types.hpp"
+#include "colour.hpp"
 #include "cpu.hpp"
 #include "ppu.hpp"
 #include "registers.hpp"
@@ -34,7 +35,7 @@ struct BootRomData {
 };
 
 struct EmulatorConfig {
-  std::array<Color, 4> palette;
+  std::array<Colour, 4> palette;
   size_t clock_speed;
   size_t sample_rate;
   size_t buffer_size;
@@ -71,11 +72,11 @@ public:
   [[nodiscard]] u16 Read16(u16 addr) const;
   void Write8(u16 addr, u8 byte);
 
-  [[nodiscard]] const Texture2D& GetTargetLCD() const;
-  [[nodiscard]] const RenderTexture2D& GetTargetTiles() const;
-  [[nodiscard]] const RenderTexture2D& GetTargetTilemap(u8 id) const;
-  [[nodiscard]] const RenderTexture2D& GetTargetSprites() const;
-  [[nodiscard]] const RenderTexture2D& GetTargetPalettes() const;
+  // [[nodiscard]] const Texture2D& GetTargetLCD() const;
+  // [[nodiscard]] const RenderTexture2D& GetTargetTiles() const;
+  // [[nodiscard]] const RenderTexture2D& GetTargetTilemap(u8 id) const;
+  // [[nodiscard]] const RenderTexture2D& GetTargetSprites() const;
+  // [[nodiscard]] const RenderTexture2D& GetTargetPalettes() const;
 
   void AddBreakPoint(u16 addr);
   void RemoveBreakPoint(u16 addr);
@@ -98,7 +99,7 @@ public:
   void ResetFrameCount();
   size_t GetFrameCount() const;
 
-  void UpdatePalette(std::array<Color, 4> palette);
+  void UpdatePalette(std::array<Colour, 4> palette);
 
   void SetClockSpeed(size_t clock_speed);
   size_t GetClockSpeed() const;

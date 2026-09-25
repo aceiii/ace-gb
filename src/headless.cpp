@@ -27,11 +27,11 @@ namespace {
   constexpr int kSamplesPerUpdate = 512;
   constexpr float kFrameRate = 59.73;
 
-  constexpr std::array<Color, 4> kDefaultPalette {
-    Color { 223, 247, 207, 255 },
-    Color { 135, 192, 111, 255 },
-    Color { 51, 104, 85, 255 },
-    Color { 8, 23, 32, 255 },
+  constexpr std::array<Colour, 4> kDefaultPalette {
+    Colour { 223, 247, 207 },
+    Colour { 135, 192, 111 },
+    Colour { 51, 104, 85 },
+    Colour { 8, 23, 32 },
   };
 
   std::atomic<bool> g_should_quit = false;

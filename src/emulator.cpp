@@ -224,7 +224,7 @@ void Emulator::Update(float dt) {
   prev_cycles_ = current_cycles - prev_cycles;
   current_cycles -= target_cycles_per_frame;
 
-  ppu_.UpdateRenderTargets();
+  // ppu_.UpdateRenderTargets();
 }
 
 void Emulator::Cleanup() {
@@ -302,7 +302,7 @@ void Emulator::Step(int cycles) {
     n += c;
     num_cycles_ += c;
   }
-  ppu_.UpdateRenderTargets();
+  // ppu_.UpdateRenderTargets();
 }
 
 void Emulator::Play() {
@@ -366,30 +366,30 @@ void Emulator::Write8(u16 addr, u8 byte) {
   mmu_.Write8(addr, byte);
 }
 
-const Texture2D& Emulator::GetTargetLCD() const {
-  return ppu_.GetTextureLcd();
-}
+// const Texture2D& Emulator::GetTargetLCD() const {
+//   // return ppu_.GetTextureLcd();
+// }
 
-const RenderTexture2D& Emulator::GetTargetTiles() const {
-  return ppu_.GetTextureTiles();
-}
+// const RenderTexture2D& Emulator::GetTargetTiles() const {
+//   // return ppu_.GetTextureTiles();
+// }
 
-const RenderTexture2D& Emulator::GetTargetTilemap(u8 idx) const {
-  if (idx == 0) {
-    return ppu_.GetTextureTilemap1();
-  } else if (idx == 1) {
-    return ppu_.GetTextureTilemap2();
-  }
-  std::unreachable();
-}
+// const RenderTexture2D& Emulator::GetTargetTilemap(u8 idx) const {
+//   // if (idx == 0) {
+//   //   return ppu_.GetTextureTilemap1();
+//   // } else if (idx == 1) {
+//   //   return ppu_.GetTextureTilemap2();
+//   // }
+//   // std::unreachable();
+// }
 
-const RenderTexture2D& Emulator::GetTargetSprites() const {
-  return ppu_.GetTextureSprites();
-}
+// const RenderTexture2D& Emulator::GetTargetSprites() const {
+//   // return ppu_.GetTextureSprites();
+// }
 
-const RenderTexture2D& Emulator::GetTargetPalettes() const {
-  return ppu_.GetTexturePalettes();
-}
+// const RenderTexture2D& Emulator::GetTargetPalettes() const {
+//   // return ppu_.GetTexturePalettes();
+// }
 
 void Emulator::AddBreakPoint(u16 addr) {
   breakpoints_.insert(addr);
@@ -478,7 +478,7 @@ size_t Emulator::GetFrameCount() const {
   return ppu_.GetFrameCount();
 }
 
-void Emulator::UpdatePalette(std::array<Color, 4> palette) {
+void Emulator::UpdatePalette(std::array<Colour, 4> palette) {
   ppu_.UpdatePalette(std::move(palette));
 }
 

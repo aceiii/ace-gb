@@ -1,8 +1,8 @@
 #pragma once
 
 #include <array>
-#include <raylib.h>
 
+#include "colour.hpp"
 #include "types.hpp"
 #include "mmu.hpp"
 #include "interrupt_device.hpp"
@@ -14,7 +14,7 @@ constexpr size_t kNumTiles = 384;
 constexpr size_t kVramNumBanks = 2;
 constexpr size_t kCgbNumPalettes = 8;
 
-using Palette = std::array<Color, 4>;
+using Palette = std::array<Colour, 4>;
 
 enum class PPUMode : u8 {
   HBlank = 0,
@@ -114,11 +114,12 @@ struct CgbColor {
   CgbColor() = default;
   CgbColor(u16 val):value{val} {}
 
-  Color GetColor() const {
-    u8 r = (value & 0x1f) << 3;
-    u8 g = ((value >> 5) & 0x1f) << 3;
-    u8 b = ((value >> 10) & 0x1f) << 3;
-    return Color{ .r = r, .g = g, .b = b, .a = 0xff };
+  Colour GetColor() const {
+    return Colour{
+      .red = static_cast<u8>((value & 0x1f) << 3),
+      .green = static_cast<u8>(((value >> 5) & 0x1f) << 3),
+      .blue = static_cast<u8>(((value >> 10) & 0x1f) << 3),
+    };
   }
 };
 
@@ -237,11 +238,14 @@ struct PpuConfig {
   Mmu* mmu;
   CpuState* state;
   InterruptDevice* interrupts;
-  std::array<Color, 4> palette;
+  std::array<Colour, 4> palette;
 };
 
 class Ppu : public MmuDevice, public SyncedDevice {
 public:
+  static constexpr u16 kLCDWidth = 160;
+  static constexpr u16 kLCDHeight = 144;
+
   void Init(PpuConfig config);
   void Cleanup();
   void Step();
@@ -254,20 +258,21 @@ public:
   void Reset() override;
 
   [[nodiscard]] PPUMode GetMode() const;
-  [[nodiscard]] const Texture2D& GetTextureLcd() const;
-  [[nodiscard]] const RenderTexture2D& GetTextureTilemap1() const;
-  [[nodiscard]] const RenderTexture2D& GetTextureTilemap2() const;
-  [[nodiscard]] const RenderTexture2D& GetTextureSprites() const;
-  [[nodiscard]] const RenderTexture2D& GetTextureTiles() const;
-  [[nodiscard]] const RenderTexture2D& GetTexturePalettes() const;
 
-  void ClearTargetBuffers();
-  void UpdateRenderTargets();
+  // [[nodiscard]] const Texture2D& GetTextureLcd() const;
+  // [[nodiscard]] const RenderTexture2D& GetTextureTilemap1() const;
+  // [[nodiscard]] const RenderTexture2D& GetTextureTilemap2() const;
+  // [[nodiscard]] const RenderTexture2D& GetTextureSprites() const;
+  // [[nodiscard]] const RenderTexture2D& GetTextureTiles() const;
+  // [[nodiscard]] const RenderTexture2D& GetTexturePalettes() const;
+
+  // void ClearTargetBuffers();
+  // void UpdateRenderTargets();
 
   void ResetFrameCount();
   size_t GetFrameCount() const;
 
-  void UpdatePalette(std::array<Color, 4> palette);
+  void UpdatePalette(std::array<Colour, 4> palette);
 
 private:
   void SetMode(PPUMode mode);
@@ -277,6 +282,9 @@ private:
   void StartGPDma();
   void StartHBlankDma();
 
+  void DrawPixel(int x, int y, const Colour& colour);
+  void DrawLine(int x0, int x1, int y, const Colour& colour);
+
   VramMemory& Bank();
   const VramMemory& Bank() const;
   const VramMemory& BankAt(u8 bit) const;
@@ -285,22 +293,23 @@ private:
   Mmu* mmu_ = nullptr;
   CpuState* state_ = nullptr;
   InterruptDevice* interrupts_ = nullptr;
-  Texture2D target_lcd_front_ {};
-  Image target_lcd_back_ {};
 
-  RenderTexture2D target_tilemap1_ {};
-  RenderTexture2D target_tilemap2_ {};
-  RenderTexture2D target_sprites_ {};
-  RenderTexture2D target_tiles_ {};
-  RenderTexture2D target_palettes_ {};
+  // Texture2D target_lcd_front_ {};
+  // Image target_lcd_back_ {};
+  // RenderTexture2D target_tilemap1_ {};
+  // RenderTexture2D target_tilemap2_ {};
+  // RenderTexture2D target_sprites_ {};
+  // RenderTexture2D target_tiles_ {};
+  // RenderTexture2D target_palettes_ {};
 
-  std::array<VramMemory, kVramNumBanks> banks_ {};
+  Palette palette_ {};
   std::array<Palette, kCgbNumPalettes> cgb_bg_palettes_ {};
   std::array<Palette, kCgbNumPalettes> cgb_sprite_palettes_ {};
+
+  std::array<VramMemory, kVramNumBanks> banks_ {};
   OamMemory oam_ {};
   PpuRegs regs_ {};
   u8 vbk_ {};
-  Palette palette_ {};
   DmaRegs dma_regs_ {};
   DmaState dma_state_ {};
   CgbPpuRegs cgb_regs_ {};

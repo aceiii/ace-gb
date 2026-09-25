@@ -70,11 +70,11 @@ constexpr int kLockedFrameRate = 60;
 constexpr char const* kShaderPathNoop = "resources/shaders/{}/noop.glsl";
 constexpr char const* kShaderPathScanline = "resources/shaders/{}/scanlines.glsl";
 
-constexpr std::array<Color, 4> kDefaultPalette {
-  Color { 223, 247, 207, 255 },
-  Color { 135, 192, 111, 255 },
-  Color { 51, 104, 85, 255 },
-  Color { 8, 23, 32, 255 },
+constexpr std::array<Colour, 4> kDefaultPalette {
+  Colour { 223, 247, 207 },
+  Colour { 135, 192, 111 },
+  Colour { 51, 104, 85 },
+  Colour { 8, 23, 32 },
 };
 
 
@@ -206,10 +206,10 @@ static auto SerializeInterfaceSettings(const InterfaceSettings& settings) -> tom
       toml::table{
         { "show_options", settings.show_graphic_options },
         { "palette", toml::array{
-            ColorToString(settings.palette[0]),
-            ColorToString(settings.palette[1]),
-            ColorToString(settings.palette[2]),
-            ColorToString(settings.palette[3]),
+            settings.palette[0].ToString(),
+            settings.palette[1].ToString(),
+            settings.palette[2].ToString(),
+            settings.palette[3].ToString(),
         }}
       }
     }
@@ -272,7 +272,7 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
 
   settings.show_graphic_options = table["graphics"]["show_options"].value_or(false);
 
-  std::array<Color, 4> palette = kDefaultPalette;
+  std::array<Colour, 4> palette = kDefaultPalette;
   if (auto arr = table["graphics"]["palette"].as_array()) {
     int idx = 0;
     arr->for_each([&](auto&& file) {
@@ -280,9 +280,9 @@ static auto DeserializeInterfaceSettings(const toml::table& table, InterfaceSett
         return;
       }
       if constexpr (toml::is_string<decltype(file)>) {
-        auto color = StringToColor(*file);
-        color.a = 255;
-        palette[idx] = color;
+        auto colour = Colour::Parse(*file);
+        colour.alpha = 255;
+        palette[idx] = colour;
         idx += 1;
       }
     });
@@ -532,14 +532,15 @@ void Interface::Update() {
     BeginShaderMode(g_screen_shader);
     {
       ClearBackground(BLACK);
-      const auto& target = emulator_.GetTargetLCD();
-      DrawTexturePro(target,
-        Rectangle{ 0, 0, (float)target.width, (float)-target.height },
-        Rectangle{0, 0, (float)g_screen_target.texture.width, (float)g_screen_target.texture.height},
-        Vector2{0, 0},
-        0.0f,
-        WHITE
-      );
+      // TODO:
+      // const auto& target = emulator_.GetTargetLCD();
+      // DrawTexturePro(target,
+      //   Rectangle{ 0, 0, (float)target.width, (float)-target.height },
+      //   Rectangle{0, 0, (float)g_screen_target.texture.width, (float)g_screen_target.texture.height},
+      //   Vector2{0, 0},
+      //   0.0f,
+      //   WHITE
+      // );
     }
     EndShaderMode();
     EndTextureMode();
@@ -865,11 +866,12 @@ void Interface::RenderLCD() {
   }
 
   if (ImGui::Begin("LCD", &config_.settings.show_lcd)) {
-    if (IsShaderValid(g_screen_shader)) {
-      rlImGuiImageTextureFit(&g_screen_target.texture, true);
-    } else {
-      rlImGuiImageTextureFit(&emulator_.GetTargetLCD(), true);
-    }
+    // TODO:
+    // if (IsShaderValid(g_screen_shader)) {
+    //   rlImGuiImageTextureFit(&g_screen_target.texture, true);
+    // } else {
+    //   rlImGuiImageTextureFit(&emulator_.GetTargetLCD(), true);
+    // }
   }
   ImGui::End();
 }
@@ -882,11 +884,12 @@ void Interface::RenderTiles() {
   }
 
   if (ImGui::Begin("Tile Data", &config_.settings.show_tiles)) {
-    auto& target = emulator_.GetTargetTiles();
-    auto width = target.texture.width;
-    auto height = target.texture.height;
-    auto scale = 3;
-    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
+    // TODO:
+    // auto& target = emulator_.GetTargetTiles();
+    // auto width = target.texture.width;
+    // auto height = target.texture.height;
+    // auto scale = 3;
+    // rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
   }
   ImGui::End();
 }
@@ -899,11 +902,12 @@ void Interface::RenderTilemap1() {
   }
 
   if (ImGui::Begin("TileMap 1", &config_.settings.show_tilemap1)) {
-    auto& target = emulator_.GetTargetTilemap(0);
-    auto width = target.texture.width;
-    auto height = target.texture.height;
-    auto scale = 2;
-    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
+    // TODO:
+    // auto& target = emulator_.GetTargetTilemap(0);
+    // auto width = target.texture.width;
+    // auto height = target.texture.height;
+    // auto scale = 2;
+    // rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
   }
   ImGui::End();
 }
@@ -916,11 +920,12 @@ void Interface::RenderTilemap2() {
   }
 
   if (ImGui::Begin("TileMap 2", &config_.settings.show_tilemap2)) {
-    auto& target = emulator_.GetTargetTilemap(1);
-    auto width = target.texture.width;
-    auto height = target.texture.height;
-    auto scale = 2;
-    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
+    // TODO:
+    // auto& target = emulator_.GetTargetTilemap(1);
+    // auto width = target.texture.width;
+    // auto height = target.texture.height;
+    // auto scale = 2;
+    // rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
   }
   ImGui::End();
 }
@@ -933,11 +938,12 @@ void Interface::RenderSprites() {
   }
 
   if (ImGui::Begin("Sprites", &config_.settings.show_sprites)) {
-    auto& target = emulator_.GetTargetSprites();
-    auto width = target.texture.width;
-    auto height = target.texture.height;
-    auto scale = 2;
-    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
+    // TODO:
+    // auto& target = emulator_.GetTargetSprites();
+    // auto width = target.texture.width;
+    // auto height = target.texture.height;
+    // auto scale = 2;
+    // rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
   }
   ImGui::End();
 }
@@ -950,11 +956,12 @@ void Interface::RenderPalettes() {
   }
 
   if (ImGui::Begin("Palettes", &config_.settings.show_palettes)) {
-    auto& target = emulator_.GetTargetPalettes();
-    auto width = target.texture.width;
-    auto height = target.texture.height;
-    auto scale = 2;
-    rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
+    // TODO:
+    // auto& target = emulator_.GetTargetPalettes();
+    // auto width = target.texture.width;
+    // auto height = target.texture.height;
+    // auto scale = 2;
+    // rlImGuiImageRect(&target.texture, width * scale, height * scale, Rectangle { 0, 0, static_cast<float>(width), -static_cast<float>(height) });
   }
   ImGui::End();
 }
@@ -1168,10 +1175,10 @@ void Interface::RenderGraphicOptions() {
   if (ImGui::Begin("Graphics", &config_.settings.show_graphic_options)) {
     update_palette = false;
 
-    static ImVec4 palette0 = ColorToImVec4(config_.settings.palette[0]);
-    static ImVec4 palette1 = ColorToImVec4(config_.settings.palette[1]);
-    static ImVec4 palette2 = ColorToImVec4(config_.settings.palette[2]);
-    static ImVec4 palette3 = ColorToImVec4(config_.settings.palette[3]);
+    static ImVec4 palette0 = ColourToImVec4(config_.settings.palette[0]);
+    static ImVec4 palette1 = ColourToImVec4(config_.settings.palette[1]);
+    static ImVec4 palette2 = ColourToImVec4(config_.settings.palette[2]);
+    static ImVec4 palette3 = ColourToImVec4(config_.settings.palette[3]);
 
     if (ImGui::ColorEdit4("GB Palette 0", &palette0.x, ImGuiColorEditFlags_NoAlpha)) {
       update_palette = true;
@@ -1193,19 +1200,19 @@ void Interface::RenderGraphicOptions() {
       palette3.w = 1.0f;
 
       config_.settings.palette = {
-        ImVec4ToColor(palette0),
-        ImVec4ToColor(palette1),
-        ImVec4ToColor(palette2),
-        ImVec4ToColor(palette3),
+        ImVec4ToColour(palette0),
+        ImVec4ToColour(palette1),
+        ImVec4ToColour(palette2),
+        ImVec4ToColour(palette3),
       };
 
       auto& p = config_.settings.palette;
       spdlog::debug("Updated palette:");
       spdlog::debug("  0: ({}, {}, {}, {})", palette0.x,  palette0.y,  palette0.z,  palette0.w);
-      spdlog::debug("  0: ({}, {}, {}, {})", p[0].r, p[0].g, p[0].b, p[0].a);
-      spdlog::debug("  1: ({}, {}, {}, {})", p[1].r, p[1].g, p[1].b, p[1].a);
-      spdlog::debug("  2: ({}, {}, {}, {})", p[2].r, p[2].g, p[2].b, p[2].a);
-      spdlog::debug("  3: ({}, {}, {}, {})", p[3].r, p[3].g, p[3].b, p[3].a);
+      spdlog::debug("  0: ({}, {}, {}, {})", p[0].red, p[0].green, p[0].blue, p[0].alpha);
+      spdlog::debug("  1: ({}, {}, {}, {})", p[1].red, p[1].green, p[1].blue, p[1].alpha);
+      spdlog::debug("  2: ({}, {}, {}, {})", p[2].red, p[2].green, p[2].blue, p[2].alpha);
+      spdlog::debug("  3: ({}, {}, {}, {})", p[3].red, p[3].green, p[3].blue, p[3].alpha);
 
       emulator_.UpdatePalette(config_.settings.palette);
     }
