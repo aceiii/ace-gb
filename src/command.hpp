@@ -1,5 +1,10 @@
 #pragma once
 
+#include <string_view>
+
+#include "types.hpp"
+
+
 namespace app {
 
 enum class CommandType {
@@ -9,12 +14,16 @@ enum class CommandType {
   Step,
   Write,
   Read,
+  Quit,
 };
 
 struct Command {
   CommandType type;
-  std::string line;
-  std::string message;
+  std::string_view line;
+  std::string_view path;
+  u16 address;
+  u8 value;
+  int steps;
 };
 
 }

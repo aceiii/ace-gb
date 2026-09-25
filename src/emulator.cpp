@@ -274,11 +274,12 @@ void Emulator::Reset() {
 
   spdlog::info("Internal emulation mode: {}", magic_enum::enum_name(hardware_mode_));
 
-  const auto& boot_rom = boot_roms_.at(hardware_mode_);
+  const auto& boot_rom = boot_roms_.find(hardware_mode_);
+  if (boot_rom != boot_roms_.end()) {
+    spdlog::debug("Using boot rom type:{} at '{}'", magic_enum::enum_name(hardware_mode_), boot_rom->second.path);
+    boot_.LoadBytes(boot_rom->second.data);
+  }
 
-  spdlog::debug("Using boot rom type:{} at '{}'", magic_enum::enum_name(hardware_mode_), boot_rom.path);
-
-  boot_.LoadBytes(boot_rom.data);
   cpu_.SetHardwareMode(hardware_mode_);
 
   if (skip_bootrom_) {

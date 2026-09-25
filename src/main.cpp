@@ -1,6 +1,8 @@
 #include <iostream>
+#include <memory>
 #include <tracy/Tracy.hpp>
 
+#include "app.hpp"
 #include "args.hpp"
 #include "headless.hpp"
 #include "interface.hpp"
@@ -8,6 +10,13 @@
 namespace {
   const char* kAppName = "ace-gb";
   const char* kAppVersion = "0.0.1";
+
+  std::unique_ptr<app::IApp> MakeApplication(bool headless) {
+    if (headless) {
+      return std::make_unique<app::Headless>();
+    }
+    return std::make_unique<app::Interface>();
+  }
 }
 
 auto main(int argc, char* argv[]) -> int {
@@ -19,17 +28,11 @@ auto main(int argc, char* argv[]) -> int {
 
   const auto& arg_values = args.value();
 
-  if (arg_values.headless) {
-    app::Headless headless;
-    headless.Init(arg_values);
-    headless.Run();
-    headless.Cleanup();
-  } else {
-    app::Interface interface;
-    interface.Init(arg_values);
-    interface.Run();
-    interface.Cleanup();
-  }
+  std::unique_ptr<app::IApp> app = MakeApplication(arg_values.headless);
 
-  return 0;
+  app->Init(arg_values);
+  int result = app->Run();
+  app->Cleanup();
+
+  return result;
 }

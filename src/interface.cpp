@@ -458,7 +458,7 @@ void Interface::Init(Args args) {
   }
 }
 
-void Interface::Run() {
+int Interface::Run() {
   spdlog::info("Running...");
 
   PlayAudioStream(stream);
@@ -474,6 +474,8 @@ void Interface::Run() {
   SaveSettings();
 
   spdlog::info("Shutting down...");
+
+  return 0;
 }
 
 void Interface::Update() {

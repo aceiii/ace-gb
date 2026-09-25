@@ -52,6 +52,11 @@ std::expected<Args, std::string> app::GetArgs(std::string_view name, std::string
     .implicit_value(true)
     .default_value(false);
 
+  program.add_argument("--script")
+    .help("Script to run, headless mode only")
+    .default_value("")
+    .nargs(1);
+
   try {
     program.parse_args(argc, argv);
   } catch (const std::exception& err) {
@@ -82,12 +87,11 @@ std::expected<Args, std::string> app::GetArgs(std::string_view name, std::string
     }
   }
 
-  auto headless = program.get<bool>("--headless");
-
   return Args{
     .settings_filename = program.get<std::string>("--settings"),
     .log_level = level,
+    .script = program.get<std::string>("--script"),
     .doctor_log = doctor_log,
-    .headless = headless,
+    .headless = program.get<bool>("--headless"),
   };
 }

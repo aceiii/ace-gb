@@ -14,6 +14,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(TOML_EXCEPTIONS=0)
 
 set(SOURCE_FILES
+        src/app.hpp
         src/applog.cpp
         src/applog.hpp
         src/args.cpp

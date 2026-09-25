@@ -6,6 +6,7 @@
 #include <imgui.h>
 #include <imgui_memory_editor/imgui_memory_editor.h>
 
+#include "app.hpp"
 #include "applog.hpp"
 #include "args.hpp"
 #include "assembly_viewer.hpp"
@@ -66,11 +67,13 @@ struct InterfaceSettings {
   std::array<Color, 4> palette;
 };
 
-class Interface {
+class Interface : public app::IApp {
 public:
-  void Init(Args args);
-  void Run();
-  void Cleanup();
+  ~Interface() override = default;
+
+  void Init(Args args) override;
+  int Run() override;
+  void Cleanup() override;
 
   void LoadCartridge();
   void LoadCartridgeCallback(std::string_view);

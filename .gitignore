@@ -29,3 +29,7 @@ settings.toml
 dmg_boot.bin
 boot.bin
 roms/
+
+# scripts
+scripts/
+

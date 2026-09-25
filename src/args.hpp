@@ -10,6 +10,7 @@ namespace app {
   struct Args {
     std::string settings_filename;
     std::string log_level;
+    std::string script;
     bool doctor_log;
     bool headless;
   };
