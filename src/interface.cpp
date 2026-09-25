@@ -406,6 +406,9 @@ void Interface::Init(Args args) {
   SetExitKey(KEY_NULL);
   rlImGuiSetup(true);
 
+  lcd_ = std::make_shared<TargetLcd>();
+  lcd_->Init();
+
   auto& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
@@ -418,6 +421,7 @@ void Interface::Init(Args args) {
     .buffer_size = kSamplesPerUpdate,
     .num_channels = kAudioNumChannels,
     .frame_rate = kFrameRate,
+    .lcd = lcd_,
   };
 
   emulator_.Init(emu_cfg);
@@ -532,15 +536,14 @@ void Interface::Update() {
     BeginShaderMode(g_screen_shader);
     {
       ClearBackground(BLACK);
-      // TODO:
-      // const auto& target = emulator_.GetTargetLCD();
-      // DrawTexturePro(target,
-      //   Rectangle{ 0, 0, (float)target.width, (float)-target.height },
-      //   Rectangle{0, 0, (float)g_screen_target.texture.width, (float)g_screen_target.texture.height},
-      //   Vector2{0, 0},
-      //   0.0f,
-      //   WHITE
-      // );
+      const auto& target = lcd_->GetTargetLCD();
+      DrawTexturePro(target,
+        Rectangle{ 0, 0, (float)target.width, (float)-target.height },
+        Rectangle{0, 0, (float)g_screen_target.texture.width, (float)g_screen_target.texture.height},
+        Vector2{0, 0},
+        0.0f,
+        WHITE
+      );
     }
     EndShaderMode();
     EndTextureMode();
@@ -866,12 +869,11 @@ void Interface::RenderLCD() {
   }
 
   if (ImGui::Begin("LCD", &config_.settings.show_lcd)) {
-    // TODO:
-    // if (IsShaderValid(g_screen_shader)) {
-    //   rlImGuiImageTextureFit(&g_screen_target.texture, true);
-    // } else {
-    //   rlImGuiImageTextureFit(&emulator_.GetTargetLCD(), true);
-    // }
+    if (IsShaderValid(g_screen_shader)) {
+      rlImGuiImageTextureFit(&g_screen_target.texture, true);
+    } else {
+      rlImGuiImageTextureFit(&lcd_->GetTargetLCD(), true);
+    }
   }
   ImGui::End();
 }
@@ -1561,6 +1563,7 @@ void Interface::Cleanup() {
   spdlog::info("Cleaning up interface");
 
   emulator_.Cleanup();
+  lcd_->Cleanup();
 
   rlImGuiShutdown();
 

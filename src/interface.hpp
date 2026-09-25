@@ -14,7 +14,8 @@
 #include "emulator.hpp"
 #include "error_messages.hpp"
 #include "recent_files.hpp"
-#include "lcd.hpp"
+#include "target_lcd.hpp"
+
 
 namespace app {
 
@@ -118,11 +119,12 @@ private:
   MemoryEditor mem_editor_ {};
   AppLog app_log_ {};
   ErrorMessages error_messages_ {};
-  LCD lcd_ {};
 
   bool should_close_ = false;
   bool show_settings_ = false;
   bool init_dock_ = false;
+
+  std::shared_ptr<TargetLcd> lcd_ {};
 };
 
 }

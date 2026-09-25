@@ -189,6 +189,7 @@ void Emulator::Init(EmulatorConfig emu_cfg) {
     .state = &cpu_.GetState(),
     .interrupts = &interrupts_,
     .palette = config_.palette,
+    .lcd = config_.lcd,
   });
 
   input_device_.Init({

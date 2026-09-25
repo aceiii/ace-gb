@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 
 #include "colour.hpp"
 #include "types.hpp"
@@ -8,6 +9,7 @@
 #include "interrupt_device.hpp"
 #include "synced_device.hpp"
 #include "cpu_state.hpp"
+#include "lcd.hpp"
 
 
 constexpr size_t kNumTiles = 384;
@@ -238,7 +240,8 @@ struct PpuConfig {
   Mmu* mmu;
   CpuState* state;
   InterruptDevice* interrupts;
-  std::array<Colour, 4> palette;
+  Palette palette;
+  std::shared_ptr<ILcd> lcd;
 };
 
 class Ppu : public MmuDevice, public SyncedDevice {
@@ -259,20 +262,13 @@ public:
 
   [[nodiscard]] PPUMode GetMode() const;
 
-  // [[nodiscard]] const Texture2D& GetTextureLcd() const;
-  // [[nodiscard]] const RenderTexture2D& GetTextureTilemap1() const;
-  // [[nodiscard]] const RenderTexture2D& GetTextureTilemap2() const;
-  // [[nodiscard]] const RenderTexture2D& GetTextureSprites() const;
-  // [[nodiscard]] const RenderTexture2D& GetTextureTiles() const;
-  // [[nodiscard]] const RenderTexture2D& GetTexturePalettes() const;
-
   // void ClearTargetBuffers();
   // void UpdateRenderTargets();
 
   void ResetFrameCount();
   size_t GetFrameCount() const;
 
-  void UpdatePalette(std::array<Colour, 4> palette);
+  void UpdatePalette(Palette palette);
 
 private:
   void SetMode(PPUMode mode);
@@ -294,14 +290,6 @@ private:
   CpuState* state_ = nullptr;
   InterruptDevice* interrupts_ = nullptr;
 
-  // Texture2D target_lcd_front_ {};
-  // Image target_lcd_back_ {};
-  // RenderTexture2D target_tilemap1_ {};
-  // RenderTexture2D target_tilemap2_ {};
-  // RenderTexture2D target_sprites_ {};
-  // RenderTexture2D target_tiles_ {};
-  // RenderTexture2D target_palettes_ {};
-
   Palette palette_ {};
   std::array<Palette, kCgbNumPalettes> cgb_bg_palettes_ {};
   std::array<Palette, kCgbNumPalettes> cgb_sprite_palettes_ {};
@@ -320,4 +308,6 @@ private:
   u8 window_line_counter_ = 0;
   bool log_doctor_ = false;
   u8 tick_counter_ = 0;
+
+  std::shared_ptr<ILcd> lcd_;
 };

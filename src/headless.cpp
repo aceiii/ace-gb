@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <print>
+#include <string>
 #include <unistd.h>
 #include <spdlog/spdlog.h>
 #include <raylib.h>
@@ -59,6 +60,10 @@ namespace {
     }
   }
 
+  void QuitCommand(const Command& command, Emulator& emulator) {
+    g_should_quit = true;
+  }
+
   void LoadCommand(const Command& command, Emulator& emulator) {
     const auto& path = command.path;
     spdlog::trace("Loading rom at '{}'", path);
@@ -92,6 +97,38 @@ namespace {
   void ReadCommand(const Command& command, Emulator& emulator) {
     auto byte = emulator.Read8(command.address);
     std::println("Read @{:04X} = {:02X}", command.address, byte);
+  }
+
+  void PrintCommand(const Command& command, Emulator& emulator) {
+    const auto instr = emulator.GetCurrentInstruction();
+    const auto regs = emulator.GetRegisters();
+    const auto cycles = emulator.GetTotalCycles();
+
+    const auto a = regs.Get(Reg8::A);
+    const auto f = regs.Get(Reg8::F);
+    const auto b = regs.Get(Reg8::B);
+    const auto c = regs.Get(Reg8::C);
+    const auto d = regs.Get(Reg8::D);
+    const auto e = regs.Get(Reg8::E);
+    const auto h = regs.Get(Reg8::H);
+    const auto l = regs.Get(Reg8::L);
+
+    u8 b1 = emulator.Read8(regs.pc);
+    u8 b2 = emulator.Read8(regs.pc + 1);
+    u8 b3 = emulator.Read8(regs.pc + 2);
+
+    std::string bytes_str = std::format("{:02X}", b1);
+    if (instr.bytes > 1) {
+      bytes_str += std::format(" {:02X}", b2);
+    }
+    if (instr.bytes > 2) {
+      bytes_str += std::format(" {:02X}", b3);
+    }
+
+    std::string instr_str = std::format("{:5}", magic_enum::enum_name(instr.opcode));
+
+    std::println("[{:04X}]  {:9} {:20} A={:02X},F={:02X},B={:02X},C={:02X},D={:02X},E={:02X},H={:02X},L={:02X} SP={:04X} Cycles={}",
+      regs.pc, bytes_str, instr_str, a, f, b, c, d, e, h, l, regs.sp, cycles);
   }
 }
 
@@ -132,11 +169,13 @@ void Headless::Cleanup() {
 void Headless::Eval(const Command& command) {
   switch (command.type) {
     case CommandType::Unknown: spdlog::warn("Unknown command: '{}'", command.line); break;
+    case CommandType::Quit: QuitCommand(command, emulator_); break;
     case CommandType::Load: LoadCommand(command, emulator_); break;
     case CommandType::Reset: ResetCommand(command, emulator_); break;
     case CommandType::Step: StepCommand(command, emulator_); break;
     case CommandType::Write: WriteCommand(command, emulator_); break;
     case CommandType::Read: ReadCommand(command, emulator_); break;
+    case CommandType::Print: PrintCommand(command, emulator_); break;
     default: std::unreachable();
   }
 }
@@ -159,8 +198,6 @@ int Headless::Run() {
       spdlog::info("Quitting...");
       break;
     }
-
-    std::print("entered: {}", line);
 
     if (line.empty()) {
       continue;

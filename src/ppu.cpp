@@ -4,6 +4,7 @@
 
 #include "io.hpp"
 #include "ppu.hpp"
+#include "null_lcd.hpp"
 
 
 namespace {
@@ -47,43 +48,16 @@ void Ppu::Init(PpuConfig cfg) {
   auto logger = spdlog::get("doctor_logger");
   log_doctor_ = logger != nullptr;
 
-  // target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
-  // ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+  if (cfg.lcd) {
+    lcd_ = cfg.lcd;
+  } else {
+    lcd_ = std::make_shared<NullLcd>();
+  }
 
-  // target_lcd_front_ = LoadTextureFromImage(target_lcd_back_);
-
-  // constexpr int tiles_width = 16 * 8;
-  // constexpr int tiles_height = 48 * 8;
-  // target_tiles_ = LoadRenderTexture(tiles_width, tiles_height);
-
-  // constexpr int palettes_width = 136;
-  // constexpr int palettes_height = 128;
-  // target_palettes_ = LoadRenderTexture(palettes_width, palettes_height);
-
-  // constexpr int tilemap_width = 256;
-  // constexpr int tilemap_height = 256;
-  // target_tilemap1_ = LoadRenderTexture(tilemap_width, tilemap_height);
-  // target_tilemap2_ = LoadRenderTexture(tilemap_width, tilemap_height);
-
-  // constexpr int sprites_width = 8 * 9;
-  // constexpr int sprites_height = 5 * 16;
-  // target_sprites_ = LoadRenderTexture(sprites_width, sprites_height);
-
-  // target_lcd_back_ = GenImageColor(kLCDWidth, kLCDHeight, BLACK);
-  // ImageFormat(&target_lcd_back_, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
-
-  // palette_ = std::move(cfg.palette);
+  palette_ = std::move(cfg.palette);
 }
 
 void Ppu::Cleanup() {
-  // UnloadRenderTexture(target_tiles_);
-  // UnloadRenderTexture(target_tilemap1_);
-  // UnloadRenderTexture(target_tilemap2_);
-  // UnloadRenderTexture(target_sprites_);
-  // UnloadRenderTexture(target_palettes_);
-
-  // UnloadImage(target_lcd_back_);
-  // UnloadTexture(target_lcd_front_);
 }
 
 void Ppu::OnTick(bool double_speed) {
@@ -174,7 +148,7 @@ inline void Ppu::Step() {
 
 void Ppu::SwapLcdTargets() {
   frame_count_ += 1;
-  // UpdateTexture(target_lcd_front_, target_lcd_back_.data);
+  lcd_->VSync();
 }
 
 void Ppu::DrawLcdRow() {
@@ -331,30 +305,6 @@ void Ppu::DrawLcdRow() {
     }
   }
 }
-
-// const Texture2D& Ppu::GetTextureLcd() const {
-//   return target_lcd_front_;
-// }
-
-// const RenderTexture2D& Ppu::GetTextureTilemap1() const {
-//   return target_tilemap1_;
-// }
-
-// const RenderTexture2D& Ppu::GetTextureTilemap2() const {
-//   return target_tilemap2_;
-// }
-
-// const RenderTexture2D& Ppu::GetTextureSprites() const {
-//   return target_sprites_;
-// }
-
-// const RenderTexture2D& Ppu::GetTextureTiles() const {
-//   return target_tiles_;
-// }
-
-// const RenderTexture2D& Ppu::GetTexturePalettes() const {
-//   return target_palettes_;
-// }
 
 // void Ppu::UpdateRenderTargets() {
 //   ZoneScoped;
@@ -1022,33 +972,8 @@ void Ppu::Reset() {
   cgb_regs_ = {};
   tick_counter_ = 0;
 
-  // BeginTextureMode(target_tiles_);
-  // ClearBackground(BLANK);
-  // EndTextureMode();
-
-  // BeginTextureMode(target_tilemap1_);
-  // ClearBackground(BLANK);
-  // EndTextureMode();
-
-  // BeginTextureMode(target_tilemap2_);
-  // ClearBackground(BLANK);
-  // EndTextureMode();
-
-  // BeginTextureMode(target_sprites_);
-  // ClearBackground(BLANK);
-  // EndTextureMode();
-
-  // BeginTextureMode(target_palettes_);
-  // ClearBackground(BLANK);
-  // EndTextureMode();
-
-  // ClearTargetBuffers();
+  lcd_->Reset();
 }
-
-// void Ppu::ClearTargetBuffers() {
-//   ImageClearBackground(&target_lcd_back_, BLANK);
-//   UpdateTexture(target_lcd_front_, target_lcd_back_.data);
-// }
 
 PPUMode Ppu::GetMode() const {
   return static_cast<PPUMode>(regs_.stat.ppu_mode);
@@ -1124,7 +1049,7 @@ void Ppu::StartHBlankDma() {
 }
 
 void Ppu::DrawPixel(int x, int y, const Colour &colour) {
-  // TODO:
+  lcd_->DrawPixel(x, y, colour);
 }
 
 void Ppu::DrawLine(int x0, int x1, int y, const Colour &colour) {

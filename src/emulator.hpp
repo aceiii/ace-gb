@@ -41,6 +41,7 @@ struct EmulatorConfig {
   size_t buffer_size;
   size_t num_channels;
   float frame_rate;
+  std::shared_ptr<ILcd> lcd;
 };
 
 class Emulator {
@@ -71,12 +72,6 @@ public:
   [[nodiscard]] u8 Read8(u16 addr, bool dma = false) const;
   [[nodiscard]] u16 Read16(u16 addr) const;
   void Write8(u16 addr, u8 byte);
-
-  // [[nodiscard]] const Texture2D& GetTargetLCD() const;
-  // [[nodiscard]] const RenderTexture2D& GetTargetTiles() const;
-  // [[nodiscard]] const RenderTexture2D& GetTargetTilemap(u8 id) const;
-  // [[nodiscard]] const RenderTexture2D& GetTargetSprites() const;
-  // [[nodiscard]] const RenderTexture2D& GetTargetPalettes() const;
 
   void AddBreakPoint(u16 addr);
   void RemoveBreakPoint(u16 addr);

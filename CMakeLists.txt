@@ -60,7 +60,6 @@ set(SOURCE_FILES
         src/io.hpp
         src/joypad.hpp
         src/lcd.hpp
-        src/lcd.cpp
         src/main.cpp
         src/mbc1.cpp
         src/mbc1.hpp
@@ -80,6 +79,8 @@ set(SOURCE_FILES
         src/noise_channel.hpp
         src/null_device.cpp
         src/null_device.hpp
+        src/null_lcd.cpp
+        src/null_lcd.hpp
         src/opcodes.hpp
         src/overloaded.hpp
         src/ppu.cpp
@@ -92,6 +93,8 @@ set(SOURCE_FILES
         src/square_channel.cpp
         src/square_channel.hpp
         src/synced_device.hpp
+        src/target_lcd.cpp
+        src/target_lcd.hpp
         src/timer.cpp
         src/timer.hpp
         src/util.hpp

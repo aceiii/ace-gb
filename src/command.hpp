@@ -9,12 +9,13 @@ namespace app {
 
 enum class CommandType {
   Unknown,
+  Quit,
   Load,
   Reset,
   Step,
   Write,
   Read,
-  Quit,
+  Print,
 };
 
 struct Command {

@@ -45,6 +45,12 @@ Command CommandParser::Parse(std::string_view line) {
     };
   }
 
+  if (line == "print") {
+    return Command{
+      .type = CommandType::Print,
+    };
+  }
+
   return Command{
     .type = CommandType::Unknown,
     .line = line,
