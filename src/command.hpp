@@ -15,6 +15,10 @@ enum class CommandType {
   Write,
   Read,
   Print,
+  Run,
+  BreakpointList,
+  BreakpointAdd,
+  BreakpointRemove,
 };
 
 struct Command {
@@ -34,6 +38,7 @@ struct Command {
   };
 
   CommandType type;
+
   std::string_view path;
   bool is_register;
   Reg reg;

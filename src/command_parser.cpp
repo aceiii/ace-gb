@@ -218,6 +218,51 @@ CommandParser::ParseResult CommandParser::Parse(std::string_view line) {
     };
   }
 
+  if (cmd == "b" || cmd == "breakpoint") {
+    auto [subcmd, rest] = SplitFirstWhitespace(args);
+
+    if (subcmd == "l" || subcmd == "list") {
+      return app::Command{
+        .type = app::CommandType::BreakpointList,
+      };
+    }
+
+    if (subcmd == "a" || subcmd == "a") {
+      auto result = ParseAddress(rest);
+      if (!result.has_value()) {
+        return std::unexpected(ParseError{
+          .line = line,
+          .message = result.error(),
+        });
+      }
+
+      return app::Command{
+        .type = app::CommandType::BreakpointAdd,
+        .address = static_cast<u16>(result.value()),
+      };
+    }
+
+    if (subcmd == "r" || subcmd == "remove") {
+      auto result = ParseAddress(rest);
+      if (!result.has_value()) {
+        return std::unexpected(ParseError{
+          .line = line,
+          .message = result.error(),
+        });
+      }
+
+      return app::Command{
+        .type = app::CommandType::BreakpointRemove,
+        .address = static_cast<u16>(result.value()),
+      };
+    }
+
+    return std::unexpected(ParseError{
+      .line = line,
+      .message = "Expected subcommand one of: l[ist], a[dd], r[emove]",
+    });
+  }
+
   return std::unexpected(ParseError{
     .line = line,
     .message = std::format("Unknown command '{}'", cmd),

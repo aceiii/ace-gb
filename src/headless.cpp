@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <print>
+#include <unordered_map>
 #include <string>
 #include <unistd.h>
 #include <variant>
@@ -39,6 +40,8 @@ namespace {
 
   std::atomic<bool> g_should_quit = false;
   bool g_interactive = false;
+
+  std::unordered_map<u16, bool> g_breakpoints;
 
   struct StreamDeleter {
     void operator()(std::istream* stream) const {
@@ -195,6 +198,42 @@ namespace {
     std::println("[{:04X}]  {:9} {:20} A={:02X},F={:02X},B={:02X},C={:02X},D={:02X},E={:02X},H={:02X},L={:02X} SP={:04X} Cycles={}",
       regs.pc, bytes_str, instr_str, a, f, b, c, d, e, h, l, regs.sp, cycles);
   }
+
+  void BreakpointListCommand(const Command& command, Emulator&) {
+
+    std::vector<std::string> lines;
+    lines.reserve(1024);
+
+    for (const auto& [addr, enabled] : g_breakpoints) {
+      lines.push_back(std::format("0x{:04X}{}", addr, enabled ? "" : "*"));
+    }
+
+    if (lines.empty()) {
+      std::println("No breakpoints");
+      return;
+    }
+
+    std::println("Breakpoints:");
+    for (auto i = 0; i < lines.size(); i += 4) {
+      auto count = std::min<int>(i + 4, lines.size()) - i;
+      switch (count) {
+        case 1: std::println("  {:8}", lines[i]); break;
+        case 2: std::println("  {:8}  {:8}", lines[i], lines[i + 1]); break;
+        case 3: std::println("  {:8}  {:8}  {:8}", lines[i], lines[i + 1], lines[i + 2]); break;
+        default: std::println("  {:8}  {:8}  {:8}  {:8}", lines[i], lines[i + 1], lines[i + 2], lines[i + 3]); break;
+      }
+    }
+  }
+
+  void BreakpointAddCommand(const Command& command, Emulator&) {
+    spdlog::info("Adding breakpoint @0x{:04X}", command.address);
+    g_breakpoints.insert_or_assign(command.address, true);
+  }
+
+  void BreakpointRemoveCommand(const Command& command, Emulator&) {
+    spdlog::info("Removing breakpoint @0x{:04X}", command.address);
+    g_breakpoints.erase(command.address);
+  }
 }
 
 void Headless::Init(Args args) {
@@ -240,6 +279,9 @@ void Headless::Eval(const Command& command) {
     case CommandType::Write: WriteCommand(command, emulator_); break;
     case CommandType::Read: ReadCommand(command, emulator_); break;
     case CommandType::Print: PrintCommand(command, emulator_); break;
+    case CommandType::BreakpointList: BreakpointListCommand(command, emulator_); break;
+    case CommandType::BreakpointAdd: BreakpointAddCommand(command, emulator_); break;
+    case CommandType::BreakpointRemove: BreakpointRemoveCommand(command, emulator_); break;
     default: std::unreachable();
   }
 }
