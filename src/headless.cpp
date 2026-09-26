@@ -38,7 +38,10 @@ namespace {
     Colour { 8, 23, 32 },
   };
 
+  std::atomic<bool> g_confirm_quit = false;
   std::atomic<bool> g_should_quit = false;
+  std::atomic<bool> g_running = false;
+
   bool g_interactive = false;
 
   std::unordered_map<u16, bool> g_breakpoints;
@@ -60,8 +63,20 @@ namespace {
 
   void SignalHandler(int signal) {
     if (signal == SIGINT) {
-      spdlog::info("Quit requested...");
-      g_should_quit = true;
+      if (g_running) {
+        spdlog::warn("Stopping...");
+        g_running = false;
+        return;
+      }
+
+      if (g_confirm_quit) {
+        g_should_quit = true;
+        spdlog::info("Quit requested...");
+        exit(99);
+      } else {
+        g_confirm_quit= true;
+        std::println("Press Ctrl + C again to quit.");
+      }
     }
   }
 
@@ -199,6 +214,20 @@ namespace {
       regs.pc, bytes_str, instr_str, a, f, b, c, d, e, h, l, regs.sp, cycles);
   }
 
+  void RunCommand(const Command& command, Emulator& emulator) {
+    g_running = true;
+    spdlog::info("Running...");
+    while (g_running) {
+      emulator.Step();
+
+      auto brk = g_breakpoints.find(emulator.GetRegisters().pc);
+      if (brk != g_breakpoints.end() && brk->second) {
+        spdlog::info("Stopping at breakpoint 0x{:04X}", brk->first);
+        g_running = false;
+      }
+    }
+  }
+
   void BreakpointListCommand(const Command& command, Emulator&) {
 
     std::vector<std::string> lines;
@@ -279,6 +308,7 @@ void Headless::Eval(const Command& command) {
     case CommandType::Write: WriteCommand(command, emulator_); break;
     case CommandType::Read: ReadCommand(command, emulator_); break;
     case CommandType::Print: PrintCommand(command, emulator_); break;
+    case CommandType::Run: RunCommand(command, emulator_); break;
     case CommandType::BreakpointList: BreakpointListCommand(command, emulator_); break;
     case CommandType::BreakpointAdd: BreakpointAddCommand(command, emulator_); break;
     case CommandType::BreakpointRemove: BreakpointRemoveCommand(command, emulator_); break;
@@ -296,6 +326,8 @@ int Headless::Run() {
   std::string line;
 
   while (!g_should_quit) {
+    g_confirm_quit = false;
+
     if (g_interactive) {
       std::print("> ");
     }

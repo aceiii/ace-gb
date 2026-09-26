@@ -120,7 +120,7 @@ CommandParser::ParseResult CommandParser::Parse(std::string_view line) {
     };
   }
 
-  if (cmd == "r" || cmd == "reset") {
+  if (cmd == "reset") {
     return app::Command{
       .type = app::CommandType::Reset,
     };
@@ -215,6 +215,12 @@ CommandParser::ParseResult CommandParser::Parse(std::string_view line) {
   if (cmd == "print") {
     return app::Command{
       .type = app::CommandType::Print,
+    };
+  }
+
+  if (cmd == "run") {
+    return app::Command{
+      .type = app::CommandType::Run,
     };
   }
 
