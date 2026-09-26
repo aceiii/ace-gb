@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <magic_enum/magic_enum.hpp>
 
 #include "command_parser.hpp"
 #include "string.hpp"
@@ -62,6 +63,50 @@ namespace {
     }
     return value;
   }
+
+  std::expected<app::Command::Reg, std::string> ParseRegister(std::string_view line) {
+    auto prefix = line.substr(0, 1);
+    if (prefix != "$") {
+      return std::unexpected(std::format("Expecting register to start with '$' but got '{}", prefix));
+    }
+
+    auto result = magic_enum::enum_cast<app::Command::Reg>(line.substr(1), magic_enum::case_insensitive);
+    if (result.has_value()) {
+      return result.value();
+    }
+    return std::unexpected(std::format("Expected register but got '{}'", line));
+  }
+
+  struct RegisterOrAddress {
+    bool is_register;
+    app::Command::Reg reg;
+    u16 address;
+  };
+
+  std::expected<RegisterOrAddress, std::string> ParseRegisterOrAddress(std::string_view line) {
+    auto prefix = line.substr(0, 1);
+    if (prefix != "@" && prefix != "$") {
+      return std::unexpected(std::format("Expecting register or address but got '{}'", line));
+    }
+
+    auto register_result = ParseRegister(line);
+    if (register_result.has_value()) {
+      return RegisterOrAddress{
+        .is_register = true,
+        .reg = register_result.value(),
+      };
+    }
+
+    auto address_result = ParseAddress(line);
+    if (!address_result.has_value()) {
+      return std::unexpected(address_result.error());
+    }
+
+    return RegisterOrAddress{
+      .is_register = false,
+      .address = static_cast<u16>(address_result.value()),
+    };
+  }
 }
 
 CommandParser::ParseResult CommandParser::Parse(std::string_view line) {
@@ -85,7 +130,7 @@ CommandParser::ParseResult CommandParser::Parse(std::string_view line) {
     if (args == "") {
       return app::Command{
         .type = app::CommandType::Step,
-        .steps = 1,
+        .value = 1,
       };
     }
 
@@ -107,29 +152,33 @@ CommandParser::ParseResult CommandParser::Parse(std::string_view line) {
 
     return app::Command{
       .type = app::CommandType::Step,
-      .steps = steps,
+      .value = steps,
     };
   }
 
   if (cmd == "r" || cmd == "read") {
-    auto addr_result = ParseAddress(args);
-    if (!addr_result.has_value()) {
+    auto result = ParseRegisterOrAddress(args);
+    if (!result.has_value()) {
       return std::unexpected(ParseError{
         .line = line,
-        .message = addr_result.error(),
+        .message = result.error(),
       });
     }
 
+    const auto& reg_or_addr = result.value();
+
     return app::Command{
       .type = app::CommandType::Read,
-      .address = static_cast<u16>(addr_result.value()),
+      .is_register = reg_or_addr.is_register,
+      .reg = reg_or_addr.reg,
+      .address = reg_or_addr.address,
     };
   };
 
   if (cmd == "w" || cmd == "write") {
     auto [addr_part, value_part] = SplitAt(args, "=");
 
-    auto addr_result = ParseAddress(addr_part);
+    auto addr_result = ParseRegisterOrAddress(addr_part);
     if (!addr_result.has_value()) {
       return std::unexpected(ParseError{
         .line = line,
@@ -146,17 +195,14 @@ CommandParser::ParseResult CommandParser::Parse(std::string_view line) {
     }
 
     auto value = value_result.value();
-    if (value < 0 || value > 0xFF) {
-      return std::unexpected(ParseError{
-        .line = line,
-        .message = "Value must be within range 0x00 to 0xFF",
-      });
-    }
+    const auto& reg_or_addr = addr_result.value();
 
     return app::Command{
       .type = app::CommandType::Write,
-      .address = static_cast<u16>(addr_result.value()),
-      .value = static_cast<u8>(value),
+      .is_register = reg_or_addr.is_register,
+      .reg = reg_or_addr.reg,
+      .address = reg_or_addr.address,
+      .value = value,
     };
   }
 

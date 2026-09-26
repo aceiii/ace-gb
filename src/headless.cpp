@@ -8,12 +8,14 @@
 #include <print>
 #include <string>
 #include <unistd.h>
+#include <variant>
 #include <spdlog/spdlog.h>
 #include <raylib.h>
 
 #include "command_parser.hpp"
 #include "file.hpp"
 #include "headless.hpp"
+#include "registers.hpp"
 
 using namespace app;
 
@@ -60,6 +62,25 @@ namespace {
     }
   }
 
+  std::variant<Reg8, Reg16> MapRegister(app::Command::Reg reg) {
+    using Reg = app::Command::Reg;
+    switch (reg) {
+      case Reg::A: return Reg8::A;
+      case Reg::F: return Reg8::F;
+      case Reg::B: return Reg8::B;
+      case Reg::C: return Reg8::C;
+      case Reg::D: return Reg8::D;
+      case Reg::E: return Reg8::E;
+      case Reg::H: return Reg8::H;
+      case Reg::L: return Reg8::L;
+      case Reg::AF: return Reg16::AF;
+      case Reg::BC: return Reg16::BC;
+      case Reg::DE: return Reg16::DE;
+      case Reg::HL: return Reg16::HL;
+      default: std::unreachable();
+    }
+  }
+
   void QuitCommand(const Command& command, Emulator& emulator) {
     g_should_quit = true;
   }
@@ -83,20 +104,64 @@ namespace {
   }
 
   void StepCommand(const Command& command, Emulator& emulator) {
-    int steps = command.steps;
+    int steps = command.value;
     while (steps-- > 0) {
       emulator.Step();
     }
   }
 
   void WriteCommand(const Command& command, Emulator& emulator) {
-    emulator.Write8(command.address, command.value);
-    std::println("Write @0x{:04X} = 0x{:02X}", command.address, command.value);
+    if (command.is_register) {
+      auto reg = MapRegister(command.reg);
+      if (std::holds_alternative<Reg16>(reg)) {
+        if (command.value < 0 || command.value > 0xFFFF) {
+          spdlog::error("Value must be within range 0x0000 to 0xFFFF");
+          return;
+        }
+
+        auto reg16 = std::get<Reg16>(reg);
+        auto word = static_cast<u16>(command.value);
+        emulator.GetRegisters().Set(reg16, word);
+        std::println("Write ${} = 0x{:04X}", magic_enum::enum_name(reg16), word);
+      } else {
+        if (command.value < 0 || command.value > 0xFF) {
+          spdlog::error("Value must be within range 0x00 to 0xFF");
+          return;
+        }
+
+        auto reg8 = std::get<Reg8>(reg);
+        auto byte = static_cast<u8>(command.value);
+        emulator.GetRegisters().Set(reg8, byte);
+        std::println("Read ${} = 0x{:02X}", magic_enum::enum_name(reg8), byte);
+      }
+    } else {
+      if (command.value < 0 || command.value > 0xFF) {
+        spdlog::error("Value must be within range 0x00 to 0xFF");
+        return;
+      }
+
+      auto value = static_cast<u8>(command.value);
+      emulator.Write8(command.address, value);
+      std::println("Write @0x{:04X} = 0x{:02X}", command.address, value);
+    }
   }
 
   void ReadCommand(const Command& command, Emulator& emulator) {
-    auto byte = emulator.Read8(command.address);
-    std::println("Read @0x{:04X} = 0x{:02X}", command.address, byte);
+    if (command.is_register) {
+      auto reg = MapRegister(command.reg);
+      if (std::holds_alternative<Reg16>(reg)) {
+        auto reg16 = std::get<Reg16>(reg);
+        auto word = emulator.GetRegisters().Get(reg16);
+        std::println("Read ${} = 0x{:04X}", magic_enum::enum_name(reg16), word);
+      } else {
+        auto reg8 = std::get<Reg8>(reg);
+        auto byte = emulator.GetRegisters().Get(reg8);
+        std::println("Read ${} = 0x{:02X}", magic_enum::enum_name(reg8), byte);
+      }
+    } else {
+      auto byte = emulator.Read8(command.address);
+      std::println("Read @0x{:04X} = 0x{:02X}", command.address, byte);
+    }
   }
 
   void PrintCommand(const Command& command, Emulator& emulator) {

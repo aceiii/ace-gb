@@ -18,11 +18,27 @@ enum class CommandType {
 };
 
 struct Command {
+  enum struct Reg {
+    A,
+    F,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    AF,
+    BC,
+    DE,
+    HL,
+  };
+
   CommandType type;
   std::string_view path;
+  bool is_register;
+  Reg reg;
   u16 address;
-  u8 value;
-  int steps;
+  int value;
 };
 
 }
