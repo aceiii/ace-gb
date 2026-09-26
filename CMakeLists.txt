@@ -90,6 +90,8 @@ set(SOURCE_FILES
         src/registers.hpp
         src/serial_device.cpp
         src/serial_device.hpp
+        src/string.cpp
+        src/string.hpp
         src/square_channel.cpp
         src/square_channel.hpp
         src/synced_device.hpp

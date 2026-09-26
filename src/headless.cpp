@@ -91,12 +91,12 @@ namespace {
 
   void WriteCommand(const Command& command, Emulator& emulator) {
     emulator.Write8(command.address, command.value);
-    std::println("Write @{:04X} = {:02X}", command.address, command.value);
+    std::println("Write @0x{:04X} = 0x{:02X}", command.address, command.value);
   }
 
   void ReadCommand(const Command& command, Emulator& emulator) {
     auto byte = emulator.Read8(command.address);
-    std::println("Read @{:04X} = {:02X}", command.address, byte);
+    std::println("Read @0x{:04X} = 0x{:02X}", command.address, byte);
   }
 
   void PrintCommand(const Command& command, Emulator& emulator) {
@@ -168,7 +168,6 @@ void Headless::Cleanup() {
 
 void Headless::Eval(const Command& command) {
   switch (command.type) {
-    case CommandType::Unknown: spdlog::warn("Unknown command: '{}'", command.line); break;
     case CommandType::Quit: QuitCommand(command, emulator_); break;
     case CommandType::Load: LoadCommand(command, emulator_); break;
     case CommandType::Reset: ResetCommand(command, emulator_); break;
@@ -203,8 +202,12 @@ int Headless::Run() {
       continue;
     }
 
-    command = CommandParser::Parse(line);
-    Eval(command);
+    auto result = CommandParser::Parse(line);
+    if (result.has_value()) {
+      Eval(result.value());
+    } else {
+      spdlog::error("[ParseError] {}", result.error().message);
+    }
   }
 
   return 0;

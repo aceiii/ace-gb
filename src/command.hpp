@@ -8,7 +8,6 @@
 namespace app {
 
 enum class CommandType {
-  Unknown,
   Quit,
   Load,
   Reset,
@@ -20,7 +19,6 @@ enum class CommandType {
 
 struct Command {
   CommandType type;
-  std::string_view line;
   std::string_view path;
   u16 address;
   u8 value;
