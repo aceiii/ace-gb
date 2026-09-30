@@ -12,11 +12,11 @@ void SerialDevice::Init(SerialDeviceConfig cfg) {
   sc_.unused = 0x1f;
 }
 
-bool SerialDevice::IsValidFor(u16 addr) const {
+bool SerialDevice::IsValidFor(u16 addr, bool dma) const {
   return addr == std::to_underlying(IO::SB) || addr == std::to_underlying(IO::SC);
 }
 
-void SerialDevice::Write8(u16 addr, u8 byte) {
+void SerialDevice::Write8(u16 addr, u8 byte, bool dma) {
   switch (addr) {
     case std::to_underlying(IO::SB): sb_ = byte; return;
     case std::to_underlying(IO::SC): {

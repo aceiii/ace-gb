@@ -15,6 +15,9 @@ namespace {
   constexpr u16 kOAMAddrStart = 0xFE00;
   constexpr u16 kOAMAddrEnd = 0xFE9F;
 
+  constexpr u16 kHramStart = 0xff80;
+  constexpr u16 kHramEnd = 0xfffe;
+
   constexpr u16 kExtRamBusStart = 0xA000;
   constexpr u16 kExtRamBusEnd = 0xDFFF;
   constexpr u16 kExtRamBusMask = kExtRamBusEnd - kExtRamBusStart;
@@ -76,7 +79,13 @@ inline void Ppu::Step() {
   auto n = tick_counter_++;
   tick_counter_ %= 4;
 
-  if (n % 4 == 0 && state_->halt && dma_state_.length && !dma_state_.hdma) {
+  auto step_idx = n %4;
+
+  if (step_idx == 0) {
+    DoOamDma();
+  }
+
+  if (step_idx == 0 && state_->halt && dma_state_.length && !dma_state_.hdma) {
     Bank().bytes[dma_state_.destination++] = mmu_->Read8(dma_state_.source++, true);
     dma_state_.length--;
     if (!dma_state_.length) {
@@ -91,7 +100,7 @@ inline void Ppu::Step() {
   const auto mode = this->GetMode();
 
   static u8 hblank_dma_counter = 0;
-  if (n % 4 == 0 && mode == PPUMode::HBlank && !state_->halt && hblank_dma_counter) {
+  if (step_idx == 0 && mode == PPUMode::HBlank && !state_->halt && hblank_dma_counter) {
     mmu_->Write8(dma_state_.destination++, mmu_->Read8(dma_state_.source++));
     hblank_dma_counter--;
     dma_state_.length--;
@@ -564,7 +573,7 @@ void Ppu::DrawLcdRow() {
 //   EndTextureMode();
 // }
 
-bool Ppu::IsValidFor(u16 addr) const {
+bool Ppu::IsValidFor(u16 addr, bool dma) const {
   if (addr == std::to_underlying(IO::VBK)) {
     return true;
   }
@@ -593,10 +602,14 @@ bool Ppu::IsValidFor(u16 addr) const {
     return true;
   }
 
+  if (!dma && addr >= kHramStart && addr <= kHramEnd && oam_dma_.state == OamDma::State::Active) {
+    return true;
+  }
+
   return false;
 }
 
-void Ppu::Write8(u16 addr, u8 byte) {
+void Ppu::Write8(u16 addr, u8 byte, bool dma) {
   if (addr == std::to_underlying(IO::VBK)) {
     if (hardware_mode() == HardwareMode::kDmgMode) {
       return;
@@ -611,7 +624,9 @@ void Ppu::Write8(u16 addr, u8 byte) {
   }
 
   if (addr >= kOAMAddrStart && addr <= kOAMAddrEnd) {
-    oam_.bytes[addr - kOAMAddrStart] = byte;
+    if (oam_dma_.state != OamDma::State::Active || dma) {
+      oam_.bytes[addr - kOAMAddrStart] = byte;
+    }
     return;
   }
 
@@ -730,7 +745,9 @@ void Ppu::Write8(u16 addr, u8 byte) {
 
   if (addr == std::to_underlying(IO::DMA)) {
     regs_.dma = byte;
-    StartDma();
+    if (!dma) {
+      StartOamDma();
+    }
     return;
   }
 
@@ -816,6 +833,10 @@ u8 Ppu::Read8(u16 addr, bool dma) const {
   }
 
   if (addr >= kOAMAddrStart && addr <= kOAMAddrEnd) {
+    if (oam_dma_.state == OamDma::State::Active && !dma) {
+      return 0xFF;
+    }
+
     return oam_.bytes[addr - kOAMAddrStart];
   }
 
@@ -951,6 +972,10 @@ u8 Ppu::Read8(u16 addr, bool dma) const {
     return 0xFF;
   }
 
+  if (!dma && addr >= kHramStart && addr <= kHramEnd && oam_dma_.state == OamDma::State::Active) {
+    return 0xFF;
+  }
+
   std::unreachable();
 }
 
@@ -971,6 +996,7 @@ void Ppu::Reset() {
   dma_state_ = {};
   cgb_regs_ = {};
   tick_counter_ = 0;
+  oam_dma_ = {};
 
   lcd_->Reset();
 }
@@ -983,23 +1009,23 @@ void Ppu::SetMode(PPUMode mode) {
   regs_.stat.ppu_mode = std::to_underlying(mode);
 }
 
-void Ppu::StartDma() {
+void Ppu::StartOamDma() {
   auto source = regs_.dma << 8;
+  bool vram = source >= kVRAMAddrStart && source <= kVRAMAddrEnd;
 
-  if (source >= kVRAMAddrStart && source <= kVRAMAddrEnd) {
-    auto base = source - kVRAMAddrStart;
-    for (auto i = 0; i < oam_.bytes.size(); i += 1) {
-      oam_.bytes[i] = Bank().bytes[base + i];
+  oam_dma_.index = 0;
+  oam_dma_.vram = vram;
+  if (vram) {
+    oam_dma_.source = source - kVRAMAddrStart;
+  } else {
+    if (source >= kExtRamBusEnd) {
+      source = kExtRamBusStart + (source & kExtRamBusMask);
     }
-    return;
+    oam_dma_.source = source;
   }
 
-  if (source >= kExtRamBusEnd) {
-    source = kExtRamBusStart + (source & kExtRamBusMask);
-  }
-
-  for (auto i = 0; i < oam_.bytes.size(); i += 1) {
-    oam_.bytes[i] = mmu_->Read8(source + i, true);
+  if (oam_dma_.state == OamDma::State::Idle) {
+    oam_dma_.state = OamDma::State::Requested;
   }
 }
 
@@ -1046,6 +1072,20 @@ void Ppu::StartHBlankDma() {
     .destination = static_cast<u16>(dma_regs_.destination & 0x1ff0),
   };
   spdlog::debug("HBlank DMA triggered: src={:04x}, dst={:04x}, len={:02x}", dma_state_.source, dma_state_.destination, dma_state_.length);
+}
+
+void Ppu::DoOamDma() {
+  if (oam_dma_.state == OamDma::State::Active) {
+    const auto source = oam_dma_.source;
+    const auto index = oam_dma_.index;
+    oam_.bytes[oam_dma_.index] = oam_dma_.vram ? Bank().bytes[source + index] : mmu_->Read8(source + index, true);
+    oam_dma_.index += 1;
+    if (oam_dma_.index >= oam_.bytes.size()) {
+      oam_dma_.state = OamDma::State::Idle;
+    }
+  } else if (oam_dma_.state == OamDma::State::Requested) {
+    oam_dma_.state = OamDma::State::Active;
+  }
 }
 
 void Ppu::DrawPixel(int x, int y, const Colour &colour) {

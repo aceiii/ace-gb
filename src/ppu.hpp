@@ -236,6 +236,19 @@ struct DmaState {
   u16 destination;
 };
 
+struct OamDma {
+  enum class State {
+    Idle,
+    Requested,
+    Active,
+  };
+
+  State state;
+  u16 source;
+  u8 index;
+  bool vram;
+};
+
 struct PpuConfig {
   Mmu* mmu;
   CpuState* state;
@@ -255,8 +268,8 @@ public:
 
   void OnTick(bool double_speed) override;
 
-  [[nodiscard]] bool IsValidFor(u16 addr) const override;
-  void Write8(u16 addr, u8 byte) override;
+  [[nodiscard]] bool IsValidFor(u16 addr, bool dma = false) const override;
+  void Write8(u16 addr, u8 byte, bool dma = false) override;
   [[nodiscard]] u8 Read8(u16 addr, bool dma = false) const override;
   void Reset() override;
 
@@ -274,9 +287,11 @@ private:
   void SetMode(PPUMode mode);
   void DrawLcdRow();
   void SwapLcdTargets();
-  void StartDma();
+  void StartOamDma();
   void StartGPDma();
   void StartHBlankDma();
+
+  void DoOamDma();
 
   void DrawPixel(int x, int y, const Colour& colour);
   void DrawLine(int x0, int x1, int y, const Colour& colour);
@@ -301,6 +316,7 @@ private:
   DmaRegs dma_regs_ {};
   DmaState dma_state_ {};
   CgbPpuRegs cgb_regs_ {};
+  OamDma oam_dma_ {};
   u8 opri_ {};
 
   size_t frame_count_ = 0;

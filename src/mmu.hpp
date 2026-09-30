@@ -13,7 +13,7 @@ public:
   void SetHardwareMode(HardwareMode mode);
 
   [[nodiscard]] u8 Read8(u16 addr, bool dma = false) const;
-  void Write8(u16 addr, u8 byte);
+  void Write8(u16 addr, u8 byte, bool dma = false);
 
   void ResetDevices();
 

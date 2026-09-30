@@ -2,11 +2,11 @@
 
 #include "null_device.hpp"
 
-[[nodiscard]] bool NullDevice::IsValidFor(u16 addr) const {
+[[nodiscard]] bool NullDevice::IsValidFor(u16 addr, bool dma) const {
   return true;
 }
 
-void NullDevice::Write8(u16 addr, u8 byte) {
+void NullDevice::Write8(u16 addr, u8 byte, bool dma) {
   if (auto it = overrides.find(addr); it != overrides.end() && it->second.writeable) {
     it->second.value = byte;
   }

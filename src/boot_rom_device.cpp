@@ -7,11 +7,11 @@ namespace {
   constexpr int kMinBootRomSize = 256;
 };
 
-bool BootRomDevice::IsValidFor(u16 addr) const {
+bool BootRomDevice::IsValidFor(u16 addr, bool dma) const {
   return addr == std::to_underlying(IO::BOOT) || (!disable_ && addr < rom_.size());
 }
 
-void BootRomDevice::Write8(u16 addr, u8 byte) {
+void BootRomDevice::Write8(u16 addr, u8 byte, bool dma) {
   if (addr != std::to_underlying(IO::BOOT)) {
     return;
   }

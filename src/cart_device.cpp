@@ -11,11 +11,11 @@
 #include "mbc3.hpp"
 #include "mbc5.hpp"
 
-bool CartDevice::IsValidFor(u16 addr) const {
+bool CartDevice::IsValidFor(u16 addr, bool dma) const {
   return addr <= kRomBank01End || (addr >= kExtRamStart && addr <= kExtRamEnd);
 }
 
-void CartDevice::Write8(u16 addr, u8 byte) {
+void CartDevice::Write8(u16 addr, u8 byte, bool dma) {
   if (addr >= kExtRamStart && addr <= kExtRamEnd) {
     return mbc_->WriteRam(addr, byte);
   }

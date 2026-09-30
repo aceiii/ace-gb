@@ -21,11 +21,11 @@ void Mmu::SetHardwareMode(HardwareMode mode) {
   }
 }
 
-void Mmu::Write8(u16 addr, u8 byte) {
+void Mmu::Write8(u16 addr, u8 byte, bool dma) {
   ZoneScoped;
   for (auto& device : devices_) {
-    if (device->IsValidFor(addr)) {
-      device->Write8(addr, byte);
+    if (device->IsValidFor(addr, dma)) {
+      device->Write8(addr, byte, dma);
       return;
     }
   }
@@ -35,7 +35,7 @@ void Mmu::Write8(u16 addr, u8 byte) {
 u8 Mmu::Read8(u16 addr, bool dma) const {
   ZoneScoped;
   for (const auto& device : devices_) {
-    if (device->IsValidFor(addr)) {
+    if (device->IsValidFor(addr, dma)) {
       return device->Read8(addr, dma);
     }
   }

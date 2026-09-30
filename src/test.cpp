@@ -23,11 +23,11 @@ class TestMemoryDevice : public MmuDevice {
 public:
   explicit TestMemoryDevice(TestMemory& mem_):mem_{mem_} {}
 
-  bool IsValidFor(u16 addr) const override {
+  bool IsValidFor(u16 addr, bool dma = false) const override {
     return true;
   }
 
-  void Write8(u16 addr, u8 byte) override {
+  void Write8(u16 addr, u8 byte, bool dma = false) override {
     mem_[addr] = byte;
   }
 

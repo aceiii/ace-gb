@@ -71,7 +71,7 @@ public:
   [[nodiscard]] Instruction GetCurrentInstruction() const;
   [[nodiscard]] u8 Read8(u16 addr, bool dma = false) const;
   [[nodiscard]] u16 Read16(u16 addr) const;
-  void Write8(u16 addr, u8 byte);
+  void Write8(u16 addr, u8 byte, bool dma = false);
 
   void AddBreakPoint(u16 addr);
   void RemoveBreakPoint(u16 addr);

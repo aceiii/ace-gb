@@ -18,11 +18,11 @@ void WramDevice::Init(Mmu* mmu) {
   mmu_ = mmu;
 }
 
-bool WramDevice::IsValidFor(u16 addr) const {
+bool WramDevice::IsValidFor(u16 addr, bool dma) const {
   return (addr >= kWramStart && addr <= kEchoRamEnd) || addr == std::to_underlying(IO::SVBK);
 }
 
-void WramDevice::Write8(u16 addr, u8 byte) {
+void WramDevice::Write8(u16 addr, u8 byte, bool dma) {
   if (addr == std::to_underlying(IO::SVBK)) {
     if (hardware_mode() == HardwareMode::kDmgMode) {
       return;

@@ -17,7 +17,7 @@ void Timer::Init(TimerConfig cfg) {
   interrupts_ = cfg.interrupts;
 }
 
-bool Timer::IsValidFor(u16 addr) const {
+bool Timer::IsValidFor(u16 addr, bool dma) const {
   switch (addr) {
     case std::to_underlying(IO::DIV):
     case std::to_underlying(IO::TIMA):
@@ -28,7 +28,7 @@ bool Timer::IsValidFor(u16 addr) const {
   }
 }
 
-void Timer::Write8(u16 addr, u8 byte) {
+void Timer::Write8(u16 addr, u8 byte, bool dma) {
   ZoneScoped;
   u16 prev_div = regs_.div;
   u8 prev_tac = regs_.tac;

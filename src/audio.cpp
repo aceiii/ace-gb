@@ -13,11 +13,11 @@ void Audio::Init(AudioConfig cfg) {
   config_ = std::move(cfg);
 }
 
-bool Audio::IsValidFor(u16 addr) const {
+bool Audio::IsValidFor(u16 addr, bool dma) const {
   return addr >= kAudioStart && addr <= kAudioEnd;
 }
 
-void Audio::Write8(u16 addr, u8 byte) {
+void Audio::Write8(u16 addr, u8 byte, bool dma) {
   if (addr >= kWaveRamStart && addr <= kWaveRamEnd) {
     ch3_.SetWave(addr - kWaveRamStart, byte);
   } else if (addr == std::to_underlying(IO::NR52)) {

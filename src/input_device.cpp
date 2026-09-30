@@ -11,11 +11,11 @@ void InputDevice::Init(InputDeviceConfig cfg) {
   interrupts_ = cfg.interrupts;
 }
 
-[[nodiscard]] bool InputDevice::IsValidFor(u16 addr) const {
+[[nodiscard]] bool InputDevice::IsValidFor(u16 addr, bool dma) const {
   return addr == std::to_underlying(IO::P1);
 }
 
-void InputDevice::Write8(u16 addr, u8 byte) {
+void InputDevice::Write8(u16 addr, u8 byte, bool dma) {
   reg_buttons_.select = (byte >> 4) & 0b11;
 }
 

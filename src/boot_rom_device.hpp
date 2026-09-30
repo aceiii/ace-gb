@@ -11,8 +11,8 @@ class BootRomDevice : public MmuDevice {
 public:
   void LoadBytes(std::span<const u8> bytes);
 
-  [[nodiscard]] bool IsValidFor(u16 addr) const override;
-  void Write8(u16 addr, u8 byte) override;
+  [[nodiscard]] bool IsValidFor(u16 addr, bool dma = false) const override;
+  void Write8(u16 addr, u8 byte, bool dma = false) override;
   [[nodiscard]] u8 Read8(u16 addr, bool dma = false) const override;
   void Reset() override;
 
