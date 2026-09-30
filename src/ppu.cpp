@@ -602,9 +602,9 @@ bool Ppu::IsValidFor(u16 addr, bool dma) const {
     return true;
   }
 
-  if (!dma && addr >= kHramStart && addr <= kHramEnd && oam_dma_.state == OamDma::State::Active) {
-    return true;
-  }
+  // if (!dma && addr >= kHramStart && addr <= kHramEnd && oam_dma_.state == OamDma::State::Active) {
+  //   return true;
+  // }
 
   return false;
 }
@@ -972,9 +972,9 @@ u8 Ppu::Read8(u16 addr, bool dma) const {
     return 0xFF;
   }
 
-  if (!dma && addr >= kHramStart && addr <= kHramEnd && oam_dma_.state == OamDma::State::Active) {
-    return 0xFF;
-  }
+  // if (!dma && addr >= kHramStart && addr <= kHramEnd && oam_dma_.state == OamDma::State::Active) {
+  //   return 0xFF;
+  // }
 
   std::unreachable();
 }
@@ -1076,13 +1076,16 @@ void Ppu::StartHBlankDma() {
 
 void Ppu::DoOamDma() {
   if (oam_dma_.state == OamDma::State::Active) {
+    if (oam_dma_.index >= oam_.bytes.size()) {
+      oam_dma_.index = 0;
+      oam_dma_.state = OamDma::State::Idle;
+      return;
+    }
+
     const auto source = oam_dma_.source;
     const auto index = oam_dma_.index;
     oam_.bytes[oam_dma_.index] = oam_dma_.vram ? Bank().bytes[source + index] : mmu_->Read8(source + index, true);
     oam_dma_.index += 1;
-    if (oam_dma_.index >= oam_.bytes.size()) {
-      oam_dma_.state = OamDma::State::Idle;
-    }
   } else if (oam_dma_.state == OamDma::State::Requested) {
     oam_dma_.state = OamDma::State::Active;
   }
