@@ -64,12 +64,12 @@
     },
     {
       "name": "Release",
-      "displayName": "Configure Release",
+      "displayName": "Build Release",
       "configurePreset": "Release"
     },
     {
       "name": "RelWithDebInfo",
-      "displayName": "Configure RelWithDebInfo",
+      "displayName": "Build RelWithDebInfo",
       "configurePreset": "RelWithDebInfo"
     }
   ]
