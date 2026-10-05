@@ -74,7 +74,7 @@ cmake --build --preset Release
 - [x] timer/tima_reload.gb
 - [x] timer/tima_write_reloading.gb
 - [x] timer/tma_write_reloading.gb
-- [ ] add_sp_e_timing.gb
+- [x] add_sp_e_timing.gb
 - [ ] boot_div-dmg0.gb
 - [ ] boot_div-dmgABCmgb.gb
 - [ ] boot_div-S.gb
@@ -91,29 +91,29 @@ cmake --build --preset Release
 - [ ] call_cc_timing2.gb
 - [ ] call_timing.gb
 - [ ] call_timing2.gb
-- [ ] di_timing-GS.gb
+- [x] di_timing-GS.gb
 - [x] div_timing.gb
 - [x] ei_sequence.gb
 - [x] ei_timing.gb
 - [x] halt_ime0_ei.gb
-- [ ] halt_ime0_nointr_timing.gb
+- [x] halt_ime0_nointr_timing.gb
 - [x] halt_ime1_timing.gb
-- [ ] halt_ime1_timing2-GS.gb
+- [x] halt_ime1_timing2-GS.gb
 - [x] if_ie_registers.gb
 - [x] intr_timing.gb
-- [ ] jp_cc_timing.gb
-- [ ] jp_timing.gb
-- [ ] ld_hl_sp_e_timing.gb
+- [x] jp_cc_timing.gb
+- [x] jp_timing.gb
+- [x] ld_hl_sp_e_timing.gb
 - [ ] oam_dma_restart.gb
 - [ ] oam_dma_start.gb
-- [ ] oam_dma_timing.gb
+- [x] oam_dma_timing.gb
 - [x] pop_timing.gb
-- [ ] push_timing.gb
+- [x] push_timing.gb
 - [x] rapid_di_ei.gb
-- [ ] ret_cc_timing.gb
-- [ ] ret_timing.gb
+- [x] ret_cc_timing.gb
+- [x] ret_timing.gb
 - [x] reti_intr_timing.gb
-- [ ] reti_timing.gb
+- [x] reti_timing.gb
 - [ ] rst_timing.gb
 
 #### Emulator only
